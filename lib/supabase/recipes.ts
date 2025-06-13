@@ -10,6 +10,8 @@ import type {
   Instruction,
   CreateIngredientInput,
   CreateInstructionInput,
+  RecipePhoto,
+  RecipeCategory,
 } from '@/lib/types/recipe'
 
 export class RecipeService {
@@ -358,7 +360,22 @@ export class RecipeService {
   }
 
   // Helper methods
-  private mapRecipe(data: any): Recipe {
+  private mapRecipe(data: {
+    id: string
+    title: string
+    description?: string
+    prep_time?: number
+    cook_time?: number
+    servings?: number
+    created_by: string
+    created_at: string
+    updated_at: string
+    is_public: boolean
+    source_name?: string
+    source_notes?: string
+    version: number
+    parent_recipe_id?: string
+  }): Recipe {
     return {
       id: data.id,
       title: data.title,
@@ -377,22 +394,83 @@ export class RecipeService {
     }
   }
 
-  private mapRecipeWithRelations(data: any, userId?: string): RecipeWithRelations {
+  private mapRecipeWithRelations(data: {
+    id: string
+    title: string
+    description?: string
+    prep_time?: number
+    cook_time?: number
+    servings?: number
+    created_by: string
+    created_at: string
+    updated_at: string
+    is_public: boolean
+    source_name?: string
+    source_notes?: string
+    version: number
+    parent_recipe_id?: string
+    ingredients?: Array<{
+      id: string
+      recipe_id: string
+      ingredient: string
+      amount?: number
+      unit?: string
+      order_index: number
+      notes?: string
+      created_at: string
+    }>
+    instructions?: Array<{
+      id: string
+      recipe_id: string
+      step_number: number
+      instruction: string
+      created_at: string
+    }>
+    recipe_photos?: Array<{
+      id: string
+      recipe_id: string
+      photo_url: string
+      is_original: boolean
+      caption?: string
+      uploaded_by: string
+      uploaded_at: string
+    }>
+    recipe_category_mappings?: Array<{
+      category?: {
+        id: string
+        name: string
+        slug: string
+        created_at: string
+      }
+    }>
+    recipe_tags?: Array<{ tag: string }>
+    favorites?: Array<{ user_id: string }>
+  }, userId?: string): RecipeWithRelations {
     return {
       ...this.mapRecipe(data),
       ingredients: (data.ingredients || []).map(this.mapIngredient),
       instructions: (data.instructions || []).map(this.mapInstruction),
       photos: (data.recipe_photos || []).map(this.mapPhoto),
       categories: (data.recipe_category_mappings || [])
-        .map((m: any) => m.category)
+        .map((m) => m.category)
         .filter(Boolean)
-        .map(this.mapCategory),
-      tags: (data.recipe_tags || []).map((t: any) => t.tag),
-      isFavorite: userId ? (data.favorites || []).some((f: any) => f.user_id === userId) : false,
+        .map((cat) => cat ? this.mapCategory(cat) : null)
+        .filter((cat): cat is RecipeCategory => cat !== null),
+      tags: (data.recipe_tags || []).map((t) => t.tag),
+      isFavorite: userId ? (data.favorites || []).some((f) => f.user_id === userId) : false,
     }
   }
 
-  private mapIngredient(data: any): Ingredient {
+  private mapIngredient(data: {
+    id: string
+    recipe_id: string
+    ingredient: string
+    amount?: number
+    unit?: string
+    order_index: number
+    notes?: string
+    created_at: string
+  }): Ingredient {
     return {
       id: data.id,
       recipeId: data.recipe_id,
@@ -405,7 +483,13 @@ export class RecipeService {
     }
   }
 
-  private mapInstruction(data: any): Instruction {
+  private mapInstruction(data: {
+    id: string
+    recipe_id: string
+    step_number: number
+    instruction: string
+    created_at: string
+  }): Instruction {
     return {
       id: data.id,
       recipeId: data.recipe_id,
@@ -415,7 +499,15 @@ export class RecipeService {
     }
   }
 
-  private mapPhoto(data: any): RecipePhoto {
+  private mapPhoto(data: {
+    id: string
+    recipe_id: string
+    photo_url: string
+    is_original: boolean
+    caption?: string
+    uploaded_by: string
+    uploaded_at: string
+  }): RecipePhoto {
     return {
       id: data.id,
       recipeId: data.recipe_id,
@@ -427,7 +519,12 @@ export class RecipeService {
     }
   }
 
-  private mapCategory(data: any): RecipeCategory {
+  private mapCategory(data: {
+    id: string
+    name: string
+    slug: string
+    created_at: string
+  }): RecipeCategory {
     return {
       id: data.id,
       name: data.name,

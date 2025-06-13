@@ -1,0 +1,84 @@
+@media print {
+  /* Hide UI elements */
+  .print\\:hidden {
+    display: none !important;
+  }
+
+  /* Reset page margins */
+  @page {
+    margin: 1cm;
+  }
+
+  /* Ensure content uses full width */
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Optimize typography for print */
+  body {
+    font-size: 12pt;
+    line-height: 1.5;
+    color: #000;
+    background: #fff;
+  }
+
+  /* Headers */
+  h1 {
+    font-size: 18pt;
+    margin-bottom: 12pt;
+  }
+
+  h2 {
+    font-size: 14pt;
+    margin-top: 18pt;
+    margin-bottom: 8pt;
+  }
+
+  /* Avoid page breaks inside elements */
+  .grid,
+  ul,
+  ol,
+  li {
+    page-break-inside: avoid;
+  }
+
+  /* Images */
+  img {
+    max-width: 100%;
+    page-break-inside: avoid;
+  }
+
+  /* Hide shadows and borders that don't print well */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Links */
+  a {
+    text-decoration: none;
+    color: #000;
+  }
+
+  /* Recipe-specific styles */
+  .rounded-full {
+    border-radius: 0;
+    padding: 2pt 6pt;
+    border: 1px solid #000;
+  }
+
+  /* Ingredients and instructions */
+  ul li,
+  ol li {
+    margin-bottom: 6pt;
+  }
+
+  /* Step numbers */
+  ol li span:first-child {
+    background: #000 !important;
+    color: #fff !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}

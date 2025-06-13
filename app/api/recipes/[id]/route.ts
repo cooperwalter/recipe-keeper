@@ -47,13 +47,13 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const recipeService = new RecipeService()
 
     // Update the recipe
-    const recipe = await recipeService.updateRecipe({ id, ...body })
+    await recipeService.updateRecipe({ id, ...body })
 
     // Update ingredients if provided
     if (body.ingredients !== undefined) {
       await recipeService.updateIngredients(
         id,
-        body.ingredients.map((ing: any, index: number) => ({
+        body.ingredients.map((ing: { ingredient: string; amount?: string; unit?: string; orderIndex?: number; notes?: string }, index: number) => ({
           recipeId: id,
           ingredient: ing.ingredient,
           amount: ing.amount,
@@ -68,7 +68,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (body.instructions !== undefined) {
       await recipeService.updateInstructions(
         id,
-        body.instructions.map((inst: any, index: number) => ({
+        body.instructions.map((inst: { stepNumber?: number; instruction: string }, index: number) => ({
           recipeId: id,
           stepNumber: inst.stepNumber || index + 1,
           instruction: inst.instruction,

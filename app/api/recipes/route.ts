@@ -21,8 +21,8 @@ export async function GET(request: NextRequest) {
       isFavorite: searchParams.get('isFavorite') === 'true' ? true : searchParams.get('isFavorite') === 'false' ? false : undefined,
       limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined,
       offset: searchParams.get('offset') ? parseInt(searchParams.get('offset')!) : undefined,
-      orderBy: searchParams.get('orderBy') as any || undefined,
-      orderDirection: searchParams.get('orderDirection') as any || undefined,
+      orderBy: searchParams.get('orderBy') as 'createdAt' | 'updatedAt' | 'title' | undefined || undefined,
+      orderDirection: searchParams.get('orderDirection') as 'asc' | 'desc' | undefined || undefined,
     }
 
     const recipeService = new RecipeService()
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     // Add ingredients if provided
     if (body.ingredients && body.ingredients.length > 0) {
       await recipeService.addIngredients(
-        body.ingredients.map((ing: any, index: number) => ({
+        body.ingredients.map((ing: { ingredient: string; amount?: string; unit?: string; orderIndex?: number; notes?: string }, index: number) => ({
           recipeId: recipe.id,
           ingredient: ing.ingredient,
           amount: ing.amount,
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     // Add instructions if provided
     if (body.instructions && body.instructions.length > 0) {
       await recipeService.addInstructions(
-        body.instructions.map((inst: any, index: number) => ({
+        body.instructions.map((inst: { stepNumber?: number; instruction: string }, index: number) => ({
           recipeId: recipe.id,
           stepNumber: inst.stepNumber || index + 1,
           instruction: inst.instruction,

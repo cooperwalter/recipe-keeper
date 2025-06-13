@@ -25,6 +25,7 @@ export function SignUpForm({
   const [repeatPassword, setRepeatPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showDemoInfo, setShowDemoInfo] = useState(false);
   const router = useRouter();
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -40,7 +41,7 @@ export function SignUpForm({
     }
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { error, data } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -48,6 +49,21 @@ export function SignUpForm({
         },
       });
       if (error) throw error;
+      
+      // For demo account in development, auto-login after signup
+      if (process.env.NODE_ENV === 'development' && email === "demo@recipekeeper.com" && data.user) {
+        // Sign in immediately for demo account
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        
+        if (!signInError) {
+          router.push("/protected");
+          return;
+        }
+      }
+      
       router.push("/auth/sign-up-success");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
@@ -66,6 +82,32 @@ export function SignUpForm({
         <CardContent>
           <form onSubmit={handleSignUp}>
             <div className="flex flex-col gap-6">
+              {/* Demo Account Info Banner - Only show in development */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="bg-accent/20 border border-accent rounded-lg p-4">
+                  <p className="text-sm font-medium mb-2">🎉 Demo Account Available!</p>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    For testing, you can use these credentials:
+                  </p>
+                  <div className="bg-background/60 rounded p-3 space-y-1 text-sm font-mono">
+                    <p>Email: demo@recipekeeper.com</p>
+                    <p>Password: DemoRecipes2024!</p>
+                  </div>
+                  <Button 
+                    type="button"
+                    variant="secondary" 
+                    size="sm" 
+                    className="mt-3 w-full"
+                    onClick={() => {
+                      setEmail("demo@recipekeeper.com");
+                      setPassword("DemoRecipes2024!");
+                      setRepeatPassword("DemoRecipes2024!");
+                    }}
+                  >
+                    Fill Demo Credentials
+                  </Button>
+                </div>
+              )}
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input

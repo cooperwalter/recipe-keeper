@@ -8,8 +8,20 @@ vi.mock('@/lib/supabase/recipes')
 vi.mock('@/lib/supabase/server')
 
 describe('/api/recipes', () => {
-  let mockRecipeService: any
-  let mockSupabase: any
+  let mockRecipeService: {
+    listRecipes: ReturnType<typeof vi.fn>
+    createRecipe: ReturnType<typeof vi.fn>
+    addIngredients: ReturnType<typeof vi.fn>
+    addInstructions: ReturnType<typeof vi.fn>
+    addCategories: ReturnType<typeof vi.fn>
+    addTags: ReturnType<typeof vi.fn>
+    getRecipe: ReturnType<typeof vi.fn>
+  }
+  let mockSupabase: {
+    auth: {
+      getUser: ReturnType<typeof vi.fn>
+    }
+  }
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -44,8 +56,8 @@ describe('/api/recipes', () => {
       },
     }
 
-    ;(RecipeService as any).mockImplementation(() => mockRecipeService)
-    ;(createClient as any).mockResolvedValue(mockSupabase)
+    ;(RecipeService as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => mockRecipeService)
+    ;(createClient as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(mockSupabase)
   })
 
   describe('GET /api/recipes', () => {

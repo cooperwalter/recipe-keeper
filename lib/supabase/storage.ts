@@ -22,7 +22,7 @@ export class StorageService {
     const { bucket, path, file, upsert = false } = options
 
     // Validate file
-    this.validateFile(file, bucket)
+    this.validateFile(file)
 
     const { data, error } = await this.supabase.storage
       .from(bucket)
@@ -188,7 +188,7 @@ export class StorageService {
   /**
    * Validate file before upload
    */
-  private validateFile(file: File, bucket: string): void {
+  private validateFile(file: File): void {
     const maxSize = 10 * 1024 * 1024 // 10MB
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 

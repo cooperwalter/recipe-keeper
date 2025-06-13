@@ -9,19 +9,31 @@ class MockFile extends Blob {
   name: string
   lastModified: number
 
-  constructor(chunks: any[], filename: string, options?: BlobPropertyBag) {
+  constructor(chunks: BlobPart[], filename: string, options?: BlobPropertyBag) {
     super(chunks, options)
     this.name = filename
     this.lastModified = Date.now()
   }
 }
 
-global.File = MockFile as any
+global.File = MockFile as unknown as typeof File
 
 describe('StorageService', () => {
   let service: StorageService
-  let mockSupabase: any
-  let mockStorageClient: any
+  let mockSupabase: {
+    auth: {
+      getUser: ReturnType<typeof vi.fn>
+    }
+    storage: {
+      from: ReturnType<typeof vi.fn>
+    }
+  }
+  let mockStorageClient: {
+    upload: ReturnType<typeof vi.fn>
+    download: ReturnType<typeof vi.fn>
+    remove: ReturnType<typeof vi.fn>
+    getPublicUrl: ReturnType<typeof vi.fn>
+  }
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -56,7 +68,7 @@ describe('StorageService', () => {
       },
     }
 
-    ;(createClient as any).mockReturnValue(mockSupabase)
+    ;(createClient as unknown as ReturnType<typeof vi.fn>).mockReturnValue(mockSupabase)
     service = new StorageService()
   })
 

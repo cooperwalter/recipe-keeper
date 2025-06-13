@@ -7,7 +7,12 @@ vi.mock('@/lib/supabase/client')
 
 describe('RecipeService', () => {
   let service: RecipeService
-  let mockSupabase: any
+  let mockSupabase: {
+    auth: {
+      getUser: ReturnType<typeof vi.fn>
+    }
+    from: ReturnType<typeof vi.fn>
+  }
 
   // Create mock Supabase client with chainable methods
   const createMockChain = (overrides = {}) => {
@@ -26,8 +31,8 @@ describe('RecipeService', () => {
     
     // Make all methods return the chain for chaining
     Object.keys(chain).forEach(key => {
-      if (key !== 'single' && typeof chain[key] === 'function') {
-        chain[key].mockReturnValue(chain)
+      if (key !== 'single' && typeof (chain as Record<string, unknown>)[key] === 'function') {
+        ((chain as Record<string, unknown>)[key] as ReturnType<typeof vi.fn>).mockReturnValue(chain)
       }
     })
     
@@ -46,7 +51,7 @@ describe('RecipeService', () => {
       from: vi.fn(() => createMockChain()),
     }
 
-    ;(createClient as any).mockReturnValue(mockSupabase)
+    ;(createClient as unknown as ReturnType<typeof vi.fn>).mockReturnValue(mockSupabase)
     service = new RecipeService()
   })
 
