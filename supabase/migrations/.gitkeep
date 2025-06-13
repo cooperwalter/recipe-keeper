@@ -1,0 +1,3 @@
+# This directory contains database migrations
+# Migrations are run automatically during the build process
+# Use `pnpm migrate:create <name>` to create a new migration

@@ -118,4 +118,5 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-supabase-anon-key>
 - Protected routes use middleware for session management
 
 ## Claude Memories
+
 - Always reference the project roadmap (PROJECT_ROADMAP.md) when completing any task

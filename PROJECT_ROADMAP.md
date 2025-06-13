@@ -20,6 +20,40 @@ This roadmap outlines the development phases for the Recipe Inheritance Keeper M
 - [ ] Create database triggers for version tracking
 - [ ] Write seed data for testing
 
+### Database Migration Automation
+- [ ] Install and configure Supabase CLI
+  - Initialize Supabase project with `supabase init`
+  - Link to remote project with `supabase link`
+  - Configure `.env.local` with database URL
+- [ ] Create migration structure
+  - Set up `supabase/migrations/` directory
+  - Create initial schema migration
+  - Add migration naming convention documentation
+- [ ] Implement migration automation
+  - Create `scripts/run-migrations.js` script
+  - Add migration status tracking (check applied migrations)
+  - Implement rollback capability
+  - Add migration validation before applying
+- [ ] Integrate with build process
+  - Update `package.json` build script to run migrations
+  - Add pre-build migration check
+  - Create GitHub Action for production migrations
+  - Add migration dry-run for staging
+- [ ] Create migration utilities
+  - Script to generate new migrations
+  - Script to verify migration integrity
+  - Script to generate TypeScript types from schema
+- [ ] Set up development workflow
+  - Add `pnpm migrate:create` command
+  - Add `pnpm migrate:up` command
+  - Add `pnpm migrate:down` command
+  - Add `pnpm migrate:status` command
+- [ ] Test migration system
+  - Test idempotency (running same migration twice)
+  - Test rollback functionality
+  - Test migration ordering
+  - Test concurrent migration handling
+
 ### Basic Recipe CRUD Operations
 - [ ] Create Recipe type definitions and interfaces
 - [ ] Implement Supabase client functions for CRUD
@@ -394,6 +428,63 @@ This roadmap outlines the development phases for the Recipe Inheritance Keeper M
 - Use ESLint and Prettier
 - Conduct code reviews
 - Document complex logic
+
+### Database Migration Guidelines
+
+#### Migration Best Practices
+- **Naming Convention**: Use timestamp prefix `YYYYMMDDHHMMSS_descriptive_name.sql`
+- **Atomic Migrations**: Each migration should be a single logical change
+- **Reversible**: Include DOWN migrations for rollback capability
+- **Idempotent**: Migrations should be safe to run multiple times
+- **Tested**: Test migrations on local database before committing
+
+#### Migration Workflow
+1. **Local Development**
+   ```bash
+   # Create new migration
+   pnpm migrate:create add_recipe_nutrition
+   
+   # Apply pending migrations
+   pnpm migrate:up
+   
+   # Check migration status
+   pnpm migrate:status
+   
+   # Rollback last migration
+   pnpm migrate:down
+   ```
+
+2. **Build Integration**
+   ```json
+   // package.json
+   {
+     "scripts": {
+       "build": "npm run migrate:up && next build",
+       "migrate:create": "supabase migration new",
+       "migrate:up": "node scripts/run-migrations.js",
+       "migrate:down": "node scripts/rollback-migration.js",
+       "migrate:status": "node scripts/check-migrations.js"
+     }
+   }
+   ```
+
+3. **Migration Tracking**
+   - Migrations are tracked in `schema_migrations` table
+   - Each migration records: filename, checksum, applied_at
+   - Build process checks for unapplied migrations
+   - Prevents duplicate migration application
+
+4. **Type Generation**
+   ```bash
+   # After migrations, regenerate types
+   pnpm generate:types
+   ```
+
+5. **CI/CD Integration**
+   - Pull requests run migrations in preview environment
+   - Main branch deploys run migrations before deployment
+   - Rollback plan documented for each migration
+   - Migration success is verified before marking deployment complete
 
 ### Git Workflow
 - Feature branches for development
