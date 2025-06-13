@@ -116,3 +116,6 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-supabase-anon-key>
 - Auth flows already implemented in `/app/auth`
 - Use Supabase client from `/lib/supabase`
 - Protected routes use middleware for session management
+
+## Claude Memories
+- Always reference the project roadmap (PROJECT_ROADMAP.md) when completing any task
