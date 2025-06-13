@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev --turbopack -p 3002",
     "build": "node scripts/check-migrations.js && node scripts/run-migrations.js && next build",
     "start": "next start",
     "lint": "next lint",
