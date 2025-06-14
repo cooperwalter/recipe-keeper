@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, Suspense, useRef } from 'react'
 import { RecipeGrid } from '@/components/recipes/RecipeGrid'
 import { RecipePagination } from '@/components/recipes/RecipePagination'
 import { Button } from '@/components/ui/button'
@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Plus, Search } from 'lucide-react'
+import { Plus, Search, X } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { RecipeListResponse, RecipeCategory } from '@/lib/types/recipe'
@@ -32,21 +32,59 @@ function RecipesPageContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '')
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all')
+  const [isSearching, setIsSearching] = useState(false)
   
   const currentPage = parseInt(searchParams.get('page') || '1', 10)
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
+  // Fetch categories on mount
+  useEffect(() => {
+    fetchCategories()
+  }, [])
+
+  // Fetch recipes when search params change
   useEffect(() => {
     fetchRecipes()
-    fetchCategories()
   }, [searchParams]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Handle real-time search with debouncing
+  useEffect(() => {
+    // Clear existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
+    }
+
+    // Don't search if the query is the same as in URL
+    if (searchQuery === (searchParams.get('q') || '')) {
+      return
+    }
+
+    setIsSearching(true)
+
+    // Set new timeout for debounced search
+    searchTimeoutRef.current = setTimeout(() => {
+      updateSearchParams({ q: searchQuery, page: '1' })
+    }, 300) // 300ms debounce
+
+    // Cleanup
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current)
+      }
+    }
+  }, [searchQuery]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchRecipes = async () => {
     setIsLoading(true)
+    setIsSearching(false)
     try {
       const params = new URLSearchParams()
-      if (searchQuery) params.append('query', searchQuery)
-      if (selectedCategory && selectedCategory !== 'all') {
-        params.append('categories', selectedCategory)
+      const urlQuery = searchParams.get('q') || ''
+      const urlCategory = searchParams.get('category') || 'all'
+      
+      if (urlQuery) params.append('query', urlQuery)
+      if (urlCategory && urlCategory !== 'all') {
+        params.append('categoryId', urlCategory)
       }
       params.append('limit', ITEMS_PER_PAGE.toString())
       params.append('offset', ((currentPage - 1) * ITEMS_PER_PAGE).toString())
@@ -75,9 +113,9 @@ function RecipesPageContent() {
     }
   }
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    updateSearchParams({ q: searchQuery, page: '1' })
+  const handleClearSearch = () => {
+    setSearchQuery('')
+    updateSearchParams({ q: '', page: '1' })
   }
 
   const handleCategoryChange = (category: string) => {
@@ -128,7 +166,7 @@ function RecipesPageContent() {
   const totalPages = Math.ceil(recipes.total / ITEMS_PER_PAGE)
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="w-full">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <h1 className="text-3xl font-bold">My Recipes</h1>
         <Link href="/protected/recipes/new">
@@ -140,27 +178,41 @@ function RecipesPageContent() {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 mb-8">
-        <form onSubmit={handleSearch} className="flex-1 flex gap-2">
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
             placeholder="Search recipes..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1"
+            className="pl-10 pr-10"
           />
-          <Button type="submit" variant="secondary">
-            <Search className="h-4 w-4" />
-          </Button>
-        </form>
+          {searchQuery && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+              onClick={handleClearSearch}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+          {isSearching && (
+            <div className="absolute right-10 top-1/2 transform -translate-y-1/2">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            </div>
+          )}
+        </div>
         
-        <Select value={selectedCategory} onValueChange={handleCategoryChange}>
+        <Select value={searchParams.get('category') || 'all'} onValueChange={handleCategoryChange}>
           <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder="All Categories" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Categories</SelectItem>
             {categories.map((category) => (
-              <SelectItem key={category.id} value={category.slug}>
+              <SelectItem key={category.id} value={category.id}>
                 {category.name}
               </SelectItem>
             ))}
