@@ -1,23 +1,12 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { CategoryService } from '@/lib/db/categories'
 
 export async function GET() {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const { data, error } = await supabase
-      .from('recipe_categories')
-      .select('*')
-      .order('name')
-
-    if (error) throw error
-
-    return NextResponse.json(data)
+    const categoryService = new CategoryService()
+    const categories = await categoryService.getCategories()
+    
+    return NextResponse.json(categories)
   } catch (error) {
     console.error('Error fetching categories:', error)
     return NextResponse.json(

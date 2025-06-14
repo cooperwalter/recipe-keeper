@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Testing
+coverage/
+.vitest/
+*.test.ts
+*.test.tsx
+__tests__/
+
+# Local env files
+.env*.local
+.env.local
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Misc
+.DS_Store
+*.pem
+
+# Development
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Supabase
+supabase/.branches/
+supabase/.temp/
+
+# Scripts (not needed in production)
+scripts/create-demo-account.ts
+scripts/setup-demo.ts
+
+# Documentation
+DEMO_SETUP.md
+PROJECT_ROADMAP.md
+RELEASE_NOTES.md

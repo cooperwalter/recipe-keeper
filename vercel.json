@@ -1,0 +1,17 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "pnpm build",
+  "installCommand": "pnpm install",
+  "regions": ["iad1"],
+  "functions": {
+    "app/api/recipes/route.ts": {
+      "maxDuration": 30
+    },
+    "app/api/recipes/[id]/route.ts": {
+      "maxDuration": 30
+    },
+    "app/api/recipes/[id]/photos/route.ts": {
+      "maxDuration": 30
+    }
+  }
+}

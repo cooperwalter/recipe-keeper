@@ -17,7 +17,7 @@ export default function ContactPage() {
         <div className="max-w-2xl text-center space-y-6">
           <h1 className="text-4xl font-bold">Contact Us</h1>
           <p className="text-lg text-muted-foreground">
-            Have questions or feedback about Recipe Keeper? We'd love to hear from you. 
+            Have questions or feedback about Recipe Keeper? We&apos;d love to hear from you. 
             Reach out to us at support@recipekeeper.com
           </p>
           <Link href="/" className="text-primary hover:underline">

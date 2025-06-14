@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { RecipeService } from '@/lib/supabase/recipes'
+import { RecipeService } from '@/lib/db/recipes'
 import { createClient } from '@/lib/supabase/server'
 
 export async function GET(request: NextRequest) {
@@ -14,14 +14,14 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const params = {
       query: searchParams.get('query') || undefined,
-      categories: searchParams.get('categories')?.split(',').filter(Boolean),
+      categoryId: searchParams.get('categoryId') || undefined,
       tags: searchParams.get('tags')?.split(',').filter(Boolean),
-      createdBy: searchParams.get('createdBy') || undefined,
+      userId: searchParams.get('userId') || undefined,
       isPublic: searchParams.get('isPublic') === 'true' ? true : searchParams.get('isPublic') === 'false' ? false : undefined,
       isFavorite: searchParams.get('isFavorite') === 'true' ? true : searchParams.get('isFavorite') === 'false' ? false : undefined,
       limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined,
       offset: searchParams.get('offset') ? parseInt(searchParams.get('offset')!) : undefined,
-      orderBy: searchParams.get('orderBy') as 'createdAt' | 'updatedAt' | 'title' | undefined || undefined,
+      orderBy: searchParams.get('orderBy') as 'createdAt' | 'title' | 'prepTime' | undefined || undefined,
       orderDirection: searchParams.get('orderDirection') as 'asc' | 'desc' | undefined || undefined,
     }
 
@@ -51,41 +51,27 @@ export async function POST(request: NextRequest) {
     const recipeService = new RecipeService()
     
     // Create the recipe
-    const recipe = await recipeService.createRecipe(body)
+    const recipe = await recipeService.createRecipe({
+      title: body.title,
+      description: body.description,
+      ingredients: body.ingredients || [],
+      instructions: body.instructions || [],
+      prepTime: body.prepTime,
+      cookTime: body.cookTime,
+      servings: body.servings,
+      difficulty: body.difficulty,
+      categoryId: body.categoryId,
+      source: body.source,
+      sourceUrl: body.sourceUrl,
+      nutritionInfo: body.nutritionInfo,
+      tags: body.tags || [],
+      isPublic: body.isPublic || false,
+      notes: body.notes,
+    })
 
-    // Add ingredients if provided
-    if (body.ingredients && body.ingredients.length > 0) {
-      await recipeService.addIngredients(
-        body.ingredients.map((ing: { ingredient: string; amount?: string; unit?: string; orderIndex?: number; notes?: string }, index: number) => ({
-          recipeId: recipe.id,
-          ingredient: ing.ingredient,
-          amount: ing.amount,
-          unit: ing.unit,
-          orderIndex: ing.orderIndex || index,
-          notes: ing.notes,
-        }))
-      )
-    }
-
-    // Add instructions if provided
-    if (body.instructions && body.instructions.length > 0) {
-      await recipeService.addInstructions(
-        body.instructions.map((inst: { stepNumber?: number; instruction: string }, index: number) => ({
-          recipeId: recipe.id,
-          stepNumber: inst.stepNumber || index + 1,
-          instruction: inst.instruction,
-        }))
-      )
-    }
-
-    // Add categories if provided
-    if (body.categoryIds && body.categoryIds.length > 0) {
-      await recipeService.addCategories(recipe.id, body.categoryIds)
-    }
-
-    // Add tags if provided
-    if (body.tags && body.tags.length > 0) {
-      await recipeService.addTags(recipe.id, body.tags)
+    // Add photo if provided
+    if (body.photoUrl) {
+      await recipeService.addPhoto(recipe.id, body.photoUrl, body.photoCaption, true)
     }
 
     // Fetch the complete recipe with all relations

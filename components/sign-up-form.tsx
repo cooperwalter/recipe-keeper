@@ -25,7 +25,6 @@ export function SignUpForm({
   const [repeatPassword, setRepeatPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [showDemoInfo, setShowDemoInfo] = useState(false);
   const router = useRouter();
 
   const handleSignUp = async (e: React.FormEvent) => {

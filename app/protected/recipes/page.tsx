@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { RecipeGrid } from '@/components/recipes/RecipeGrid'
 import { RecipePagination } from '@/components/recipes/RecipePagination'
 import { Button } from '@/components/ui/button'
@@ -19,7 +19,7 @@ import { RecipeListResponse, RecipeCategory } from '@/lib/types/recipe'
 
 const ITEMS_PER_PAGE = 12
 
-export default function RecipesPage() {
+function RecipesPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   
@@ -185,5 +185,13 @@ export default function RecipesPage() {
         onPageChange={handlePageChange}
       />
     </div>
+  )
+}
+
+export default function RecipesPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <RecipesPageContent />
+    </Suspense>
   )
 }
