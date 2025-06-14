@@ -15,7 +15,11 @@ import type {
 } from '@/lib/types/recipe'
 
 export class RecipeService {
-  private supabase = createClient()
+  private supabase
+
+  constructor(supabase?: any) {
+    this.supabase = supabase || createClient()
+  }
 
   /**
    * Create a new recipe

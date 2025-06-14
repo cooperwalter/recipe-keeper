@@ -1,6 +1,6 @@
 @media print {
   /* Hide UI elements */
-  .print\\:hidden {
+  [class*="print:hidden"] {
     display: none !important;
   }
 

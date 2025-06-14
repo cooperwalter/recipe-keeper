@@ -16,7 +16,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const recipeService = new RecipeService()
+    const recipeService = new RecipeService(supabase)
     const recipe = await recipeService.getRecipe(id)
 
     if (!recipe) {
@@ -44,7 +44,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     const body = await request.json()
-    const recipeService = new RecipeService()
+    const recipeService = new RecipeService(supabase)
 
     // Update the recipe
     await recipeService.updateRecipe({ id, ...body })
@@ -109,7 +109,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const recipeService = new RecipeService()
+    const recipeService = new RecipeService(supabase)
     await recipeService.deleteRecipe(id)
 
     return NextResponse.json({ success: true }, { status: 200 })

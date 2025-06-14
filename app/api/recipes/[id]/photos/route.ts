@@ -15,7 +15,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const recipeService = new RecipeService()
+    const recipeService = new RecipeService(supabase)
     const { id } = await params
     
     // Verify recipe ownership
@@ -60,7 +60,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const recipeService = new RecipeService()
+    const recipeService = new RecipeService(supabase)
     const { id } = await params
     
     // Get recipe with photos
@@ -96,7 +96,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Photo ID is required' }, { status: 400 })
     }
 
-    const recipeService = new RecipeService()
+    const recipeService = new RecipeService(supabase)
     // const { id } = await params // id param not needed for delete
     
     // Verify ownership and delete photo

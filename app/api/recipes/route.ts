@@ -4,13 +4,6 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     const searchParams = request.nextUrl.searchParams
     const params = {
       query: searchParams.get('query') || undefined,
@@ -25,7 +18,15 @@ export async function GET(request: NextRequest) {
       orderDirection: searchParams.get('orderDirection') as 'asc' | 'desc' | undefined || undefined,
     }
 
-    const recipeService = new RecipeService()
+    // If requesting user's own recipes or favorites, require authentication
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if ((params.userId || params.isFavorite !== undefined) && !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const recipeService = new RecipeService(supabase)
     const result = await recipeService.listRecipes(params)
 
     return NextResponse.json(result)
@@ -48,7 +49,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const recipeService = new RecipeService()
+    const recipeService = new RecipeService(supabase)
     
     // Create the recipe
     const recipe = await recipeService.createRecipe({

@@ -81,7 +81,7 @@ export function RecipeCard({ recipe, onToggleFavorite, className }: RecipeCardPr
               </div>
             )}
           </div>
-          {recipe.tags.length > 0 && (
+          {recipe.tags && recipe.tags.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-1">
               {recipe.tags.slice(0, 3).map((tag) => (
                 <span

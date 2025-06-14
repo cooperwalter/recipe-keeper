@@ -1,22 +1,22 @@
-import { db, categories, Category, NewCategory } from '@/lib/db';
+import { db, recipeCategories, RecipeCategory, NewRecipeCategory } from '@/lib/db';
 import { eq } from 'drizzle-orm';
 
 export class CategoryService {
   /**
    * Get all categories
    */
-  async getCategories(): Promise<Category[]> {
-    return await db.select().from(categories);
+  async getCategories(): Promise<RecipeCategory[]> {
+    return await db.select().from(recipeCategories);
   }
 
   /**
    * Get a single category by ID
    */
-  async getCategory(id: string): Promise<Category | null> {
+  async getCategory(id: string): Promise<RecipeCategory | null> {
     const [category] = await db
       .select()
-      .from(categories)
-      .where(eq(categories.id, id))
+      .from(recipeCategories)
+      .where(eq(recipeCategories.id, id))
       .limit(1);
     
     return category || null;
@@ -25,11 +25,24 @@ export class CategoryService {
   /**
    * Get a category by name
    */
-  async getCategoryByName(name: string): Promise<Category | null> {
+  async getCategoryByName(name: string): Promise<RecipeCategory | null> {
     const [category] = await db
       .select()
-      .from(categories)
-      .where(eq(categories.name, name))
+      .from(recipeCategories)
+      .where(eq(recipeCategories.name, name))
+      .limit(1);
+    
+    return category || null;
+  }
+
+  /**
+   * Get a category by slug
+   */
+  async getCategoryBySlug(slug: string): Promise<RecipeCategory | null> {
+    const [category] = await db
+      .select()
+      .from(recipeCategories)
+      .where(eq(recipeCategories.slug, slug))
       .limit(1);
     
     return category || null;
@@ -38,9 +51,9 @@ export class CategoryService {
   /**
    * Create a new category (admin only)
    */
-  async createCategory(input: NewCategory): Promise<Category> {
+  async createCategory(input: NewRecipeCategory): Promise<RecipeCategory> {
     const [category] = await db
-      .insert(categories)
+      .insert(recipeCategories)
       .values(input)
       .returning();
     
@@ -50,11 +63,11 @@ export class CategoryService {
   /**
    * Update a category (admin only)
    */
-  async updateCategory(id: string, updates: Partial<Category>): Promise<Category> {
+  async updateCategory(id: string, updates: Partial<RecipeCategory>): Promise<RecipeCategory> {
     const [updated] = await db
-      .update(categories)
+      .update(recipeCategories)
       .set(updates)
-      .where(eq(categories.id, id))
+      .where(eq(recipeCategories.id, id))
       .returning();
     
     if (!updated) throw new Error('Category not found');
@@ -68,9 +81,9 @@ export class CategoryService {
   async deleteCategory(id: string): Promise<void> {
     // First check if category exists
     const [existing] = await db
-      .select({ id: categories.id })
-      .from(categories)
-      .where(eq(categories.id, id))
+      .select({ id: recipeCategories.id })
+      .from(recipeCategories)
+      .where(eq(recipeCategories.id, id))
       .limit(1);
     
     if (!existing) {
@@ -78,7 +91,7 @@ export class CategoryService {
     }
     
     await db
-      .delete(categories)
-      .where(eq(categories.id, id));
+      .delete(recipeCategories)
+      .where(eq(recipeCategories.id, id));
   }
 }

@@ -16,7 +16,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const recipeService = new RecipeService()
+    const recipeService = new RecipeService(supabase)
     const isFavorite = await recipeService.toggleFavorite(id)
 
     return NextResponse.json({ isFavorite })
