@@ -1,3 +1,4 @@
+import { env } from "@/lib/env"; // Validate environment variables
 import { updateSession } from "@/lib/supabase/middleware";
 import { type NextRequest } from "next/server";
 

@@ -1,3 +1,4 @@
+import "./lib/init"; // Validate environment variables on startup
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";

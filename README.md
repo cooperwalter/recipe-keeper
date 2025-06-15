@@ -1,110 +1,303 @@
-<a href="https://demo-nextjs-with-supabase.vercel.app/">
-  <img alt="Next.js and Supabase Starter Kit - the fastest way to build apps with Next.js and Supabase" src="https://demo-nextjs-with-supabase.vercel.app/opengraph-image.png">
-  <h1 align="center">Next.js and Supabase Starter Kit</h1>
-</a>
+# Recipe Inheritance Keeper
 
-<p align="center">
- The fastest way to build apps with Next.js and Supabase
-</p>
-
-<p align="center">
-  <a href="#features"><strong>Features</strong></a> ·
-  <a href="#demo"><strong>Demo</strong></a> ·
-  <a href="#deploy-to-vercel"><strong>Deploy to Vercel</strong></a> ·
-  <a href="#clone-and-run-locally"><strong>Clone and run locally</strong></a> ·
-  <a href="#feedback-and-issues"><strong>Feedback and issues</strong></a>
-  <a href="#more-supabase-examples"><strong>More Examples</strong></a>
-</p>
-<br/>
+A family recipe preservation platform that captures, digitizes, and shares cherished family recipes across generations. Built with Next.js, Supabase, and Drizzle ORM.
 
 ## Features
 
-- Works across the entire [Next.js](https://nextjs.org) stack
-  - App Router
-  - Pages Router
-  - Middleware
-  - Client
-  - Server
-  - It just works!
-- supabase-ssr. A package to configure Supabase Auth to use cookies
-- Password-based authentication block installed via the [Supabase UI Library](https://supabase.com/ui/docs/nextjs/password-based-auth)
-- Styling with [Tailwind CSS](https://tailwindcss.com)
-- Components with [shadcn/ui](https://ui.shadcn.com/)
-- Optional deployment with [Supabase Vercel Integration and Vercel deploy](#deploy-your-own)
-  - Environment variables automatically assigned to Vercel project
+- **Smart OCR Recipe Capture**: Upload photos of recipe cards and automatically extract text using AI
+- **Recipe Management**: Create, edit, and organize recipes with ingredients and instructions
+- **Photo Gallery**: Attach multiple photos to recipes including the original recipe card
+- **Categories & Tags**: Organize recipes by category and add custom tags
+- **Favorites**: Mark your favorite family recipes
+- **Version History**: Track changes to recipes over time
+- **Authentication**: Secure user accounts with Supabase Auth
+- **Responsive Design**: Works beautifully on desktop and mobile devices
 
-## Demo
+## Tech Stack
 
-You can view a fully working demo at [demo-nextjs-with-supabase.vercel.app](https://demo-nextjs-with-supabase.vercel.app/).
+- **Framework**: Next.js 15 with App Router
+- **Database**: PostgreSQL with Drizzle ORM
+- **Authentication**: Supabase Auth
+- **Storage**: Supabase Storage
+- **AI/OCR**: Anthropic Claude for text extraction
+- **Styling**: Tailwind CSS + shadcn/ui
+- **Testing**: Vitest + React Testing Library
 
-## Deploy to Vercel
+## Prerequisites
 
-Vercel deployment will guide you through creating a Supabase account and project.
+- Node.js 18+ and pnpm
+- Supabase account
+- Anthropic API key (for OCR features)
 
-After installation of the Supabase integration, all relevant environment variables will be assigned to the project so the deployment is fully functioning.
+## Setup Instructions
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&project-name=nextjs-with-supabase&repository-name=nextjs-with-supabase&demo-title=nextjs-with-supabase&demo-description=This+starter+configures+Supabase+Auth+to+use+cookies%2C+making+the+user%27s+session+available+throughout+the+entire+Next.js+app+-+Client+Components%2C+Server+Components%2C+Route+Handlers%2C+Server+Actions+and+Middleware.&demo-url=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2F&external-id=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&demo-image=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2Fopengraph-image.png)
+### 1. Clone the repository
 
-The above will also clone the Starter kit to your GitHub, you can clone that locally and develop locally.
+```bash
+git clone https://github.com/yourusername/recipe-keeper.git
+cd recipe-keeper
+pnpm install
+```
 
-If you wish to just develop locally and not deploy to Vercel, [follow the steps below](#clone-and-run-locally).
+### 2. Set up environment variables
 
-## Clone and run locally
+Copy `.env.example` to `.env.local` and fill in your values:
 
-1. You'll first need a Supabase project which can be made [via the Supabase dashboard](https://database.new)
+```bash
+cp .env.example .env.local
+```
 
-2. Create a Next.js app using the Supabase Starter template npx command
+Required environment variables:
+```
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 
+# Database (use connection pooler URL from Supabase)
+DATABASE_URL=postgresql://...
+
+# Anthropic API (for OCR)
+ANTHROPIC_API_KEY=your-anthropic-api-key
+
+# Optional: Service role key for admin operations
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+```
+
+### 3. Set up Supabase Storage Buckets
+
+The app requires three storage buckets for storing recipe photos and OCR uploads. Follow these steps to create them:
+
+#### Step 1: Create the buckets
+
+1. Go to your [Supabase Dashboard](https://supabase.com/dashboard)
+2. Select your project
+3. Navigate to **Storage** in the left sidebar
+4. Click **New bucket** and create each of these buckets:
+
+##### Bucket 1: `recipe-photos`
+- **Name**: `recipe-photos`
+- **Public bucket**: ✅ Yes (toggle on)
+- **File size limit**: 10 MB
+- **Allowed MIME types**: 
+  ```
+  image/jpeg
+  image/png
+  image/webp
+  image/heic
+  image/heif
+  ```
+
+##### Bucket 2: `ocr-uploads`
+- **Name**: `ocr-uploads`
+- **Public bucket**: ✅ Yes (toggle on)
+- **File size limit**: 10 MB
+- **Allowed MIME types**: 
+  ```
+  image/jpeg
+  image/png
+  image/webp
+  image/heic
+  image/heif
+  ```
+
+##### Bucket 3: `original-recipe-cards`
+- **Name**: `original-recipe-cards`
+- **Public bucket**: ❌ No (toggle off)
+- **File size limit**: 10 MB
+- **Allowed MIME types**: 
+  ```
+  image/jpeg
+  image/png
+  image/webp
+  image/heic
+  image/heif
+  ```
+
+#### Step 2: Set up RLS (Row Level Security) policies
+
+For each bucket, you need to create RLS policies to control access:
+
+1. After creating a bucket, click on it to view details
+2. Click on **Policies** tab
+3. Click **New policy** and select **For full customization**
+4. Create these four policies for each bucket:
+
+##### Policy 1: Allow authenticated uploads
+- **Policy name**: `Allow authenticated uploads`
+- **Target roles**: `authenticated`
+- **WITH CHECK expression**:
+  ```sql
+  (auth.uid()::text = (storage.foldername(name))[1])
+  ```
+- **Operations**: INSERT
+
+##### Policy 2: Allow public downloads (for public buckets only)
+- **Policy name**: `Allow public downloads`
+- **Target roles**: `anon, authenticated`
+- **USING expression**:
+  ```sql
+  true
+  ```
+- **Operations**: SELECT
+
+For the `original-recipe-cards` bucket (private), use this instead:
+- **Policy name**: `Allow authenticated downloads`
+- **Target roles**: `authenticated`
+- **USING expression**:
+  ```sql
+  (auth.uid()::text = (storage.foldername(name))[1])
+  ```
+- **Operations**: SELECT
+
+##### Policy 3: Allow users to update their own files
+- **Policy name**: `Allow users to update own files`
+- **Target roles**: `authenticated`
+- **USING expression**:
+  ```sql
+  (auth.uid()::text = (storage.foldername(name))[1])
+  ```
+- **WITH CHECK expression**:
+  ```sql
+  (auth.uid()::text = (storage.foldername(name))[1])
+  ```
+- **Operations**: UPDATE
+
+##### Policy 4: Allow users to delete their own files
+- **Policy name**: `Allow users to delete own files`
+- **Target roles**: `authenticated`
+- **USING expression**:
+  ```sql
+  (auth.uid()::text = (storage.foldername(name))[1])
+  ```
+- **Operations**: DELETE
+
+> **Important**: The file path structure must be `{user-id}/{filename}` for the RLS policies to work correctly. The policies check that the first folder in the path matches the authenticated user's ID.
+
+#### Step 3: Verify setup
+
+After creating all buckets and policies, verify everything is set up correctly:
+
+```bash
+pnpm storage:check
+```
+
+This command will check if all required buckets exist and provide feedback.
+
+#### Alternative: Automated setup
+
+If you have a Supabase service role key, you can automate bucket creation:
+
+1. Add to your `.env.local`:
+   ```
+   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+   ```
+
+2. Run:
    ```bash
-   npx create-next-app --example with-supabase with-supabase-app
+   pnpm storage:setup
    ```
 
-   ```bash
-   yarn create next-app --example with-supabase with-supabase-app
-   ```
+> **Note**: The automated setup creates buckets but you'll still need to manually create RLS policies through the dashboard.
 
-   ```bash
-   pnpm create next-app --example with-supabase with-supabase-app
-   ```
+### 4. Run database migrations
 
-3. Use `cd` to change into the app's directory
+```bash
+pnpm db:migrate
+```
 
-   ```bash
-   cd with-supabase-app
-   ```
+### 5. Start the development server
 
-4. Rename `.env.example` to `.env.local` and update the following:
+```bash
+pnpm dev
+```
 
-   ```
-   NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=[INSERT SUPABASE PROJECT API ANON KEY]
-   ```
+The app will be available at [http://localhost:3002](http://localhost:3002)
 
-   Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` can be found in [your Supabase project's API settings](https://supabase.com/dashboard/project/_?showConnect=true)
+## Available Scripts
 
-5. You can now run the Next.js local development server:
+- `pnpm dev` - Start development server
+- `pnpm build` - Build for production
+- `pnpm start` - Start production server
+- `pnpm lint` - Run ESLint
+- `pnpm test` - Run tests
+- `pnpm test:ui` - Run tests with UI
+- `pnpm test:coverage` - Run tests with coverage
 
-   ```bash
-   npm run dev
-   ```
+### Database Commands
 
-   The starter kit should now be running on [localhost:3000](http://localhost:3000/).
+- `pnpm db:generate` - Generate migrations from schema
+- `pnpm db:migrate` - Run migrations
+- `pnpm db:push` - Push schema changes directly (dev only)
+- `pnpm db:studio` - Open Drizzle Studio
 
-6. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
+### Utility Commands
 
-> Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
+- `pnpm env:check` - Validate environment variables
+- `pnpm storage:check` - Check storage bucket setup
+- `pnpm storage:setup` - Set up storage buckets (requires service role key)
+- `pnpm storage:policies` - Display RLS policy setup instructions
 
-## Feedback and issues
+## Project Structure
 
-Please file feedback and issues over on the [Supabase GitHub org](https://github.com/supabase/supabase/issues/new/choose).
+```
+recipe-keeper/
+├── app/                    # Next.js App Router
+│   ├── api/               # API routes
+│   ├── auth/              # Auth pages
+│   └── protected/         # Protected routes
+├── components/            # React components
+│   ├── ui/               # shadcn/ui components
+│   └── recipe/           # Recipe-specific components
+├── lib/                   # Utilities and configurations
+│   ├── db/               # Database schema and queries
+│   └── supabase/         # Supabase clients
+├── drizzle/              # Database migrations
+└── scripts/              # Utility scripts
+```
 
-## More Supabase examples
+## Testing
 
-- [Next.js Subscription Payments Starter](https://github.com/vercel/nextjs-subscription-payments)
-- [Cookie-based Auth and the Next.js 13 App Router (free course)](https://youtube.com/playlist?list=PL5S4mPUpp4OtMhpnp93EFSo42iQ40XjbF)
-- [Supabase Auth and the Next.js App Router](https://github.com/supabase/supabase/tree/master/examples/auth/nextjs)
+Run the test suite:
+
+```bash
+pnpm test
+```
+
+Run tests in watch mode:
+
+```bash
+pnpm test:watch
+```
+
+## Troubleshooting
+
+### Storage Upload Errors
+
+#### "Bucket not found" (404 error)
+- Run `pnpm storage:check` to verify buckets exist
+- Follow the setup instructions in Step 3 above to create missing buckets
+
+#### "new row violates row-level security policy" (403 error)
+- This means the RLS policies are not configured correctly
+- Run `pnpm storage:policies` to see the exact policy configurations needed
+- Make sure you've created all 4 policies for each bucket (INSERT, SELECT, UPDATE, DELETE)
+- Verify the file path follows the format: `{user-id}/{filename}`
+- The policies check that the first folder matches the authenticated user's ID
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License.
 
 ## Demo Account
 
-Username: demo@recipekeeper.com
-Password: DemoRecipes2024!
+For testing purposes:
+- Email: demo@recipekeeper.com
+- Password: DemoRecipes2024!
