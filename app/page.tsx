@@ -3,8 +3,17 @@ import { ThemeSwitcher } from "@/components/theme-switcher";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ChefHat, BookOpen, Heart, Users, Clock, Search } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  // Redirect logged-in users to their recipes
+  if (user) {
+    redirect('/protected/recipes');
+  }
   return (
     <main className="min-h-screen flex flex-col">
       {/* Navigation */}
