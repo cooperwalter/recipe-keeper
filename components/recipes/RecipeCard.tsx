@@ -35,7 +35,7 @@ export function RecipeCard({ recipe, onToggleFavorite, className }: RecipeCardPr
     <Link href={`/protected/recipes/${recipe.id}`}>
       <Card className={cn('h-full hover:shadow-lg transition-shadow cursor-pointer', className)}>
         {primaryPhoto && (
-          <div className="relative h-48 overflow-hidden rounded-t-lg">
+          <div className="relative h-32 overflow-hidden rounded-t-lg">
             <Image
               src={primaryPhoto.photoUrl}
               alt={recipe.title}
@@ -60,13 +60,13 @@ export function RecipeCard({ recipe, onToggleFavorite, className }: RecipeCardPr
             )}
           </div>
         )}
-        <CardHeader className={cn(!primaryPhoto && 'pb-3')}>
+        <CardHeader className={cn('py-4 px-6', !primaryPhoto && 'pb-3')}>
           <CardTitle className="line-clamp-2">{recipe.title}</CardTitle>
           {recipe.description && (
             <CardDescription className="line-clamp-2">{recipe.description}</CardDescription>
           )}
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-0 px-6 pb-4">
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             {totalTime > 0 && (
               <div className="flex items-center gap-1">
@@ -82,7 +82,7 @@ export function RecipeCard({ recipe, onToggleFavorite, className }: RecipeCardPr
             )}
           </div>
           {recipe.tags && recipe.tags.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-1">
+            <div className="mt-2 flex flex-wrap gap-1">
               {recipe.tags.slice(0, 3).map((tag) => (
                 <span
                   key={tag}
