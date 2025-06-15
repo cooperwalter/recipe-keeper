@@ -53,6 +53,10 @@ Required environment variables:
 NEXT_PUBLIC_SUPABASE_URL=your-project-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 
+# Site URL for production (for email redirects)
+# Leave empty in development - it will use window.location.origin
+NEXT_PUBLIC_SITE_URL=https://your-app-domain.com
+
 # Database (use connection pooler URL from Supabase)
 DATABASE_URL=postgresql://...
 
@@ -63,7 +67,31 @@ ANTHROPIC_API_KEY=your-anthropic-api-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ```
 
-### 3. Set up Supabase Storage Buckets
+### 3. Configure Supabase Authentication
+
+#### Email Redirect URLs
+
+For authentication emails to work correctly in production:
+
+1. Go to your [Supabase Dashboard](https://supabase.com/dashboard)
+2. Select your project
+3. Navigate to **Authentication** → **URL Configuration**
+4. Add your production URLs to the **Redirect URLs** list:
+   - `https://your-app-domain.com/protected` (for email confirmation)
+   - `https://your-app-domain.com/auth/update-password` (for password reset)
+   - Add `http://localhost:3002/*` for local development
+
+5. Make sure to set `NEXT_PUBLIC_SITE_URL` in your production environment variables
+
+#### Email Templates (Optional)
+
+The default Supabase email templates work well, but you can customize them:
+
+1. Go to **Authentication** → **Email Templates**
+2. Customize the templates as needed
+3. Make sure to keep the `{{ .ConfirmationURL }}` variable in the templates
+
+### 4. Set up Supabase Storage Buckets
 
 The app requires three storage buckets for storing recipe photos and OCR uploads. Follow these steps to create them:
 
@@ -199,13 +227,13 @@ If you have a Supabase service role key, you can automate bucket creation:
 
 > **Note**: The automated setup creates buckets but you'll still need to manually create RLS policies through the dashboard.
 
-### 4. Run database migrations
+### 5. Run database migrations
 
 ```bash
 pnpm db:migrate
 ```
 
-### 5. Start the development server
+### 6. Start the development server
 
 ```bash
 pnpm dev

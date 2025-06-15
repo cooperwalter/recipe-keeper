@@ -40,14 +40,31 @@ export function SignUpForm({
     }
 
     try {
+      // Use NEXT_PUBLIC_SITE_URL if set, otherwise use window.location.origin
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+      
       const { error, data } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/protected`,
+          emailRedirectTo: `${siteUrl}/protected`,
         },
       });
-      if (error) throw error;
+      
+      if (error) {
+        // Check if user already exists
+        if (error.message.includes("User already registered")) {
+          setError("An account with this email already exists. Please login instead.");
+          return;
+        }
+        throw error;
+      }
+      
+      // Check if email is already registered but not confirmed
+      if (data.user && data.user.identities && data.user.identities.length === 0) {
+        setError("This email is already registered but not confirmed. Please check your email for the confirmation link.");
+        return;
+      }
       
       // For demo account in development, auto-login after signup
       if (process.env.NODE_ENV === 'development' && email === "demo@recipekeeper.com" && data.user) {
