@@ -42,8 +42,8 @@ export default async function TestRecipePage() {
       categoryId: categories?.id || null,
       tags: ["cookies", "dessert", "family-recipe"],
       isPublic: false,
-      source: "Grandma Betty",
-      notes: "Best served warm with milk"
+      sourceName: "Grandma Betty",
+      sourceNotes: "Best served warm with milk"
     });
     
     redirect(`/protected/recipes/${recipe.id}`);

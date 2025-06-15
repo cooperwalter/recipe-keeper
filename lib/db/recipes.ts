@@ -1,34 +1,14 @@
 import { eq, and, or, ilike, desc, asc, sql, inArray } from 'drizzle-orm';
-import { db, recipes, recipePhotos, favorites, recipeCategories, recipeCategoryMappings, ingredients, instructions, recipeTags, Recipe, NewRecipe, RecipePhoto, Ingredient, Instruction } from '@/lib/db';
+import { db, recipes, recipePhotos, favorites, recipeCategories, recipeCategoryMappings, ingredients, instructions, recipeTags } from '@/lib/db';
 import { SupabaseClient } from '@supabase/supabase-js';
-
-export interface RecipeWithRelations extends Recipe {
-  photos: RecipePhoto[];
-  categories?: typeof recipeCategories.$inferSelect[];
-  ingredients?: Ingredient[];
-  instructions?: Instruction[];
-  tags?: string[];
-  isFavorite: boolean;
-}
-
-export interface RecipeSearchParams {
-  query?: string;
-  categoryId?: string;
-  tags?: string[];
-  isPublic?: boolean;
-  userId?: string;
-  isFavorite?: boolean;
-  limit?: number;
-  offset?: number;
-  orderBy?: 'createdAt' | 'title' | 'prepTime';
-  orderDirection?: 'asc' | 'desc';
-}
-
-export interface RecipeListResponse {
-  recipes: RecipeWithRelations[];
-  total: number;
-  hasMore: boolean;
-}
+import type { 
+  RecipeWithRelations, 
+  RecipeSearchParams, 
+  RecipeListResponse,
+  Recipe,
+  RecipePhoto,
+  CreateRecipeInput
+} from '@/lib/types/recipe';
 
 export class RecipeService {
   constructor(private supabase?: SupabaseClient) {}
@@ -45,7 +25,7 @@ export class RecipeService {
   /**
    * Create a new recipe
    */
-  async createRecipe(input: Omit<NewRecipe, 'createdBy'> & { 
+  async createRecipe(input: CreateRecipeInput & { 
     ingredients?: string[];
     instructions?: string[];
     categoryId?: string | null;
@@ -106,7 +86,20 @@ export class RecipeService {
       await db.insert(recipeTags).values(tagRecords);
     }
 
-    return recipe;
+    return {
+      ...recipe,
+      description: recipe.description || undefined,
+      prepTime: recipe.prepTime || undefined,
+      cookTime: recipe.cookTime || undefined,
+      servings: recipe.servings || undefined,
+      isPublic: recipe.isPublic || false,
+      sourceName: recipe.sourceName || undefined,
+      sourceNotes: recipe.sourceNotes || undefined,
+      version: recipe.version || 1,
+      parentRecipeId: recipe.parentRecipeId || undefined,
+      createdAt: recipe.createdAt.toISOString(),
+      updatedAt: recipe.updatedAt.toISOString(),
+    } as Recipe;
   }
 
   /**
@@ -178,15 +171,58 @@ export class RecipeService {
       isFavorite = favoriteCheck.length > 0;
     }
 
-    return {
-      ...recipe,
-      categories: categories.length > 0 ? categories : undefined,
-      ingredients: ingredientsList,
-      instructions: instructionsList,
+    const result: RecipeWithRelations = {
+      id: recipe.id,
+      title: recipe.title,
+      description: recipe.description || undefined,
+      prepTime: recipe.prepTime || undefined,
+      cookTime: recipe.cookTime || undefined,
+      servings: recipe.servings || undefined,
+      createdBy: recipe.createdBy,
+      createdAt: recipe.createdAt.toISOString(),
+      updatedAt: recipe.updatedAt.toISOString(),
+      isPublic: recipe.isPublic || false,
+      sourceName: recipe.sourceName || undefined,
+      sourceNotes: recipe.sourceNotes || undefined,
+      version: recipe.version || 1,
+      parentRecipeId: recipe.parentRecipeId || undefined,
+      categories: categories.map(cat => ({
+        id: cat.id,
+        name: cat.name,
+        slug: cat.slug,
+        createdAt: cat.createdAt.toISOString(),
+      })),
+      ingredients: ingredientsList.map(ing => ({
+        id: ing.id,
+        recipeId: ing.recipeId,
+        ingredient: ing.ingredient,
+        amount: ing.amount ? Number(ing.amount) : undefined,
+        unit: ing.unit || undefined,
+        orderIndex: ing.orderIndex,
+        notes: ing.notes || undefined,
+        createdAt: ing.createdAt.toISOString(),
+      })),
+      instructions: instructionsList.map(inst => ({
+        id: inst.id,
+        recipeId: inst.recipeId,
+        stepNumber: inst.stepNumber,
+        instruction: inst.instruction,
+        createdAt: inst.createdAt.toISOString(),
+      })),
       tags: tagsList.map(t => t.tag),
-      photos,
+      photos: photos.map(p => ({
+        id: p.id,
+        recipeId: p.recipeId,
+        photoUrl: p.photoUrl,
+        isOriginal: p.isOriginal || false,
+        caption: p.caption || undefined,
+        uploadedBy: p.uploadedBy,
+        uploadedAt: p.uploadedAt.toISOString(),
+      })),
       isFavorite,
     };
+    
+    return result;
   }
 
   /**
@@ -196,10 +232,19 @@ export class RecipeService {
     const userId = await this.getCurrentUserId();
     if (!userId) throw new Error('User not authenticated');
 
+    // Convert string dates to Date objects if present
+    const dbUpdates: Record<string, unknown> = { ...updates };
+    if (updates.createdAt) {
+      dbUpdates.createdAt = new Date(updates.createdAt);
+    }
+    if (updates.updatedAt) {
+      dbUpdates.updatedAt = new Date(updates.updatedAt);
+    }
+    
     const [updated] = await db
       .update(recipes)
       .set({
-        ...updates,
+        ...dbUpdates,
         updatedAt: new Date(),
       })
       .where(
@@ -212,7 +257,11 @@ export class RecipeService {
 
     if (!updated) throw new Error('Recipe not found or not authorized');
     
-    return updated;
+    return {
+      ...updated,
+      createdAt: updated.createdAt.toISOString(),
+      updatedAt: updated.updatedAt.toISOString(),
+    } as Recipe;
   }
 
   /**
@@ -252,7 +301,7 @@ export class RecipeService {
   /**
    * List recipes with filtering and pagination
    */
-  async listRecipes(params: RecipeSearchParams = {}): Promise<RecipeListResponse> {
+  async listRecipes(params: RecipeSearchParams & { categoryId?: string } = {}): Promise<RecipeListResponse> {
     const userId = await this.getCurrentUserId();
     const limit = params.limit || 20;
     const offset = params.offset || 0;
@@ -279,8 +328,8 @@ export class RecipeService {
     }
 
     // Filter by user
-    if (params.userId) {
-      conditions.push(eq(recipes.createdBy, params.userId));
+    if (params.createdBy) {
+      conditions.push(eq(recipes.createdBy, params.createdBy));
     }
 
     // Filter by tags - will need to join with recipe_tags table
@@ -297,26 +346,36 @@ export class RecipeService {
 
     // Get recipes
     const orderColumn = params.orderBy === 'title' ? recipes.title 
-      : params.orderBy === 'prepTime' ? recipes.prepTime
+      : params.orderBy === 'updatedAt' ? recipes.updatedAt
       : recipes.createdAt;
     
     const orderFunction = params.orderDirection === 'asc' ? asc : desc;
 
-    let query = db.select().from(recipes);
+    let recipesList: Array<typeof recipes.$inferSelect | { recipe: typeof recipes.$inferSelect }>;
     
     // Apply category filter if needed
     if (params.categoryId) {
-      query = query
+      const conditions = whereClause 
+        ? and(whereClause, eq(recipeCategoryMappings.categoryId, params.categoryId))
+        : eq(recipeCategoryMappings.categoryId, params.categoryId);
+        
+      recipesList = await db
+        .select({ recipe: recipes })
+        .from(recipes)
         .innerJoin(recipeCategoryMappings, eq(recipes.id, recipeCategoryMappings.recipeId))
-        .where(and(whereClause, eq(recipeCategoryMappings.categoryId, params.categoryId)));
-    } else if (whereClause) {
-      query = query.where(whereClause);
+        .where(conditions)
+        .orderBy(orderFunction(orderColumn))
+        .limit(limit)
+        .offset(offset);
+    } else {
+      recipesList = await db
+        .select()
+        .from(recipes)
+        .where(whereClause)
+        .orderBy(orderFunction(orderColumn))
+        .limit(limit)
+        .offset(offset);
     }
-
-    const recipesList = await query
-      .orderBy(orderFunction(orderColumn))
-      .limit(limit)
-      .offset(offset);
 
     // Get photos for all recipes
     const recipeIds = recipesList.map(r => 'recipe' in r ? r.recipe.id : r.id);
@@ -376,11 +435,39 @@ export class RecipeService {
         .map(t => t.tag);
       
       return {
-        ...recipe,
-        categories: recipeCategories.length > 0 ? recipeCategories : undefined,
-        photos: allPhotos.filter(p => p.recipeId === recipe.id),
+        id: recipe.id,
+        title: recipe.title,
+        description: recipe.description || undefined,
+        prepTime: recipe.prepTime || undefined,
+        cookTime: recipe.cookTime || undefined,
+        servings: recipe.servings || undefined,
+        createdBy: recipe.createdBy,
+        createdAt: recipe.createdAt.toISOString(),
+        updatedAt: recipe.updatedAt.toISOString(),
+        isPublic: recipe.isPublic || false,
+        sourceName: recipe.sourceName || undefined,
+        sourceNotes: recipe.sourceNotes || undefined,
+        version: recipe.version || 1,
+        parentRecipeId: recipe.parentRecipeId || undefined,
+        categories: recipeCategories.map(cat => ({
+          id: cat.id,
+          name: cat.name,
+          slug: cat.slug,
+          createdAt: cat.createdAt.toISOString(),
+        })),
+        photos: allPhotos.filter(p => p.recipeId === recipe.id).map(p => ({
+          id: p.id,
+          recipeId: p.recipeId,
+          photoUrl: p.photoUrl,
+          isOriginal: p.isOriginal || false,
+          caption: p.caption || undefined,
+          uploadedBy: p.uploadedBy,
+          uploadedAt: p.uploadedAt.toISOString(),
+        })),
         isFavorite: userFavorites.includes(recipe.id),
         tags: recipeTags,
+        ingredients: [],
+        instructions: [],
       };
     });
 
@@ -464,12 +551,17 @@ export class RecipeService {
         recipeId,
         photoUrl: url,
         caption,
-        isOriginal: isPrimary,
+        isOriginal: isOriginal,
         uploadedBy: userId,
       })
       .returning();
 
-    return photo;
+    return {
+      ...photo,
+      isOriginal: photo.isOriginal || false,
+      caption: photo.caption || undefined,
+      uploadedAt: photo.uploadedAt.toISOString(),
+    } as RecipePhoto;
   }
 
   /**

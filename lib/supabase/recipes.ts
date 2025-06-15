@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/client'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import type {
   Recipe,
   RecipeWithRelations,
@@ -15,9 +16,9 @@ import type {
 } from '@/lib/types/recipe'
 
 export class RecipeService {
-  private supabase
+  private supabase: SupabaseClient
 
-  constructor(supabase?: any) {
+  constructor(supabase?: SupabaseClient) {
     this.supabase = supabase || createClient()
   }
 

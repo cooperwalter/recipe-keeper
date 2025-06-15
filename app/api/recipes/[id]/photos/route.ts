@@ -20,7 +20,7 @@ export async function POST(
     
     // Verify recipe ownership
     const recipe = await recipeService.getRecipe(id)
-    if (!recipe || recipe.userId !== user.id) {
+    if (!recipe || recipe.createdBy !== user.id) {
       return NextResponse.json({ error: 'Recipe not found' }, { status: 404 })
     }
 
@@ -33,7 +33,7 @@ export async function POST(
     }
 
     // Add photo to recipe
-    const photo = await recipeService.addPhoto(
+    const photo = await recipeService.addRecipePhoto(
       id,
       photoUrl,
       caption || undefined,

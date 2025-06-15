@@ -20,11 +20,10 @@ async function testDirectRecipeCreation() {
         prepTime: 30,
         cookTime: 45,
         servings: 8,
-        difficulty: 'medium',
         isPublic: false,
         createdBy: 'eff26321-5163-4fb5-a49d-d8cf4cf74337', // Demo user ID
-        source: 'Test Script',
-        notes: 'This is a test recipe created via script'
+        sourceName: 'Test Script',
+        sourceNotes: 'This is a test recipe created via script'
       })
       .returning();
     

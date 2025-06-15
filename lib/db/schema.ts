@@ -31,7 +31,7 @@ export const recipes = pgTable('recipes', {
   sourceName: text('source_name'), // who contributed the recipe
   sourceNotes: text('source_notes'), // family notes & memories
   version: integer('version').default(1),
-  parentRecipeId: uuid('parent_recipe_id').references(() => recipes.id), // for versioning
+  parentRecipeId: uuid('parent_recipe_id'), // for versioning - self reference added via relations
 }, (table) => {
   return {
     createdByIdx: index('idx_recipes_created_by').on(table.createdBy),

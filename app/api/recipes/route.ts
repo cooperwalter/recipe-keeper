@@ -9,12 +9,12 @@ export async function GET(request: NextRequest) {
       query: searchParams.get('query') || undefined,
       categoryId: searchParams.get('categoryId') || undefined,
       tags: searchParams.get('tags')?.split(',').filter(Boolean),
-      userId: searchParams.get('userId') || undefined,
+      createdBy: searchParams.get('userId') || undefined,
       isPublic: searchParams.get('isPublic') === 'true' ? true : searchParams.get('isPublic') === 'false' ? false : undefined,
       isFavorite: searchParams.get('isFavorite') === 'true' ? true : searchParams.get('isFavorite') === 'false' ? false : undefined,
       limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined,
       offset: searchParams.get('offset') ? parseInt(searchParams.get('offset')!) : undefined,
-      orderBy: searchParams.get('orderBy') as 'createdAt' | 'title' | 'prepTime' | undefined || undefined,
+      orderBy: searchParams.get('orderBy') as 'createdAt' | 'title' | 'updatedAt' | undefined || undefined,
       orderDirection: searchParams.get('orderDirection') as 'asc' | 'desc' | undefined || undefined,
     }
 
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     
-    if ((params.userId || params.isFavorite !== undefined) && !user) {
+    if ((params.createdBy || params.isFavorite !== undefined) && !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -60,19 +60,16 @@ export async function POST(request: NextRequest) {
       prepTime: body.prepTime,
       cookTime: body.cookTime,
       servings: body.servings,
-      difficulty: body.difficulty,
       categoryId: body.categoryId,
-      source: body.source,
-      sourceUrl: body.sourceUrl,
-      nutritionInfo: body.nutritionInfo,
+      sourceName: body.source,
+      sourceNotes: body.notes,
       tags: body.tags || [],
       isPublic: body.isPublic || false,
-      notes: body.notes,
     })
 
     // Add photo if provided
     if (body.photoUrl) {
-      await recipeService.addPhoto(recipe.id, body.photoUrl, body.photoCaption, true)
+      await recipeService.addRecipePhoto(recipe.id, body.photoUrl, body.photoCaption, true)
     }
 
     // Fetch the complete recipe with all relations
