@@ -4,7 +4,6 @@ import { useState } from 'react'
 import Image from 'next/image'
 import { RecipePhoto } from '@/lib/types/recipe'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
-import { RecipePlaceholder } from '@/components/recipe/recipe-placeholder'
 
 interface PhotoGalleryProps {
   photos: RecipePhoto[]

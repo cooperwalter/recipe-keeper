@@ -60,7 +60,7 @@ export class RecipeService {
           return {
             recipeId: recipe.id,
             ingredient: ingredient.ingredient,
-            amount: ingredient.amount ? parseFloat(ingredient.amount) : undefined,
+            amount: ingredient.amount || undefined,
             unit: ingredient.unit || undefined,
             notes: ingredient.notes || undefined,
             orderIndex: index,

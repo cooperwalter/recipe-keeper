@@ -30,7 +30,6 @@ import {
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { RecipePlaceholder } from '@/components/recipe/recipe-placeholder'
 
 interface RecipeDetailPageProps {
   params: Promise<{ id: string }>
@@ -295,7 +294,7 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Recipe</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{recipe.title}"? This action cannot be undone.
+              Are you sure you want to delete &quot;{recipe.title}&quot;? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

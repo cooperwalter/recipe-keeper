@@ -23,8 +23,7 @@ import {
   Plus, 
   Trash2, 
   Loader2,
-  Save,
-  AlertTriangle
+  Save
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -496,7 +495,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Recipe</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{title}"? This action cannot be undone.
+              Are you sure you want to delete &quot;{title}&quot;? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
