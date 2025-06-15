@@ -26,7 +26,7 @@ export class RecipeService {
    * Create a new recipe
    */
   async createRecipe(input: CreateRecipeInput & { 
-    ingredients?: string[];
+    ingredients?: (string | { ingredient: string; amount?: string; unit?: string; notes?: string })[];
     instructions?: string[];
     categoryId?: string | null;
     tags?: string[];
@@ -48,11 +48,25 @@ export class RecipeService {
 
     // Add ingredients if provided
     if (ingredientsList && ingredientsList.length > 0) {
-      const ingredientRecords = ingredientsList.map((ingredient, index) => ({
-        recipeId: recipe.id,
-        ingredient,
-        orderIndex: index,
-      }));
+      const ingredientRecords = ingredientsList.map((ingredient, index) => {
+        // Handle both string and object formats
+        if (typeof ingredient === 'string') {
+          return {
+            recipeId: recipe.id,
+            ingredient,
+            orderIndex: index,
+          };
+        } else {
+          return {
+            recipeId: recipe.id,
+            ingredient: ingredient.ingredient,
+            amount: ingredient.amount ? parseFloat(ingredient.amount) : undefined,
+            unit: ingredient.unit || undefined,
+            notes: ingredient.notes || undefined,
+            orderIndex: index,
+          };
+        }
+      });
       
       await db.insert(ingredients).values(ingredientRecords);
     }

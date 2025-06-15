@@ -470,7 +470,7 @@ export class RecipeService {
     id: string
     recipe_id: string
     ingredient: string
-    amount?: number
+    amount?: number | string
     unit?: string
     order_index: number
     notes?: string
@@ -480,7 +480,7 @@ export class RecipeService {
       id: data.id,
       recipeId: data.recipe_id,
       ingredient: data.ingredient,
-      amount: data.amount,
+      amount: data.amount ? Number(data.amount) : undefined,
       unit: data.unit,
       orderIndex: data.order_index,
       notes: data.notes,

@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { Upload, X, Image as ImageIcon, Loader2 } from "lucide-react";
+import { Upload, X, Image as ImageIcon, Loader2, Camera, FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
@@ -84,7 +84,13 @@ export function ImageUpload({
           displayPreview ? "border-solid bg-accent/5" : "border-muted-foreground/25"
         )}
       >
-        <input {...getInputProps()} />
+        <input 
+          {...getInputProps()} 
+          // Add capture attribute for mobile camera access
+          capture="environment"
+          // Accept attribute for better mobile support
+          accept="image/*"
+        />
         
         {displayPreview ? (
           <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg">
@@ -127,13 +133,23 @@ export function ImageUpload({
                   ? "Uploading..."
                   : isDragActive
                   ? "Drop your recipe image here"
-                  : "Drag & drop your recipe image here"}
+                  : "Upload your recipe image"}
               </p>
               <p className="text-xs text-muted-foreground">
-                or click to select from your device
+                Tap to take a photo or choose from gallery
               </p>
-              <p className="text-xs text-muted-foreground">
-                Supports JPG, PNG, WebP up to 10MB
+              <div className="flex items-center justify-center gap-6 mt-4">
+                <div className="flex flex-col items-center gap-1">
+                  <Camera className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-xs">Camera</span>
+                </div>
+                <div className="flex flex-col items-center gap-1">
+                  <FolderOpen className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-xs">Gallery</span>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Max 10MB • JPG, PNG, WebP
               </p>
             </div>
           </div>

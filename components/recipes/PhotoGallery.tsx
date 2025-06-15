@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 import { RecipePhoto } from '@/lib/types/recipe'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { RecipePlaceholder } from '@/components/recipe/recipe-placeholder'
 
 interface PhotoGalleryProps {
   photos: RecipePhoto[]
@@ -13,7 +14,9 @@ interface PhotoGalleryProps {
 export function PhotoGallery({ photos, recipeTitle }: PhotoGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
 
-  if (photos.length === 0) return null
+  if (photos.length === 0) {
+    return null
+  }
 
   const openLightbox = (index: number) => {
     setSelectedIndex(index)

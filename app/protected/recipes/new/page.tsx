@@ -28,7 +28,7 @@ export default function NewRecipePage() {
       </div>
 
       {/* Options */}
-      <div className="grid gap-6 md:grid-cols-2 max-w-4xl">
+      <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 max-w-4xl">
         <Link href="/protected/recipes/new/ocr">
           <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-primary/50">
             <CardHeader>

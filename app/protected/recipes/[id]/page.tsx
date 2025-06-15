@@ -6,6 +6,16 @@ import { RecipeWithRelations } from '@/lib/types/recipe'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { PhotoGallery } from '@/components/recipes/PhotoGallery'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { 
   Clock, 
   Users, 
@@ -14,11 +24,13 @@ import {
   Edit, 
   ChevronLeft,
   Calendar,
-  User
+  User,
+  Trash2
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { RecipePlaceholder } from '@/components/recipe/recipe-placeholder'
 
 interface RecipeDetailPageProps {
   params: Promise<{ id: string }>
@@ -30,6 +42,8 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
   const [recipe, setRecipe] = useState<RecipeWithRelations | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isFavoriteLoading, setIsFavoriteLoading] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   useEffect(() => {
     fetchRecipe()
@@ -79,6 +93,28 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
     window.print()
   }
 
+  const handleDelete = async () => {
+    if (!recipe) return
+    
+    setIsDeleting(true)
+    try {
+      const response = await fetch(`/api/recipes/${recipe.id}`, {
+        method: 'DELETE',
+      })
+      
+      if (!response.ok) throw new Error('Failed to delete recipe')
+      
+      // Redirect to recipes list
+      router.push('/protected/recipes')
+    } catch (error) {
+      console.error('Error deleting recipe:', error)
+      alert('Failed to delete recipe. Please try again.')
+    } finally {
+      setIsDeleting(false)
+      setShowDeleteConfirm(false)
+    }
+  }
+
   if (isLoading) {
     return <RecipeDetailSkeleton />
   }
@@ -120,8 +156,8 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
-            <h1 className="text-4xl font-bold">{recipe.title}</h1>
-            <div className="flex gap-2 print:hidden">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">{recipe.title}</h1>
+            <div className="flex gap-2 print:hidden flex-wrap">
               <Button
                 variant="outline"
                 size="icon"
@@ -144,6 +180,15 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
                   <Edit className="h-4 w-4" />
                 </Button>
               </Link>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                aria-label="Delete recipe"
+                onClick={() => setShowDeleteConfirm(true)}
+                disabled={isDeleting}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </div>
           </div>
 
@@ -206,9 +251,9 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
         )}
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
           {/* Ingredients */}
-          <div className="lg:col-span-1">
+          <div className="md:col-span-1">
             <h2 className="text-2xl font-semibold mb-4">Ingredients</h2>
             <ul className="space-y-2">
               {recipe.ingredients.map((ingredient) => (
@@ -228,7 +273,7 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
           </div>
 
           {/* Instructions */}
-          <div className="lg:col-span-2">
+          <div className="md:col-span-2">
             <h2 className="text-2xl font-semibold mb-4">Instructions</h2>
             <ol className="space-y-4">
               {recipe.instructions.map((instruction) => (
@@ -243,6 +288,28 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
           </div>
         </div>
       </article>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Recipe</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{recipe.title}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }

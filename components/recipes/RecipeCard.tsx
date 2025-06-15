@@ -7,6 +7,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
+import { RecipePlaceholder } from '@/components/recipe/recipe-placeholder'
 
 interface RecipeCardProps {
   recipe: RecipeWithRelations
@@ -34,8 +35,8 @@ export function RecipeCard({ recipe, onToggleFavorite, className }: RecipeCardPr
   return (
     <Link href={`/protected/recipes/${recipe.id}`}>
       <Card className={cn('h-full hover:shadow-lg transition-shadow cursor-pointer', className)}>
-        {primaryPhoto && (
-          <div className="relative h-32 overflow-hidden rounded-t-lg">
+        <div className="relative h-32 overflow-hidden rounded-t-lg">
+          {primaryPhoto ? (
             <Image
               src={primaryPhoto.photoUrl}
               alt={recipe.title}
@@ -43,24 +44,29 @@ export function RecipeCard({ recipe, onToggleFavorite, className }: RecipeCardPr
               className="object-cover"
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             />
-            {onToggleFavorite && (
-              <button
-                onClick={handleToggleFavorite}
-                disabled={isLoading}
-                className="absolute top-2 right-2 p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors disabled:opacity-50"
-                aria-label={recipe.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-              >
-                <Heart
-                  className={cn(
-                    'h-5 w-5 transition-colors',
-                    recipe.isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600'
-                  )}
-                />
-              </button>
-            )}
-          </div>
-        )}
-        <CardHeader className={cn('py-4 px-6', !primaryPhoto && 'pb-3')}>
+          ) : (
+            <RecipePlaceholder 
+              className="h-full" 
+              variant={recipe.id.charCodeAt(0) + recipe.id.charCodeAt(1)} 
+            />
+          )}
+          {onToggleFavorite && (
+            <button
+              onClick={handleToggleFavorite}
+              disabled={isLoading}
+              className="absolute top-2 right-2 p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors disabled:opacity-50"
+              aria-label={recipe.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            >
+              <Heart
+                className={cn(
+                  'h-5 w-5 transition-colors',
+                  recipe.isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600'
+                )}
+              />
+            </button>
+          )}
+        </div>
+        <CardHeader className="py-4 px-6">
           <CardTitle className="line-clamp-2">{recipe.title}</CardTitle>
           {recipe.description && (
             <CardDescription className="line-clamp-2">{recipe.description}</CardDescription>

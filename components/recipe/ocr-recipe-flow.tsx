@@ -124,7 +124,7 @@ export function OCRRecipeFlow() {
           prepTime: recipe.prepTime,
           cookTime: recipe.cookTime,
           servings: recipe.servings,
-          ingredients: recipe.ingredients.map((ing) => ing.ingredient),
+          ingredients: recipe.ingredients,
           instructions: recipe.instructions.map((inst) => inst.instruction),
           sourceName: recipe.sourceName,
           sourceNotes: recipe.sourceNotes,
