@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { VoiceToRecipe } from './voice-to-recipe'
 
@@ -332,7 +332,9 @@ describe('VoiceToRecipe', () => {
     await userEvent.click(screen.getByTestId('approve-changes'))
     
     await waitFor(() => {
-      expect(screen.getByText('Failed to apply changes. Please try again.')).toBeInTheDocument()
+      // The error should be shown within the dialog content
+      const dialog = screen.getByRole('dialog')
+      expect(within(dialog).getByText('Failed to apply changes. Please try again.')).toBeInTheDocument()
     })
   })
 

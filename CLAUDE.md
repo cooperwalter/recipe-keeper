@@ -120,3 +120,5 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-supabase-anon-key>
 ## Claude Memories
 
 - Always reference the project roadmap (PROJECT_ROADMAP.md) when completing any task
+- Always run unit tests with pnpm run test after making changes
+- Always write/update unit tests after making changes

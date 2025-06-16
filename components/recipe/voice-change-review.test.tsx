@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent, within } from '@testing-library/react'
+import { render, screen, fireEvent, within, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { VoiceChangeReview } from './voice-change-review'
 
@@ -51,7 +51,7 @@ describe('VoiceChangeReview', () => {
 
     expect(screen.getByText('Review Recipe Changes')).toBeInTheDocument()
     expect(screen.getByText('Cook Time')).toBeInTheDocument()
-    expect(screen.getByText('Ingredients')).toHaveCount(2) // Two ingredient changes
+    expect(screen.getAllByText('Ingredients')).toHaveLength(2) // Two ingredient changes
     expect(screen.getByText('Instructions')).toBeInTheDocument()
   })
 
@@ -64,7 +64,7 @@ describe('VoiceChangeReview', () => {
       />
     )
 
-    expect(screen.getByText('modify')).toHaveCount(2)
+    expect(screen.getAllByText('modify')).toHaveLength(2)
     expect(screen.getByText('add')).toBeInTheDocument()
     expect(screen.getByText('remove')).toBeInTheDocument()
   })
@@ -78,9 +78,10 @@ describe('VoiceChangeReview', () => {
       />
     )
 
-    expect(screen.getByText('From:')).toBeInTheDocument()
-    expect(screen.getByText('20')).toBeInTheDocument()
-    expect(screen.getByText('To:')).toBeInTheDocument()
+    // There are multiple "From:" and "To:" texts due to multiple modify changes
+    expect(screen.getAllByText('From:')).toHaveLength(2)
+    expect(screen.getByText('20 minutes')).toBeInTheDocument() // Component formats cookTime with "minutes"
+    expect(screen.getAllByText('To:')).toHaveLength(2)
     expect(screen.getByText('25 minutes')).toBeInTheDocument()
   })
 
@@ -145,9 +146,11 @@ describe('VoiceChangeReview', () => {
     await userEvent.clear(input)
     await userEvent.type(input, '30')
     
-    // Save
-    const saveButton = screen.getByRole('button', { name: '' })
-    await userEvent.click(saveButton)
+    // Save - find button with check icon
+    const buttons = screen.getAllByRole('button')
+    const saveButton = buttons.find(btn => btn.querySelector('svg.lucide-check'))
+    expect(saveButton).toBeDefined()
+    await userEvent.click(saveButton!)
     
     // Should show new value
     expect(screen.getByText('30 minutes')).toBeInTheDocument()
@@ -216,6 +219,7 @@ describe('VoiceChangeReview', () => {
   })
 
   it('cancels confirmation dialog', async () => {
+    const user = userEvent.setup()
     render(
       <VoiceChangeReview 
         changes={mockChanges} 
@@ -225,10 +229,17 @@ describe('VoiceChangeReview', () => {
     )
 
     const applyButton = screen.getByRole('button', { name: /apply changes/i })
-    await userEvent.click(applyButton)
+    await user.click(applyButton)
     
-    const cancelButton = screen.getAllByRole('button', { name: /cancel/i })[1]
-    await userEvent.click(cancelButton)
+    // Wait for the dialog to appear
+    await waitFor(() => {
+      expect(screen.getByText('Apply Recipe Changes?')).toBeInTheDocument()
+    })
+    
+    // Find the cancel button in the dialog
+    const cancelButtons = screen.getAllByRole('button', { name: /cancel/i })
+    const dialogCancelButton = cancelButtons[cancelButtons.length - 1] // Last cancel button is in dialog
+    await user.click(dialogCancelButton)
     
     expect(mockOnApprove).not.toHaveBeenCalled()
   })
@@ -246,9 +257,9 @@ describe('VoiceChangeReview', () => {
     expect(screen.getByText('Add:')).toBeInTheDocument()
     expect(screen.getByText('1 tsp vanilla extract')).toBeInTheDocument()
     
-    // Remove ingredient (doesn't show the value, just the action)
-    const removeCard = screen.getAllByRole('article')[2] // Third card is remove
-    expect(within(removeCard).getByText('remove')).toBeInTheDocument()
+    // Remove ingredient - now shows the value in the updated component
+    expect(screen.getByText('Remove:')).toBeInTheDocument()
+    expect(screen.getByText('1 tsp salt')).toBeInTheDocument()
   })
 
   it('displays instruction changes correctly', () => {

@@ -5,6 +5,7 @@ import React from 'react'
 // Set up environment variables for tests
 process.env.ANTHROPIC_API_KEY = 'test-api-key'
 
+
 // Mock Next.js Image component
 vi.mock('next/image', () => ({
   default: (props: any) => React.createElement('img', props)
