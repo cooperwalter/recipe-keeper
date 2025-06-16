@@ -69,13 +69,14 @@ export function SignUpForm({
       // For demo account in development, auto-login after signup
       if (process.env.NODE_ENV === 'development' && email === "demo@recipekeeper.com" && data.user) {
         // Sign in immediately for demo account
-        const { error: signInError } = await supabase.auth.signInWithPassword({
+        const { error: signInError, data: signInData } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         
-        if (!signInError) {
-          router.push("/protected/recipes");
+        if (!signInError && signInData?.session) {
+          // Use window.location for a hard redirect to ensure cookies are properly set
+          window.location.href = "/protected/recipes";
           return;
         }
       }

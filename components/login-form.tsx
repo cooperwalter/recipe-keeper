@@ -33,13 +33,20 @@ export function LoginForm({
     setError(null);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error, data } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       if (error) throw error;
-      // Redirect to the My Recipes page after successful login
-      router.push("/protected/recipes");
+      
+      // Ensure we have a valid session
+      if (data?.session) {
+        // Use window.location for a hard redirect to ensure cookies are properly set
+        window.location.href = "/protected/recipes";
+      } else {
+        // Fallback to router.push if no session (shouldn't happen)
+        router.push("/protected/recipes");
+      }
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
