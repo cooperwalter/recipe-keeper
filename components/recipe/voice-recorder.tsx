@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Mic, MicOff, Loader2, Volume2, X } from 'lucide-react'
+import { VoiceWaveAnimation } from '@/components/ui/voice-wave-animation'
 import { cn } from '@/lib/utils'
 
 interface VoiceRecorderProps {
@@ -60,8 +61,9 @@ export function VoiceRecorder({ onTranscription, isProcessing = false, className
         }, 100)
       }
       
-      mediaRecorder.start()
+      // Start recording immediately to avoid cutting off initial words
       setIsRecording(true)
+      mediaRecorder.start(100) // Collect data every 100ms for more responsive feedback
     } catch (err) {
       console.error('Error accessing microphone:', err)
       setError('Unable to access microphone. Please check permissions.')
@@ -186,8 +188,11 @@ export function VoiceRecorder({ onTranscription, isProcessing = false, className
         </div>
 
         {isRecording && (
-          <div className="text-center text-sm text-muted-foreground animate-pulse">
-            Recording... Click to stop
+          <div className="flex flex-col items-center gap-2">
+            <VoiceWaveAnimation isActive={isRecording} />
+            <div className="text-center text-sm text-muted-foreground">
+              Listening... Click to stop
+            </div>
           </div>
         )}
       </div>

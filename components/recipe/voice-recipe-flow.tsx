@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Mic, MicOff, Loader2, AlertCircle, ChevronRight, RotateCcw } from 'lucide-react'
+import { VoiceWaveAnimation } from '@/components/ui/voice-wave-animation'
 import { VoiceReviewForm } from './voice-review-form'
 
 interface ExtractedRecipe {
@@ -91,11 +92,15 @@ export function VoiceRecipeFlow() {
       setTranscript('')
       setRecordingTime(0)
       
+      // Set recording state immediately to avoid cutting off initial words
+      setIsRecording(true)
+      
       // Start speech recognition
       if (recognitionRef.current) {
         recognitionRef.current.start()
       } else {
         setError('Speech recognition not supported in your browser')
+        setIsRecording(false)
         return
       }
       
@@ -103,8 +108,6 @@ export function VoiceRecipeFlow() {
       timerRef.current = setInterval(() => {
         setRecordingTime(prev => prev + 1)
       }, 1000)
-      
-      setIsRecording(true)
     } catch (err) {
       console.error('Error starting recording:', err)
       setError('Failed to start recording')
@@ -215,11 +218,7 @@ export function VoiceRecipeFlow() {
               <div className="text-center space-y-2">
                 <p className="text-lg font-medium text-destructive">Recording...</p>
                 <p className="text-2xl font-mono">{formatTime(recordingTime)}</p>
-                <div className="flex items-center gap-1">
-                  <div className="w-1 h-4 bg-destructive rounded-full animate-pulse" />
-                  <div className="w-1 h-4 bg-destructive rounded-full animate-pulse delay-75" />
-                  <div className="w-1 h-4 bg-destructive rounded-full animate-pulse delay-150" />
-                </div>
+                <VoiceWaveAnimation isActive={isRecording} className="text-destructive" />
               </div>
             )}
           </div>
