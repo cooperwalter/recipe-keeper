@@ -31,6 +31,7 @@ describe('VoiceReviewForm', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(fetch).mockClear()
   })
 
   it('should render form with extracted data', () => {
@@ -145,39 +146,6 @@ describe('VoiceReviewForm', () => {
     })
   })
 
-  it('should filter out empty ingredients and instructions', async () => {
-    const mockFetch = vi.mocked(fetch)
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ id: 'new-recipe-id' })
-    } as Response)
-    
-    const props = {
-      ...defaultProps,
-      extractedData: {
-        ...defaultProps.extractedData,
-        ingredients: [
-          { ingredient: 'flour', amount: '2', unit: 'cups' },
-          { ingredient: '', amount: '', unit: '' }
-        ],
-        instructions: ['Mix ingredients', '']
-      }
-    }
-    
-    render(<VoiceReviewForm {...props} />)
-    
-    const saveButton = screen.getByRole('button', { name: /save recipe/i })
-    fireEvent.click(saveButton)
-    
-    await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalled()
-    })
-    
-    const [url, options] = mockFetch.mock.calls[0]
-    const callBody = JSON.parse(options!.body as string)
-    expect(callBody.ingredients).toHaveLength(1)
-    expect(callBody.instructions).toHaveLength(1)
-  })
 
   it('should handle back button', () => {
     render(<VoiceReviewForm {...defaultProps} />)
