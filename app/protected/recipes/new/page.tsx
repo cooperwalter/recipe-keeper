@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { ChevronLeft, ScanLine, PenTool, Camera } from 'lucide-react'
+import { ChevronLeft, ScanLine, PenTool, Camera, Mic } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -28,7 +28,7 @@ export default function NewRecipePage() {
       </div>
 
       {/* Options */}
-      <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 max-w-4xl">
+      <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 max-w-5xl">
         <Link href="/protected/recipes/new/ocr">
           <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-primary/50">
             <CardHeader>
@@ -87,6 +87,38 @@ export default function NewRecipePage() {
                 <li className="flex items-start gap-2">
                   <span className="text-primary">✓</span>
                   <span>Save drafts as you go</span>
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/protected/recipes/new/voice">
+          <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-primary/50">
+            <CardHeader>
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-lg bg-primary/10">
+                  <Mic className="h-8 w-8 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <CardTitle>Speak Recipe</CardTitle>
+                  <CardDescription>Describe your recipe out loud</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ul className="text-sm text-muted-foreground space-y-2">
+                <li className="flex items-start gap-2">
+                  <span className="text-primary">✓</span>
+                  <span>Just talk naturally about your recipe</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary">✓</span>
+                  <span>AI converts speech to recipe format</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary">✓</span>
+                  <span>Review and edit before saving</span>
                 </li>
               </ul>
             </CardContent>

@@ -97,7 +97,7 @@ export function RecipeFormWizard() {
     <div className="max-w-4xl mx-auto">
       {/* Progress Bar */}
       <div className="mb-8">
-        <Progress value={progress} className="h-2" />
+        <Progress value={progress} className="h-2" aria-valuenow={progress} />
         <div className="grid grid-cols-4 gap-2 mt-4">
           {steps.map((step, index) => (
             <div

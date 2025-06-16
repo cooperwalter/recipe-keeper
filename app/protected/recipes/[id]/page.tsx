@@ -148,22 +148,16 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
 
   return (
     <>
-      {/* Breadcrumb Navigation */}
-      <div className="container mx-auto px-4 py-4 print:hidden">
-        <nav aria-label="Breadcrumb">
-          <ol className="flex items-center space-x-2 text-sm text-muted-foreground">
-            <li>
-              <Link href="/protected/recipes" className="hover:text-foreground">
-                Recipes
-              </Link>
-            </li>
-            <li>/</li>
-            <li className="text-foreground font-medium">{recipe.title}</li>
-          </ol>
-        </nav>
-      </div>
-
-      <article className="container mx-auto py-8 px-4">
+      <article className="container mx-auto pt-0 pb-8 px-4">
+        {/* Back to Recipes Button */}
+        <div className="mb-8 print:hidden">
+          <Link href="/protected/recipes">
+            <Button variant="ghost" size="sm">
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Back to Recipes
+            </Button>
+          </Link>
+        </div>
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">

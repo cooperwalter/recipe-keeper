@@ -91,7 +91,13 @@ describe('VoiceRecorder', () => {
     })
   })
 
-  it('displays audio controls after recording', async () => {
+  it('displays audio controls after recording and auto-transcribes', async () => {
+    const mockTranscription = 'Auto transcribed text'
+    ;(global.fetch as any).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ text: mockTranscription })
+    })
+    
     render(<VoiceRecorder onTranscription={mockOnTranscription} />)
     
     // Start and stop recording
@@ -105,33 +111,8 @@ describe('VoiceRecorder', () => {
     
     await waitFor(() => {
       expect(screen.getByText('Recording complete')).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: /transcribe audio/i })).toBeInTheDocument()
+      expect(screen.getByText('Transcribing...')).toBeInTheDocument()
     })
-  })
-
-  it('transcribes audio successfully', async () => {
-    const mockTranscription = 'Add more flour to the recipe'
-    ;(global.fetch as any).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ text: mockTranscription })
-    })
-    
-    render(<VoiceRecorder onTranscription={mockOnTranscription} />)
-    
-    // Simulate having recorded audio
-    const mockBlob = new Blob(['audio data'], { type: 'audio/webm' })
-    const recordButton = screen.getByRole('button', { name: /start recording/i })
-    await userEvent.click(recordButton)
-    
-    mockMediaRecorder.ondataavailable?.({ data: mockBlob } as any)
-    mockMediaRecorder.onstop?.()
-    
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /transcribe audio/i })).toBeInTheDocument()
-    })
-    
-    const transcribeButton = screen.getByRole('button', { name: /transcribe audio/i })
-    await userEvent.click(transcribeButton)
     
     await waitFor(() => {
       expect(mockOnTranscription).toHaveBeenCalledWith(mockTranscription)
@@ -139,29 +120,57 @@ describe('VoiceRecorder', () => {
     })
   })
 
-  it('handles transcription error', async () => {
+  it('handles transcription error during auto-transcribe', async () => {
     ;(global.fetch as any).mockRejectedValueOnce(new Error('Network error'))
     
     render(<VoiceRecorder onTranscription={mockOnTranscription} />)
     
-    // Simulate having recorded audio
-    const mockBlob = new Blob(['audio data'], { type: 'audio/webm' })
+    // Start and stop recording
     const recordButton = screen.getByRole('button', { name: /start recording/i })
     await userEvent.click(recordButton)
     
+    // Simulate recording completion
+    const mockBlob = new Blob(['audio data'], { type: 'audio/webm' })
     mockMediaRecorder.ondataavailable?.({ data: mockBlob } as any)
     mockMediaRecorder.onstop?.()
     
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /transcribe audio/i })).toBeInTheDocument()
-    })
-    
-    const transcribeButton = screen.getByRole('button', { name: /transcribe audio/i })
-    await userEvent.click(transcribeButton)
-    
-    await waitFor(() => {
       expect(screen.getByText('Failed to transcribe audio. Please try again.')).toBeInTheDocument()
     })
+  })
+
+  it('allows manual re-transcription after auto-transcribe', async () => {
+    const firstTranscription = 'First transcription'
+    const secondTranscription = 'Second transcription'
+    
+    ;(global.fetch as any)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ text: firstTranscription })
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ text: secondTranscription })
+      })
+    
+    render(<VoiceRecorder onTranscription={mockOnTranscription} />)
+    
+    // Start and stop recording
+    const recordButton = screen.getByRole('button', { name: /start recording/i })
+    await userEvent.click(recordButton)
+    
+    // Simulate recording completion
+    const mockBlob = new Blob(['audio data'], { type: 'audio/webm' })
+    mockMediaRecorder.ondataavailable?.({ data: mockBlob } as any)
+    mockMediaRecorder.onstop?.()
+    
+    // Wait for auto-transcription
+    await waitFor(() => {
+      expect(screen.getByText(firstTranscription)).toBeInTheDocument()
+    })
+    
+    // Verify first transcription was called
+    expect(mockOnTranscription).toHaveBeenCalledWith(firstTranscription)
   })
 
   it('clears recording when X button is clicked', async () => {
@@ -211,7 +220,7 @@ describe('VoiceRecorder', () => {
     expect(recordButton).not.toBeDisabled() // Recording should still be allowed
   })
 
-  it('shows transcribing state', async () => {
+  it('shows transcribing state during auto-transcribe', async () => {
     ;(global.fetch as any).mockImplementationOnce(() => 
       new Promise(resolve => setTimeout(() => resolve({
         ok: true,
@@ -221,21 +230,17 @@ describe('VoiceRecorder', () => {
     
     render(<VoiceRecorder onTranscription={mockOnTranscription} />)
     
-    // Simulate having recorded audio
-    const mockBlob = new Blob(['audio data'], { type: 'audio/webm' })
+    // Start and stop recording
     const recordButton = screen.getByRole('button', { name: /start recording/i })
     await userEvent.click(recordButton)
     
+    // Simulate recording completion
+    const mockBlob = new Blob(['audio data'], { type: 'audio/webm' })
     mockMediaRecorder.ondataavailable?.({ data: mockBlob } as any)
     mockMediaRecorder.onstop?.()
     
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /transcribe audio/i })).toBeInTheDocument()
+      expect(screen.getByText('Transcribing...')).toBeInTheDocument()
     })
-    
-    const transcribeButton = screen.getByRole('button', { name: /transcribe audio/i })
-    await userEvent.click(transcribeButton)
-    
-    expect(screen.getByText('Transcribing...')).toBeInTheDocument()
   })
 })

@@ -46,9 +46,9 @@ describe('RecipeFormWizard', () => {
     })
   })
 
-  const renderWithProvider = (children: React.ReactNode) => {
+  const renderWithProvider = (children: React.ReactNode, initialData?: any) => {
     return render(
-      <RecipeFormProvider>
+      <RecipeFormProvider initialData={initialData}>
         {children}
       </RecipeFormProvider>
     )
@@ -65,7 +65,12 @@ describe('RecipeFormWizard', () => {
   })
 
   it('navigates between steps', () => {
-    renderWithProvider(<RecipeFormWizard />)
+    const validData = {
+      title: 'Test Recipe',
+      ingredients: [{ ingredient: 'Test ingredient', amount: '1', unit: 'cup' }],
+      instructions: [{ instruction: 'Test instruction', stepNumber: 1 }],
+    }
+    renderWithProvider(<RecipeFormWizard />, validData)
     
     // Should be on step 1
     expect(screen.getByTestId('basic-info-step')).toBeInTheDocument()
@@ -92,7 +97,12 @@ describe('RecipeFormWizard', () => {
   })
 
   it('shows submit button on last step', () => {
-    renderWithProvider(<RecipeFormWizard />)
+    const validData = {
+      title: 'Test Recipe',
+      ingredients: [{ ingredient: 'Test ingredient', amount: '1', unit: 'cup' }],
+      instructions: [{ instruction: 'Test instruction', stepNumber: 1 }],
+    }
+    renderWithProvider(<RecipeFormWizard />, validData)
     
     // Navigate to last step
     fireEvent.click(screen.getByText('Next')) // Step 2
@@ -109,8 +119,13 @@ describe('RecipeFormWizard', () => {
       ok: true,
       json: async () => mockRecipe,
     })
-
-    renderWithProvider(<RecipeFormWizard />)
+    
+    const validData = {
+      title: 'Test Recipe',
+      ingredients: [{ ingredient: 'Test ingredient', amount: '1', unit: 'cup' }],
+      instructions: [{ instruction: 'Test instruction', stepNumber: 1 }],
+    }
+    renderWithProvider(<RecipeFormWizard />, validData)
     
     // Navigate to last step
     fireEvent.click(screen.getByText('Next'))
@@ -125,7 +140,7 @@ describe('RecipeFormWizard', () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: '',
+          title: 'Test Recipe',
           description: '',
           prepTime: undefined,
           cookTime: undefined,
@@ -133,8 +148,8 @@ describe('RecipeFormWizard', () => {
           isPublic: false,
           sourceName: '',
           sourceNotes: '',
-          ingredients: [],
-          instructions: [],
+          ingredients: [{ ingredient: 'Test ingredient', amount: '1', unit: 'cup' }],
+          instructions: ['Test instruction'],
           categoryIds: [],
           tags: [],
         }),
@@ -150,8 +165,13 @@ describe('RecipeFormWizard', () => {
     ;(global.fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       ok: false,
     })
-
-    renderWithProvider(<RecipeFormWizard />)
+    
+    const validData = {
+      title: 'Test Recipe',
+      ingredients: [{ ingredient: 'Test ingredient', amount: '1', unit: 'cup' }],
+      instructions: [{ instruction: 'Test instruction', stepNumber: 1 }],
+    }
+    renderWithProvider(<RecipeFormWizard />, validData)
     
     // Navigate to last step
     fireEvent.click(screen.getByText('Next'))
@@ -168,8 +188,13 @@ describe('RecipeFormWizard', () => {
 
   it('shows loading state during submission', async () => {
     ;(global.fetch as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => new Promise(() => {})) // Never resolves
-
-    renderWithProvider(<RecipeFormWizard />)
+    
+    const validData = {
+      title: 'Test Recipe',
+      ingredients: [{ ingredient: 'Test ingredient', amount: '1', unit: 'cup' }],
+      instructions: [{ instruction: 'Test instruction', stepNumber: 1 }],
+    }
+    renderWithProvider(<RecipeFormWizard />, validData)
     
     // Navigate to last step
     fireEvent.click(screen.getByText('Next'))
@@ -184,7 +209,12 @@ describe('RecipeFormWizard', () => {
   })
 
   it('displays step progress correctly', () => {
-    renderWithProvider(<RecipeFormWizard />)
+    const validData = {
+      title: 'Test Recipe',
+      ingredients: [{ ingredient: 'Test ingredient', amount: '1', unit: 'cup' }],
+      instructions: [{ instruction: 'Test instruction', stepNumber: 1 }],
+    }
+    renderWithProvider(<RecipeFormWizard />, validData)
     
     // Step 1
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '25')

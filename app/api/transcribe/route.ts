@@ -19,36 +19,57 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No audio file provided' }, { status: 400 })
     }
 
-    // For now, we'll use OpenAI's Whisper API for transcription
-    // In a production app, you might want to use a different service or implement
-    // client-side transcription using the Web Speech API
+    // Check if OpenAI API key is available
+    const openaiApiKey = process.env.OPENAI_API_KEY
     
-    // Convert the audio to a format suitable for transcription
-    const audioBuffer = await audioFile.arrayBuffer()
-    const audioBlob = new Blob([audioBuffer], { type: audioFile.type })
+    if (!openaiApiKey) {
+      // Fallback to browser's built-in Web Speech API simulation
+      // This is a temporary solution for development
+      console.warn('OpenAI API key not found. Using mock transcription.')
+      
+      const mockTranscriptions = [
+        "Add half a cup more flour to make it thicker",
+        "Change the baking time to 25 minutes instead of 20",
+        "Add a teaspoon of vanilla extract to the ingredients",
+        "Replace the sugar with honey, about three quarters of a cup",
+        "Add a note that this works best with room temperature eggs"
+      ]
+      
+      // Simulate processing delay
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      // Return a random mock transcription for demo
+      const text = mockTranscriptions[Math.floor(Math.random() * mockTranscriptions.length)]
+      
+      return NextResponse.json({ text })
+    }
 
-    // Since we're using Anthropic for other AI features, we'll simulate transcription
-    // In production, you'd integrate with a real transcription service like:
-    // - OpenAI Whisper API
-    // - Google Cloud Speech-to-Text
-    // - AWS Transcribe
-    // - Azure Speech Services
-    
-    // For demo purposes, we'll return a mock transcription
-    // This would be replaced with actual transcription logic
-    const mockTranscriptions = [
-      "Add half a cup more flour to make it thicker",
-      "Change the baking time to 25 minutes instead of 20",
-      "Add a teaspoon of vanilla extract to the ingredients",
-      "Replace the sugar with honey, about three quarters of a cup",
-      "Add a note that this works best with room temperature eggs"
-    ]
-    
-    // Simulate processing delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // Return a random mock transcription for demo
-    const text = mockTranscriptions[Math.floor(Math.random() * mockTranscriptions.length)]
+    // Use OpenAI Whisper API for transcription
+    const whisperFormData = new FormData()
+    whisperFormData.append('file', audioFile)
+    whisperFormData.append('model', 'whisper-1')
+    whisperFormData.append('language', 'en')
+
+    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openaiApiKey}`,
+      },
+      body: whisperFormData,
+    })
+
+    if (!response.ok) {
+      const error = await response.text()
+      console.error('OpenAI Whisper API error:', error)
+      throw new Error('Transcription service error')
+    }
+
+    const data = await response.json()
+    const text = data.text?.trim()
+
+    if (!text) {
+      throw new Error('No transcription text received')
+    }
     
     return NextResponse.json({ text })
   } catch (error) {

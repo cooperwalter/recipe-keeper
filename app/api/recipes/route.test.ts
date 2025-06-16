@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { GET, POST } from './route'
 import { NextRequest } from 'next/server'
-import { RecipeService } from '@/lib/supabase/recipes'
+import { RecipeService } from '@/lib/db/recipes'
 import { createClient } from '@/lib/supabase/server'
 
-vi.mock('@/lib/supabase/recipes')
+vi.mock('@/lib/db/recipes')
 vi.mock('@/lib/supabase/server')
 
 describe('/api/recipes', () => {
@@ -15,6 +15,7 @@ describe('/api/recipes', () => {
     addInstructions: ReturnType<typeof vi.fn>
     addCategories: ReturnType<typeof vi.fn>
     addTags: ReturnType<typeof vi.fn>
+    addRecipePhoto: ReturnType<typeof vi.fn>
     getRecipe: ReturnType<typeof vi.fn>
   }
   let mockSupabase: {
@@ -40,6 +41,7 @@ describe('/api/recipes', () => {
       addInstructions: vi.fn().mockResolvedValue([]),
       addCategories: vi.fn().mockResolvedValue(undefined),
       addTags: vi.fn().mockResolvedValue(undefined),
+      addRecipePhoto: vi.fn().mockResolvedValue(undefined),
       getRecipe: vi.fn().mockResolvedValue({
         id: 'recipe-id',
         title: 'Test Recipe',
@@ -57,7 +59,7 @@ describe('/api/recipes', () => {
     }
 
     ;(RecipeService as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => mockRecipeService)
-    ;(createClient as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(mockSupabase)
+    ;(createClient as unknown as ReturnType<typeof vi.fn>).mockImplementation(async () => mockSupabase)
   })
 
   describe('GET /api/recipes', () => {
@@ -77,16 +79,16 @@ describe('/api/recipes', () => {
     })
 
     it('should handle query parameters', async () => {
-      const url = 'http://localhost:3000/api/recipes?query=pasta&categories=main-dish,side-dish&limit=10'
+      const url = 'http://localhost:3000/api/recipes?query=pasta&categoryId=main-dish&tags=quick,easy&limit=10'
       const request = new NextRequest(url)
 
       await GET(request)
 
       expect(mockRecipeService.listRecipes).toHaveBeenCalledWith({
         query: 'pasta',
-        categories: ['main-dish', 'side-dish'],
+        categoryId: 'main-dish',
+        tags: ['quick', 'easy'],
         limit: 10,
-        tags: undefined,
         createdBy: undefined,
         isPublic: undefined,
         isFavorite: undefined,
@@ -96,12 +98,12 @@ describe('/api/recipes', () => {
       })
     })
 
-    it('should return 401 for unauthenticated user', async () => {
+    it('should return 401 for unauthenticated user requesting favorites', async () => {
       mockSupabase.auth.getUser.mockResolvedValueOnce({
         data: { user: null },
       })
 
-      const request = new NextRequest('http://localhost:3000/api/recipes')
+      const request = new NextRequest('http://localhost:3000/api/recipes?isFavorite=true')
       const response = await GET(request)
 
       expect(response.status).toBe(401)
@@ -136,7 +138,20 @@ describe('/api/recipes', () => {
       const data = await response.json()
 
       expect(response.status).toBe(201)
-      expect(mockRecipeService.createRecipe).toHaveBeenCalledWith(recipeData)
+      expect(mockRecipeService.createRecipe).toHaveBeenCalledWith({
+        title: 'New Recipe',
+        description: 'A delicious recipe',
+        ingredients: [],
+        instructions: [],
+        prepTime: undefined,
+        cookTime: undefined,
+        servings: 4,
+        categoryId: undefined,
+        sourceName: undefined,
+        sourceNotes: undefined,
+        tags: [],
+        isPublic: false,
+      })
       expect(data.id).toBe('recipe-id')
     })
 
@@ -146,10 +161,8 @@ describe('/api/recipes', () => {
         ingredients: [
           { ingredient: 'Flour', amount: 2, unit: 'cups' },
         ],
-        instructions: [
-          { instruction: 'Mix ingredients' },
-        ],
-        categoryIds: ['cat-1'],
+        instructions: ['Mix ingredients'],
+        categoryId: 'cat-1',
         tags: ['easy', 'quick'],
       }
 
@@ -161,10 +174,22 @@ describe('/api/recipes', () => {
       const response = await POST(request)
 
       expect(response.status).toBe(201)
-      expect(mockRecipeService.addIngredients).toHaveBeenCalled()
-      expect(mockRecipeService.addInstructions).toHaveBeenCalled()
-      expect(mockRecipeService.addCategories).toHaveBeenCalledWith('recipe-id', ['cat-1'])
-      expect(mockRecipeService.addTags).toHaveBeenCalledWith('recipe-id', ['easy', 'quick'])
+      expect(mockRecipeService.createRecipe).toHaveBeenCalledWith({
+        title: 'New Recipe',
+        description: undefined,
+        ingredients: [
+          { ingredient: 'Flour', amount: 2, unit: 'cups' },
+        ],
+        instructions: ['Mix ingredients'],
+        prepTime: undefined,
+        cookTime: undefined,
+        servings: undefined,
+        categoryId: 'cat-1',
+        sourceName: undefined,
+        sourceNotes: undefined,
+        tags: ['easy', 'quick'],
+        isPublic: false,
+      })
     })
 
     it('should return 401 for unauthenticated user', async () => {

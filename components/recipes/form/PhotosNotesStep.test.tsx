@@ -62,7 +62,7 @@ describe('PhotosNotesStep', () => {
     renderWithProvider()
     
     const file = createMockFile('test-photo.jpg')
-    const input = screen.getByLabelText('Click to upload photos')
+    const input = document.getElementById('photo-upload') as HTMLInputElement
     
     fireEvent.change(input, { target: { files: [file] } })
     
@@ -80,7 +80,7 @@ describe('PhotosNotesStep', () => {
       createMockFile('photo2.jpg'),
       createMockFile('photo3.jpg'),
     ]
-    const input = screen.getByLabelText('Click to upload photos')
+    const input = document.getElementById('photo-upload') as HTMLInputElement
     
     fireEvent.change(input, { target: { files } })
     
@@ -100,7 +100,7 @@ describe('PhotosNotesStep', () => {
       createMockFile('document.pdf', 'application/pdf'),
       createMockFile('text.txt', 'text/plain'),
     ]
-    const input = screen.getByLabelText('Click to upload photos')
+    const input = document.getElementById('photo-upload') as HTMLInputElement
     
     fireEvent.change(input, { target: { files } })
     
@@ -117,7 +117,7 @@ describe('PhotosNotesStep', () => {
       createMockFile('small.jpg', 'image/jpeg', 5 * 1024 * 1024), // 5MB
       createMockFile('large.jpg', 'image/jpeg', 15 * 1024 * 1024), // 15MB
     ]
-    const input = screen.getByLabelText('Click to upload photos')
+    const input = document.getElementById('photo-upload') as HTMLInputElement
     
     fireEvent.change(input, { target: { files } })
     
@@ -132,7 +132,7 @@ describe('PhotosNotesStep', () => {
     
     // Add photo
     const file = createMockFile('test-photo.jpg')
-    const input = screen.getByLabelText('Click to upload photos')
+    const input = document.getElementById('photo-upload') as HTMLInputElement
     fireEvent.change(input, { target: { files: [file] } })
     
     await waitFor(() => {
@@ -170,7 +170,7 @@ describe('PhotosNotesStep', () => {
     renderWithProvider()
     
     const file = createMockFile('test-photo.jpg')
-    const input = screen.getByLabelText('Click to upload photos') as HTMLInputElement
+    const input = document.getElementById('photo-upload') as HTMLInputElement as HTMLInputElement
     
     fireEvent.change(input, { target: { files: [file] } })
     
@@ -187,7 +187,7 @@ describe('PhotosNotesStep', () => {
       createMockFile('photo2.jpg'),
       createMockFile('photo3.jpg'),
     ]
-    const input = screen.getByLabelText('Click to upload photos')
+    const input = document.getElementById('photo-upload') as HTMLInputElement
     
     fireEvent.change(input, { target: { files } })
     
@@ -201,7 +201,7 @@ describe('PhotosNotesStep', () => {
     renderWithProvider()
     
     const file = createMockFile('test-photo.jpg')
-    const input = screen.getByLabelText('Click to upload photos')
+    const input = document.getElementById('photo-upload') as HTMLInputElement
     
     fireEvent.change(input, { target: { files: [file] } })
     

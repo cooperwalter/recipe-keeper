@@ -110,6 +110,7 @@ export function InstructionsStep() {
                 size="icon"
                 variant="ghost"
                 className="text-destructive hover:text-destructive"
+                aria-label="Remove instruction"
               >
                 <X className="h-4 w-4" />
               </Button>

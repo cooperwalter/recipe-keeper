@@ -3,6 +3,16 @@ import { render, screen } from '@testing-library/react'
 import { RecipeGrid } from './RecipeGrid'
 import { RecipeWithRelations } from '@/lib/types/recipe'
 
+// Mock the RecipeCard component to avoid nested component issues
+vi.mock('./RecipeCard', () => ({
+  RecipeCard: ({ recipe, onToggleFavorite }: any) => (
+    <div data-testid="recipe-card" data-recipe-id={recipe.id}>
+      {recipe.title}
+      {onToggleFavorite && <button onClick={() => onToggleFavorite(recipe.id)}>Toggle Favorite</button>}
+    </div>
+  )
+}))
+
 const mockRecipes: RecipeWithRelations[] = [
   {
     id: '1',
@@ -80,13 +90,17 @@ describe('RecipeGrid', () => {
 
   it('passes onToggleFavorite to recipe cards', () => {
     const onToggleFavorite = vi.fn()
-    const { container } = render(
+    render(
       <RecipeGrid recipes={mockRecipes} onToggleFavorite={onToggleFavorite} />
     )
     
-    // Check that RecipeCard components are rendered
-    const recipeCards = container.querySelectorAll('a[href^="/protected/recipes/"]')
+    // Check that RecipeCard components are rendered with correct props
+    const recipeCards = screen.getAllByTestId('recipe-card')
     expect(recipeCards).toHaveLength(2)
+    
+    // Check that the toggle favorite button is present
+    const toggleButtons = screen.getAllByText('Toggle Favorite')
+    expect(toggleButtons).toHaveLength(2)
   })
 
   it('renders with responsive grid classes', () => {
@@ -107,8 +121,8 @@ describe('RecipeGrid', () => {
     
     // Each skeleton should have the expected structure
     const firstSkeleton = skeletons[0]
-    expect(firstSkeleton.querySelector('.h-48')).toBeInTheDocument() // Image skeleton
-    expect(firstSkeleton.querySelector('.h-6')).toBeInTheDocument() // Title skeleton
+    expect(firstSkeleton.querySelector('.h-32')).toBeInTheDocument() // Image skeleton
+    expect(firstSkeleton.querySelector('.h-5')).toBeInTheDocument() // Title skeleton
     expect(firstSkeleton.querySelector('.h-4')).toBeInTheDocument() // Description skeleton
   })
 })

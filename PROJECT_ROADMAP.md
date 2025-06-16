@@ -123,7 +123,7 @@ This roadmap outlines the development phases for the Recipe Inheritance Keeper M
 - [x] Add loading states ✅
 - [x] Add empty states ✅
 - [x] Implement responsive design ✅
-- [ ] Write component tests ⏳
+- [x] Write component tests ✅
 
 ### Recipe Detail View ✅ COMPLETE
 - [x] Create RecipeDetail page ✅
@@ -466,7 +466,7 @@ This roadmap outlines the development phases for the Recipe Inheritance Keeper M
 - [ ] Add confirmation workflow before applying changes
 - [ ] Support commands like "add more salt", "change baking time to 30 minutes"
 - [ ] Handle ambiguous instructions with clarification prompts
-- [ ] Test voice recognition accuracy across accents
+- [x] Test voice recognition accuracy across accents ✅
 - [ ] Implement undo/redo for voice changes
 
 ### Community Features

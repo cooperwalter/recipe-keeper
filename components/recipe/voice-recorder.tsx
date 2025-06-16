@@ -49,10 +49,15 @@ export function VoiceRecorder({ onTranscription, isProcessing = false, className
         }
       }
       
-      mediaRecorder.onstop = () => {
+      mediaRecorder.onstop = async () => {
         const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
         setAudioBlob(blob)
         stream.getTracks().forEach(track => track.stop())
+        
+        // Automatically start transcription after recording stops
+        setTimeout(() => {
+          transcribeAudioInternal(blob)
+        }, 100)
       }
       
       mediaRecorder.start()
@@ -70,21 +75,13 @@ export function VoiceRecorder({ onTranscription, isProcessing = false, className
     }
   }
 
-  const transcribeAudio = async () => {
-    if (!audioBlob) return
-
+  const transcribeAudioInternal = async (blob: Blob) => {
     setIsTranscribing(true)
     setError(null)
 
     try {
-      // Use Web Speech API for transcription
-      // Note: In production, you might want to use a more robust service
-      const audioUrl = URL.createObjectURL(audioBlob)
-      
-      // For now, we'll use a placeholder that would be replaced with actual transcription
-      // In a real implementation, you'd send this to an API endpoint
       const formData = new FormData()
-      formData.append('audio', audioBlob, 'recording.webm')
+      formData.append('audio', blob, 'recording.webm')
       
       const response = await fetch('/api/transcribe', {
         method: 'POST',
@@ -98,14 +95,17 @@ export function VoiceRecorder({ onTranscription, isProcessing = false, className
       const { text } = await response.json()
       setTranscription(text)
       onTranscription(text)
-      
-      URL.revokeObjectURL(audioUrl)
     } catch (err) {
       console.error('Error transcribing audio:', err)
       setError('Failed to transcribe audio. Please try again.')
     } finally {
       setIsTranscribing(false)
     }
+  }
+
+  const transcribeAudio = async () => {
+    if (!audioBlob) return
+    await transcribeAudioInternal(audioBlob)
   }
 
   const clearRecording = () => {
@@ -125,6 +125,7 @@ export function VoiceRecorder({ onTranscription, isProcessing = false, className
               size="sm"
               onClick={clearRecording}
               disabled={isTranscribing || isProcessing}
+              aria-label="Clear recording"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -169,21 +170,11 @@ export function VoiceRecorder({ onTranscription, isProcessing = false, className
                 />
               </div>
 
-              {!transcription && (
-                <Button
-                  onClick={transcribeAudio}
-                  disabled={isTranscribing}
-                  className="w-full"
-                >
-                  {isTranscribing ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Transcribing...
-                    </>
-                  ) : (
-                    'Transcribe Audio'
-                  )}
-                </Button>
+              {isTranscribing && (
+                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Transcribing...
+                </div>
               )}
 
               {transcription && (

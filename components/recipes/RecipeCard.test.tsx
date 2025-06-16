@@ -3,6 +3,13 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { RecipeCard } from './RecipeCard'
 import { RecipeWithRelations } from '@/lib/types/recipe'
 
+// Mock the RecipePlaceholder component
+vi.mock('@/components/recipe/recipe-placeholder', () => ({
+  RecipePlaceholder: ({ className }: any) => (
+    <div className={className} data-testid="recipe-placeholder">Recipe Placeholder</div>
+  )
+}))
+
 const mockRecipe: RecipeWithRelations = {
   id: '1',
   title: 'Test Recipe',
@@ -106,6 +113,7 @@ describe('RecipeCard', () => {
     render(<RecipeCard recipe={recipeWithoutPhoto} />)
     
     expect(screen.queryByRole('img')).not.toBeInTheDocument()
+    expect(screen.getByTestId('recipe-placeholder')).toBeInTheDocument()
     expect(screen.getByText('Test Recipe')).toBeInTheDocument()
   })
 

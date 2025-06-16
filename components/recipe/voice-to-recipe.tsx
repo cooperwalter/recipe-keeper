@@ -256,12 +256,17 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
                 )}
               </>
             ) : (
-              <VoiceChangeReview
-                changes={changes}
-                onApprove={applyChanges}
-                onCancel={handleCancel}
-                isApplying={isApplying}
-              />
+              <>
+                <VoiceChangeReview
+                  changes={changes}
+                  onApprove={applyChanges}
+                  onCancel={handleCancel}
+                  isApplying={isApplying}
+                />
+                {error && (
+                  <div className="text-sm text-destructive mt-4">{error}</div>
+                )}
+              </>
             )}
           </div>
         </DialogContent>

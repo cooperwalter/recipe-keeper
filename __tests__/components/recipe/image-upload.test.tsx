@@ -36,9 +36,9 @@ describe('ImageUpload', () => {
   it('renders upload area with correct text', () => {
     render(<ImageUpload onUpload={mockOnUpload} />);
     
-    expect(screen.getByText('Drag & drop your recipe image here')).toBeInTheDocument();
-    expect(screen.getByText('or click to select from your device')).toBeInTheDocument();
-    expect(screen.getByText('Supports JPG, PNG, WebP up to 10MB')).toBeInTheDocument();
+    expect(screen.getByText('Upload your recipe image')).toBeInTheDocument();
+    expect(screen.getByText('Tap to take a photo or choose from gallery')).toBeInTheDocument();
+    expect(screen.getByText('Max 10MB • JPG, PNG, WebP')).toBeInTheDocument();
   });
 
   it('shows drag active state', () => {
