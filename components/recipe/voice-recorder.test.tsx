@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { VoiceRecorder } from './voice-recorder'
 
@@ -7,8 +7,8 @@ import { VoiceRecorder } from './voice-recorder'
 const mockMediaRecorder = {
   start: vi.fn(),
   stop: vi.fn(),
-  ondataavailable: null as any,
-  onstop: null as any,
+  ondataavailable: null as ((event: BlobEvent) => void) | null,
+  onstop: null as (() => void) | null,
   state: 'inactive'
 }
 
@@ -19,11 +19,11 @@ const mockMediaStream = {
 Object.defineProperty(global.navigator, 'mediaDevices', {
   writable: true,
   value: {
-    getUserMedia: vi.fn(() => Promise.resolve(mockMediaStream as any))
+    getUserMedia: vi.fn(() => Promise.resolve(mockMediaStream as MediaStream))
   }
 })
 
-global.MediaRecorder = vi.fn(() => mockMediaRecorder) as any
+global.MediaRecorder = vi.fn(() => mockMediaRecorder) as unknown as typeof MediaRecorder
 global.URL.createObjectURL = vi.fn(() => 'blob:mock-url')
 global.URL.revokeObjectURL = vi.fn()
 
@@ -37,7 +37,7 @@ describe('VoiceRecorder', () => {
     vi.clearAllMocks()
     mockMediaRecorder.state = 'inactive'
     // Reset navigator.mediaDevices.getUserMedia mock
-    ;(navigator.mediaDevices.getUserMedia as any).mockResolvedValue(mockMediaStream)
+    ;(navigator.mediaDevices.getUserMedia as vi.MockedFunction<typeof navigator.mediaDevices.getUserMedia>).mockResolvedValue(mockMediaStream as MediaStream)
   })
 
   afterEach(() => {
@@ -93,7 +93,7 @@ describe('VoiceRecorder', () => {
 
   it.skip('displays audio controls after recording and auto-transcribes', async () => {
     const mockTranscription = 'Auto transcribed text'
-    ;(global.fetch as any).mockResolvedValueOnce({
+    ;(global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ text: mockTranscription })
     })
@@ -108,7 +108,7 @@ describe('VoiceRecorder', () => {
     const mockBlob = new Blob(['audio data'], { type: 'audio/webm' })
     
     await act(async () => {
-      mockMediaRecorder.ondataavailable?.({ data: mockBlob } as any)
+      mockMediaRecorder.ondataavailable?.({ data: mockBlob } as BlobEvent)
       mockMediaRecorder.onstop?.()
     })
     
@@ -132,7 +132,7 @@ describe('VoiceRecorder', () => {
   })
 
   it.skip('handles transcription error during auto-transcribe', async () => {
-    ;(global.fetch as any).mockRejectedValueOnce(new Error('Network error'))
+    ;(global.fetch as vi.MockedFunction<typeof fetch>).mockRejectedValueOnce(new Error('Network error'))
     
     render(<VoiceRecorder onTranscription={mockOnTranscription} />)
     
@@ -142,7 +142,7 @@ describe('VoiceRecorder', () => {
     
     // Simulate recording completion
     const mockBlob = new Blob(['audio data'], { type: 'audio/webm' })
-    mockMediaRecorder.ondataavailable?.({ data: mockBlob } as any)
+    mockMediaRecorder.ondataavailable?.({ data: mockBlob } as BlobEvent)
     mockMediaRecorder.onstop?.()
     
     await waitFor(() => {
@@ -154,7 +154,7 @@ describe('VoiceRecorder', () => {
     const firstTranscription = 'First transcription'
     const secondTranscription = 'Second transcription'
     
-    ;(global.fetch as any)
+    ;(global.fetch as vi.MockedFunction<typeof fetch>)
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({ text: firstTranscription })
@@ -172,7 +172,7 @@ describe('VoiceRecorder', () => {
     
     // Simulate recording completion
     const mockBlob = new Blob(['audio data'], { type: 'audio/webm' })
-    mockMediaRecorder.ondataavailable?.({ data: mockBlob } as any)
+    mockMediaRecorder.ondataavailable?.({ data: mockBlob } as BlobEvent)
     mockMediaRecorder.onstop?.()
     
     // Wait for auto-transcription
@@ -204,7 +204,7 @@ describe('VoiceRecorder', () => {
     
     // Trigger the MediaRecorder events
     mockMediaRecorder.state = 'inactive'
-    mockMediaRecorder.ondataavailable?.({ data: mockBlob } as any)
+    mockMediaRecorder.ondataavailable?.({ data: mockBlob } as BlobEvent)
     mockMediaRecorder.onstop?.()
     
     await waitFor(() => {
@@ -232,11 +232,11 @@ describe('VoiceRecorder', () => {
   })
 
   it.skip('shows transcribing state during auto-transcribe', async () => {
-    ;(global.fetch as any).mockImplementationOnce(() => 
+    ;(global.fetch as vi.MockedFunction<typeof fetch>).mockImplementationOnce(() => 
       new Promise(resolve => setTimeout(() => resolve({
         ok: true,
         json: async () => ({ text: 'Test transcription' })
-      }), 100))
+      } as Response), 100))
     )
     
     render(<VoiceRecorder onTranscription={mockOnTranscription} />)
@@ -247,7 +247,7 @@ describe('VoiceRecorder', () => {
     
     // Simulate recording completion
     const mockBlob = new Blob(['audio data'], { type: 'audio/webm' })
-    mockMediaRecorder.ondataavailable?.({ data: mockBlob } as any)
+    mockMediaRecorder.ondataavailable?.({ data: mockBlob } as BlobEvent)
     mockMediaRecorder.onstop?.()
     
     await waitFor(() => {

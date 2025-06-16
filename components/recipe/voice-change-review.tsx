@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { 
   AlertDialog,
@@ -18,13 +17,12 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Check, X, Edit2, Plus, Minus, RefreshCw } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
 interface RecipeChange {
   type: 'add' | 'remove' | 'modify'
   field: 'title' | 'description' | 'ingredients' | 'instructions' | 'prepTime' | 'cookTime' | 'servings' | 'notes' | 'tags'
-  oldValue?: any
-  newValue?: any
+  oldValue?: unknown
+  newValue?: unknown
   details?: string
 }
 
@@ -38,7 +36,7 @@ interface VoiceChangeReviewProps {
 export function VoiceChangeReview({ changes: initialChanges, onApprove, onCancel, isApplying = false }: VoiceChangeReviewProps) {
   const [changes, setChanges] = useState<RecipeChange[]>(initialChanges)
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
-  const [editValue, setEditValue] = useState<any>(null)
+  const [editValue, setEditValue] = useState<unknown>(null)
   const [showConfirm, setShowConfirm] = useState(false)
 
   const handleRemoveChange = (index: number) => {
@@ -107,7 +105,11 @@ export function VoiceChangeReview({ changes: initialChanges, onApprove, onCancel
       if (change.field === 'ingredients' || change.field === 'instructions') {
         return (
           <Textarea
-            value={editValue?.ingredient || editValue?.instruction || editValue}
+            value={typeof editValue === 'object' && editValue !== null && 'ingredient' in editValue 
+              ? (editValue as {ingredient: string}).ingredient 
+              : typeof editValue === 'object' && editValue !== null && 'instruction' in editValue
+              ? (editValue as {instruction: string}).instruction
+              : editValue as string}
             onChange={(e) => setEditValue(e.target.value)}
             className="mt-2"
             rows={3}
@@ -117,7 +119,7 @@ export function VoiceChangeReview({ changes: initialChanges, onApprove, onCancel
         return (
           <Input
             type="number"
-            value={editValue}
+            value={editValue as string}
             onChange={(e) => setEditValue(e.target.value)}
             className="mt-2 w-32"
           />
@@ -125,7 +127,7 @@ export function VoiceChangeReview({ changes: initialChanges, onApprove, onCancel
       } else {
         return (
           <Input
-            value={editValue}
+            value={editValue as string}
             onChange={(e) => setEditValue(e.target.value)}
             className="mt-2"
           />
@@ -136,23 +138,25 @@ export function VoiceChangeReview({ changes: initialChanges, onApprove, onCancel
     // Display format
     if (change.field === 'ingredients') {
       const ing = change.newValue
-      if (typeof ing === 'object' && ing) {
-        return `${ing.amount || ''} ${ing.unit || ''} ${ing.ingredient}`.trim()
+      if (typeof ing === 'object' && ing && 'ingredient' in ing) {
+        const ingredient = ing as {ingredient: string; amount?: string; unit?: string}
+        return `${ingredient.amount || ''} ${ingredient.unit || ''} ${ingredient.ingredient}`.trim()
       }
-      return change.newValue
+      return String(change.newValue)
     } else if (change.field === 'instructions') {
       const inst = change.newValue
-      if (typeof inst === 'object' && inst) {
-        return `Step ${inst.stepNumber}: ${inst.instruction}`
+      if (typeof inst === 'object' && inst && 'instruction' in inst) {
+        const instruction = inst as {instruction: string; stepNumber: number}
+        return `Step ${instruction.stepNumber}: ${instruction.instruction}`
       }
-      return change.newValue
+      return String(change.newValue)
     } else if (change.field === 'prepTime' || change.field === 'cookTime') {
       return `${change.newValue} minutes`
     } else if (change.field === 'tags' && Array.isArray(change.newValue)) {
       return change.newValue.join(', ')
     }
     
-    return change.newValue
+    return String(change.newValue)
   }
 
   return (
@@ -164,7 +168,7 @@ export function VoiceChangeReview({ changes: initialChanges, onApprove, onCancel
         <div className="space-y-4">
           {changes.length === 0 ? (
             <p className="text-muted-foreground text-center py-4">
-              No changes detected. Try speaking more clearly about what you'd like to change.
+              No changes detected. Try speaking more clearly about what you&apos;d like to change.
             </p>
           ) : (
             <>
@@ -212,39 +216,43 @@ export function VoiceChangeReview({ changes: initialChanges, onApprove, onCancel
                       </div>
                     </div>
 
-                    {change.type === 'modify' && change.oldValue && (
+                    {change.type === 'modify' && !!change.oldValue && (
                       <div className="text-sm">
                         <span className="text-muted-foreground">From: </span>
                         <span className="line-through">
                           {(() => {
                             const val = change.oldValue
-                            if (change.field === 'ingredients' && typeof val === 'object' && val) {
-                              return `${val.amount || ''} ${val.unit || ''} ${val.ingredient}`.trim()
-                            } else if (change.field === 'instructions' && typeof val === 'object' && val) {
-                              return `Step ${val.stepNumber}: ${val.instruction}`
+                            if (change.field === 'ingredients' && typeof val === 'object' && val && 'ingredient' in val) {
+                              const ingredient = val as {ingredient: string; amount?: string; unit?: string}
+                              return `${ingredient.amount || ''} ${ingredient.unit || ''} ${ingredient.ingredient}`.trim()
+                            } else if (change.field === 'instructions' && typeof val === 'object' && val && 'instruction' in val) {
+                              const instruction = val as {instruction: string; stepNumber: number}
+                              return `Step ${instruction.stepNumber}: ${instruction.instruction}`
                             } else if (change.field === 'prepTime' || change.field === 'cookTime') {
                               return `${val} minutes`
                             } else if (Array.isArray(val)) {
                               return val.join(', ')
                             }
-                            return val
+                            return String(val)
                           })()}
                         </span>
                       </div>
                     )}
 
-                    {change.type === 'remove' && change.oldValue && (
+                    {change.type === 'remove' && !!change.oldValue && (
                       <div className="text-sm">
                         <span className="text-muted-foreground">Remove: </span>
                         <span className="font-medium">
                           {(() => {
                             const val = change.oldValue
-                            if (change.field === 'ingredients' && typeof val === 'object' && val) {
-                              return `${val.amount || ''} ${val.unit || ''} ${val.ingredient}`.trim()
-                            } else if (change.field === 'instructions' && typeof val === 'object' && val) {
-                              return `Step ${val.stepNumber}: ${val.instruction}`
+                            if (change.field === 'ingredients' && typeof val === 'object' && val && 'ingredient' in val) {
+                              const ingredient = val as {ingredient: string; amount?: string; unit?: string}
+                              return `${ingredient.amount || ''} ${ingredient.unit || ''} ${ingredient.ingredient}`.trim()
+                            } else if (change.field === 'instructions' && typeof val === 'object' && val && 'instruction' in val) {
+                              const instruction = val as {instruction: string; stepNumber: number}
+                              return `Step ${instruction.stepNumber}: ${instruction.instruction}`
                             }
-                            return val
+                            return String(val)
                           })()}
                         </span>
                       </div>

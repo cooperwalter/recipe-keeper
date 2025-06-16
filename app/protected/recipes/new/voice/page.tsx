@@ -23,7 +23,7 @@ export default function VoiceRecipePage() {
         
         <h1 className="text-3xl font-bold">Speak Your Recipe</h1>
         <p className="text-muted-foreground mt-2">
-          Describe your recipe out loud and we'll help you create it
+          Describe your recipe out loud and we&apos;ll help you create it
         </p>
       </div>
 

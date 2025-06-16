@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
         throw new Error('No JSON found in response');
       }
       extractedData = JSON.parse(jsonMatch[0]);
-    } catch (parseError) {
+    } catch {
       console.error('Failed to parse Claude response:', responseText);
       throw new Error('Failed to parse recipe information');
     }

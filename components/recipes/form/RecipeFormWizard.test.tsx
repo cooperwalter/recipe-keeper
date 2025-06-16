@@ -46,7 +46,7 @@ describe('RecipeFormWizard', () => {
     })
   })
 
-  const renderWithProvider = (children: React.ReactNode, initialData?: any) => {
+  const renderWithProvider = (children: React.ReactNode, initialData?: Parameters<typeof RecipeFormProvider>[0]['initialData']) => {
     return render(
       <RecipeFormProvider initialData={initialData}>
         {children}

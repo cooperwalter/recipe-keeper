@@ -1,9 +1,10 @@
 'use client'
 
-import { createContext, useContext, useState, ReactNode } from 'react'
+import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react'
 import { CreateRecipeInput, CreateIngredientInput, CreateInstructionInput } from '@/lib/types/recipe'
+import { draftPersistence } from '@/lib/utils/draft-persistence'
 
-interface RecipeFormData extends CreateRecipeInput {
+export interface RecipeFormData extends CreateRecipeInput {
   ingredients: Omit<CreateIngredientInput, 'recipeId'>[]
   instructions: Omit<CreateInstructionInput, 'recipeId'>[]
   categoryIds: string[]
@@ -19,6 +20,8 @@ interface RecipeFormContextType {
   nextStep: () => void
   previousStep: () => void
   isValid: (step: number) => boolean
+  clearDraft: () => void
+  draftSavedAt: Date | null
 }
 
 const RecipeFormContext = createContext<RecipeFormContextType | undefined>(undefined)
@@ -37,28 +40,65 @@ interface RecipeFormProviderProps {
 }
 
 export function RecipeFormProvider({ children, initialData }: RecipeFormProviderProps) {
-  const [formData, setFormData] = useState<RecipeFormData>({
-    title: '',
-    description: '',
-    prepTime: undefined,
-    cookTime: undefined,
-    servings: undefined,
-    isPublic: false,
-    sourceName: '',
-    sourceNotes: '',
-    ingredients: [],
-    instructions: [],
-    categoryIds: [],
-    tags: [],
-    photos: [],
-    ...initialData,
+  const [draftSavedAt, setDraftSavedAt] = useState<Date | null>(null)
+  const [isInitialized, setIsInitialized] = useState(false)
+  
+  // Initialize form data, checking for draft first
+  const [formData, setFormData] = useState<RecipeFormData>(() => {
+    const defaultData: RecipeFormData = {
+      title: '',
+      description: '',
+      prepTime: undefined,
+      cookTime: undefined,
+      servings: undefined,
+      isPublic: false,
+      sourceName: '',
+      sourceNotes: '',
+      ingredients: [],
+      instructions: [],
+      categoryIds: [],
+      tags: [],
+      photos: [],
+      ...initialData,
+    }
+    
+    return defaultData
   })
 
   const [currentStep, setCurrentStep] = useState(0)
 
-  const updateFormData = (data: Partial<RecipeFormData>) => {
+  // Load draft on mount (only if no initialData provided)
+  useEffect(() => {
+    if (!initialData && !isInitialized) {
+      const draft = draftPersistence.load()
+      if (draft) {
+        setFormData(draft)
+        setDraftSavedAt(draftPersistence.getTimestamp())
+      }
+      setIsInitialized(true)
+    }
+  }, [initialData, isInitialized])
+
+  // Save draft whenever form data changes (debounced)
+  useEffect(() => {
+    if (!isInitialized) return
+    
+    const timeoutId = setTimeout(() => {
+      draftPersistence.save(formData)
+      setDraftSavedAt(new Date())
+    }, 1000) // 1 second debounce
+
+    return () => clearTimeout(timeoutId)
+  }, [formData, isInitialized])
+
+  const updateFormData = useCallback((data: Partial<RecipeFormData>) => {
     setFormData(prev => ({ ...prev, ...data }))
-  }
+  }, [])
+
+  const clearDraft = useCallback(() => {
+    draftPersistence.clear()
+    setDraftSavedAt(null)
+  }, [])
 
   const nextStep = () => {
     if (isValid(currentStep)) {
@@ -97,6 +137,8 @@ export function RecipeFormProvider({ children, initialData }: RecipeFormProvider
         nextStep,
         previousStep,
         isValid,
+        clearDraft,
+        draftSavedAt,
       }}
     >
       {children}

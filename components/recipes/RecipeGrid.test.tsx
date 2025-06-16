@@ -5,7 +5,7 @@ import { RecipeWithRelations } from '@/lib/types/recipe'
 
 // Mock the RecipeCard component to avoid nested component issues
 vi.mock('./RecipeCard', () => ({
-  RecipeCard: ({ recipe, onToggleFavorite }: any) => (
+  RecipeCard: ({ recipe, onToggleFavorite }: { recipe: RecipeWithRelations; onToggleFavorite?: (id: string) => void }) => (
     <div data-testid="recipe-card" data-recipe-id={recipe.id}>
       {recipe.title}
       {onToggleFavorite && <button onClick={() => onToggleFavorite(recipe.id)}>Toggle Favorite</button>}

@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Mic, MicOff, Loader2, AlertCircle, ChevronRight, RotateCcw } from 'lucide-react'
 import { VoiceReviewForm } from './voice-review-form'
@@ -34,14 +33,14 @@ export function VoiceRecipeFlow() {
   const [error, setError] = useState<string | null>(null)
   const [recordingTime, setRecordingTime] = useState(0)
   
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
-  const chunksRef = useRef<Blob[]>([])
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     // Check if browser supports speech recognition
     if (typeof window !== 'undefined') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
       
       if (SpeechRecognition) {
@@ -50,22 +49,21 @@ export function VoiceRecipeFlow() {
         recognition.interimResults = true
         recognition.lang = 'en-US'
         
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         recognition.onresult = (event: any) => {
           let finalTranscript = ''
-          let interimTranscript = ''
           
           for (let i = event.resultIndex; i < event.results.length; i++) {
             const transcript = event.results[i][0].transcript
             if (event.results[i].isFinal) {
               finalTranscript += transcript + ' '
-            } else {
-              interimTranscript += transcript
             }
           }
           
           setTranscript(prev => prev + finalTranscript)
         }
         
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         recognition.onerror = (event: any) => {
           console.error('Speech recognition error:', event.error)
           if (event.error === 'no-speech') {
@@ -290,7 +288,7 @@ export function VoiceRecipeFlow() {
             <li>• Start with the recipe name</li>
             <li>• Clearly state each ingredient with its amount</li>
             <li>• Pause between ingredients and instructions</li>
-            <li>• Number your steps or say "first", "next", "then"</li>
+            <li>• Number your steps or say &quot;first&quot;, &quot;next&quot;, &quot;then&quot;</li>
             <li>• Mention cooking times and temperatures</li>
             <li>• Add any family notes or memories at the end</li>
           </ul>

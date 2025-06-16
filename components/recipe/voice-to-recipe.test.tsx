@@ -5,7 +5,7 @@ import { VoiceToRecipe } from './voice-to-recipe'
 
 // Mock child components
 vi.mock('./voice-recorder', () => ({
-  VoiceRecorder: ({ onTranscription }: any) => (
+  VoiceRecorder: ({ onTranscription }: { onTranscription: (text: string) => void }) => (
     <div data-testid="voice-recorder">
       <button 
         onClick={() => onTranscription('Add more flour')}
@@ -18,7 +18,7 @@ vi.mock('./voice-recorder', () => ({
 }))
 
 vi.mock('./voice-change-review', () => ({
-  VoiceChangeReview: ({ changes, onApprove, onCancel }: any) => (
+  VoiceChangeReview: ({ changes, onApprove, onCancel }: { changes: unknown[]; onApprove: (changes: unknown[]) => void; onCancel: () => void }) => (
     <div data-testid="voice-change-review">
       <div data-testid="changes-count">{changes.length} changes</div>
       <button onClick={() => onApprove(changes)} data-testid="approve-changes">
@@ -103,7 +103,7 @@ describe('VoiceToRecipe', () => {
       }
     ]
     
-    ;(global.fetch as any).mockResolvedValueOnce({
+    ;(global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ changes: mockChanges })
     })
@@ -122,7 +122,7 @@ describe('VoiceToRecipe', () => {
   })
 
   it('handles transcription errors', async () => {
-    ;(global.fetch as any).mockRejectedValueOnce(new Error('Network error'))
+    ;(global.fetch as vi.MockedFunction<typeof fetch>).mockRejectedValueOnce(new Error('Network error'))
     
     render(<VoiceToRecipe recipe={mockRecipe} onUpdate={mockOnUpdate} />)
     
@@ -147,7 +147,7 @@ describe('VoiceToRecipe', () => {
       }
     ]
     
-    ;(global.fetch as any).mockResolvedValueOnce({
+    ;(global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ changes: mockChanges })
     })
@@ -184,7 +184,7 @@ describe('VoiceToRecipe', () => {
       }
     ]
     
-    ;(global.fetch as any).mockResolvedValueOnce({
+    ;(global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ changes: mockChanges })
     })
@@ -216,7 +216,7 @@ describe('VoiceToRecipe', () => {
       }
     ]
     
-    ;(global.fetch as any).mockResolvedValueOnce({
+    ;(global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ changes: mockChanges })
     })
@@ -250,7 +250,7 @@ describe('VoiceToRecipe', () => {
       }
     ]
     
-    ;(global.fetch as any).mockResolvedValueOnce({
+    ;(global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ changes: mockChanges })
     })
@@ -280,7 +280,7 @@ describe('VoiceToRecipe', () => {
       }
     ]
     
-    ;(global.fetch as any).mockResolvedValueOnce({
+    ;(global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ changes: mockChanges })
     })
@@ -313,7 +313,7 @@ describe('VoiceToRecipe', () => {
       }
     ]
     
-    ;(global.fetch as any).mockResolvedValueOnce({
+    ;(global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ changes: mockChanges })
     })
@@ -339,7 +339,7 @@ describe('VoiceToRecipe', () => {
   })
 
   it('handles empty changes response', async () => {
-    ;(global.fetch as any).mockResolvedValueOnce({
+    ;(global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ changes: [] })
     })
@@ -364,7 +364,7 @@ describe('VoiceToRecipe', () => {
       }
     ]
     
-    ;(global.fetch as any).mockResolvedValueOnce({
+    ;(global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ changes: mockChanges })
     })

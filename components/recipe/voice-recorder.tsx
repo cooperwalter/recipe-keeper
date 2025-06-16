@@ -103,10 +103,6 @@ export function VoiceRecorder({ onTranscription, isProcessing = false, className
     }
   }
 
-  const transcribeAudio = async () => {
-    if (!audioBlob) return
-    await transcribeAudioInternal(audioBlob)
-  }
 
   const clearRecording = () => {
     setAudioBlob(null)

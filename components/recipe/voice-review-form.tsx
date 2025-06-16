@@ -42,7 +42,7 @@ export function VoiceReviewForm({
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const updateField = (field: keyof ExtractedRecipe, value: any) => {
+  const updateField = (field: keyof ExtractedRecipe, value: ExtractedRecipe[keyof ExtractedRecipe]) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 

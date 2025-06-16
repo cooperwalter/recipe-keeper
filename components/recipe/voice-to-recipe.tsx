@@ -7,18 +7,18 @@ import { VoiceRecorder } from './voice-recorder'
 import { VoiceChangeReview } from './voice-change-review'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Mic, Loader2 } from 'lucide-react'
-import { RecipeWithRelations } from '@/lib/types/recipe'
+import { RecipeWithRelations, Ingredient, Instruction } from '@/lib/types/recipe'
 
 interface VoiceToRecipeProps {
   recipe: RecipeWithRelations
-  onUpdate: (updatedData: any) => Promise<void>
+  onUpdate: (updatedData: RecipeWithRelations) => Promise<void>
 }
 
 interface RecipeChange {
   type: 'add' | 'remove' | 'modify'
   field: 'title' | 'description' | 'ingredients' | 'instructions' | 'prepTime' | 'cookTime' | 'servings' | 'notes' | 'tags'
-  oldValue?: any
-  newValue?: any
+  oldValue?: unknown
+  newValue?: unknown
   details?: string
 }
 
@@ -68,7 +68,8 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
 
     try {
       // Build the updated recipe data
-      const updatedData: any = {
+      const updatedData: RecipeWithRelations = {
+        ...recipe,
         title: recipe.title,
         description: recipe.description,
         prepTime: recipe.prepTime,
@@ -86,10 +87,8 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
         switch (change.field) {
           case 'title':
           case 'description':
-          case 'sourceName':
-          case 'sourceNotes':
             if (change.type === 'modify') {
-              updatedData[change.field] = change.newValue
+              updatedData[change.field] = change.newValue as string
             }
             break
 
@@ -97,58 +96,58 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
           case 'cookTime':
           case 'servings':
             if (change.type === 'modify') {
-              updatedData[change.field] = parseInt(change.newValue)
+              updatedData[change.field] = parseInt(change.newValue as string) || 0
             }
             break
 
           case 'ingredients':
             if (change.type === 'add') {
-              updatedData.ingredients.push(change.newValue)
+              updatedData.ingredients.push(change.newValue as Ingredient)
             } else if (change.type === 'remove') {
-              const index = updatedData.ingredients.findIndex((ing: any) => 
-                ing.ingredient === change.oldValue.ingredient
+              const index = updatedData.ingredients.findIndex((ing) => 
+                ing.ingredient === (change.oldValue as Ingredient).ingredient
               )
               if (index !== -1) {
                 updatedData.ingredients.splice(index, 1)
               }
             } else if (change.type === 'modify') {
-              const index = updatedData.ingredients.findIndex((ing: any) => 
-                ing.ingredient === change.oldValue.ingredient
+              const index = updatedData.ingredients.findIndex((ing) => 
+                ing.ingredient === (change.oldValue as Ingredient).ingredient
               )
               if (index !== -1) {
-                updatedData.ingredients[index] = change.newValue
+                updatedData.ingredients[index] = change.newValue as Ingredient
               }
             }
             break
 
           case 'instructions':
             if (change.type === 'add') {
-              updatedData.instructions.push(change.newValue)
+              updatedData.instructions.push(change.newValue as Instruction)
               // Renumber steps
-              updatedData.instructions = updatedData.instructions.map((inst: any, i: number) => ({
+              updatedData.instructions = updatedData.instructions.map((inst, i) => ({
                 ...inst,
                 stepNumber: i + 1
               }))
             } else if (change.type === 'remove') {
-              const index = updatedData.instructions.findIndex((inst: any) => 
-                inst.stepNumber === change.oldValue.stepNumber
+              const index = updatedData.instructions.findIndex((inst) => 
+                inst.stepNumber === (change.oldValue as Instruction).stepNumber
               )
               if (index !== -1) {
                 updatedData.instructions.splice(index, 1)
                 // Renumber remaining steps
-                updatedData.instructions = updatedData.instructions.map((inst: any, i: number) => ({
+                updatedData.instructions = updatedData.instructions.map((inst, i) => ({
                   ...inst,
                   stepNumber: i + 1
                 }))
               }
             } else if (change.type === 'modify') {
-              const index = updatedData.instructions.findIndex((inst: any) => 
-                inst.stepNumber === change.oldValue.stepNumber
+              const index = updatedData.instructions.findIndex((inst) => 
+                inst.stepNumber === (change.oldValue as Instruction).stepNumber
               )
               if (index !== -1) {
                 updatedData.instructions[index] = {
                   ...updatedData.instructions[index],
-                  instruction: change.newValue.instruction || change.newValue
+                  instruction: (change.newValue as Instruction).instruction || (change.newValue as string)
                 }
               }
             }
@@ -156,9 +155,9 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
 
           case 'tags':
             if (change.type === 'modify') {
-              updatedData.tags = Array.isArray(change.newValue) ? change.newValue : [change.newValue]
+              updatedData.tags = Array.isArray(change.newValue) ? change.newValue as string[] : [change.newValue as string]
             } else if (change.type === 'add') {
-              const newTag = Array.isArray(change.newValue) ? change.newValue[0] : change.newValue
+              const newTag = Array.isArray(change.newValue) ? (change.newValue as string[])[0] : change.newValue as string
               if (!updatedData.tags.includes(newTag)) {
                 updatedData.tags.push(newTag)
               }
@@ -167,7 +166,7 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
 
           case 'notes':
             if (change.type === 'modify') {
-              updatedData.sourceNotes = change.newValue
+              updatedData.sourceNotes = change.newValue as string
             }
             break
         }
@@ -219,13 +218,13 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
             {!showReview ? (
               <>
                 <p className="text-sm text-muted-foreground">
-                  Speak naturally about what you'd like to change. For example:
+                  Speak naturally about what you&apos;d like to change. For example:
                 </p>
                 <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
-                  <li>"Add more flour, about half a cup"</li>
-                  <li>"Change the baking time to 25 minutes"</li>
-                  <li>"Remove the vanilla extract"</li>
-                  <li>"Add a note about room temperature eggs"</li>
+                  <li>&quot;Add more flour, about half a cup&quot;</li>
+                  <li>&quot;Change the baking time to 25 minutes&quot;</li>
+                  <li>&quot;Remove the vanilla extract&quot;</li>
+                  <li>&quot;Add a note about room temperature eggs&quot;</li>
                 </ul>
 
                 <VoiceRecorder

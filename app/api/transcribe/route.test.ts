@@ -17,7 +17,7 @@ describe('POST /api/transcribe', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    ;(createClient as any).mockResolvedValue(mockSupabase)
+    ;(createClient as vi.MockedFunction<typeof createClient>).mockResolvedValue(mockSupabase as ReturnType<typeof createClient>)
     // Ensure we use the mock transcription path
     delete process.env.OPENAI_API_KEY
   })
@@ -164,7 +164,7 @@ describe('POST /api/transcribe', () => {
     // Mock FormData to throw an error
     const request = new NextRequest('http://localhost/api/transcribe', {
       method: 'POST',
-      body: null as any
+      body: null as unknown as FormData
     })
 
     const response = await POST(request)

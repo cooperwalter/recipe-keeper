@@ -114,7 +114,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
     }
   }
 
-  const handleVoiceUpdate = async (updatedData: any) => {
+  const handleVoiceUpdate = async (updatedData: RecipeWithRelations) => {
     // Apply voice changes to the form state
     setTitle(updatedData.title)
     setDescription(updatedData.description || '')
@@ -123,13 +123,13 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
     setServings(updatedData.servings?.toString() || '')
     setSourceName(updatedData.sourceName || '')
     setSourceNotes(updatedData.sourceNotes || '')
-    setIngredients(updatedData.ingredients.map((ing: any) => ({
+    setIngredients(updatedData.ingredients.map((ing) => ({
       ingredient: ing.ingredient,
-      amount: ing.amount || '',
+      amount: ing.amount ? String(ing.amount) : '',
       unit: ing.unit || '',
       notes: ing.notes || ''
     })))
-    setInstructions(updatedData.instructions.map((inst: any) => ({
+    setInstructions(updatedData.instructions.map((inst) => ({
       instruction: inst.instruction,
       stepNumber: inst.stepNumber
     })))
@@ -139,7 +139,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
     await handleSave(updatedData)
   }
 
-  const handleSave = async (dataOverride?: any) => {
+  const handleSave = async (dataOverride?: RecipeWithRelations) => {
     if (!recipe) return
     
     setIsSaving(true)

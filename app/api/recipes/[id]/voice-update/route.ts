@@ -12,8 +12,8 @@ interface RouteParams {
 interface RecipeChange {
   type: 'add' | 'remove' | 'modify'
   field: 'title' | 'description' | 'ingredients' | 'instructions' | 'prepTime' | 'cookTime' | 'servings' | 'notes' | 'tags'
-  oldValue?: any
-  newValue?: any
+  oldValue?: unknown
+  newValue?: unknown
   details?: string
 }
 
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { transcript, currentRecipe } = await request.json()
+    const { transcript } = await request.json()
 
     if (!transcript) {
       return NextResponse.json({ error: 'No transcript provided' }, { status: 400 })

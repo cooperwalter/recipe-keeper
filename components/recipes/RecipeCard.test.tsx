@@ -5,7 +5,7 @@ import { RecipeWithRelations } from '@/lib/types/recipe'
 
 // Mock the RecipePlaceholder component
 vi.mock('@/components/recipe/recipe-placeholder', () => ({
-  RecipePlaceholder: ({ className }: any) => (
+  RecipePlaceholder: ({ className }: { className?: string }) => (
     <div className={className} data-testid="recipe-placeholder">Recipe Placeholder</div>
   )
 }))

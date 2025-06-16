@@ -9,7 +9,7 @@ import { InstructionsStep } from './InstructionsStep'
 import { PhotosNotesStep } from './PhotosNotesStep'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { ChevronLeft, ChevronRight, Loader2, Save } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Loader2, Save, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { StorageService } from '@/lib/supabase/storage'
 
@@ -22,7 +22,7 @@ const steps = [
 
 export function RecipeFormWizard() {
   const router = useRouter()
-  const { formData, currentStep, nextStep, previousStep, isValid } = useRecipeForm()
+  const { formData, currentStep, nextStep, previousStep, isValid, clearDraft, draftSavedAt } = useRecipeForm()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -81,6 +81,9 @@ export function RecipeFormWizard() {
         }
       }
 
+      // Clear draft after successful submission
+      clearDraft()
+      
       // Navigate to the new recipe
       router.push(`/protected/recipes/${recipe.id}`)
     } catch (error) {
@@ -130,6 +133,14 @@ export function RecipeFormWizard() {
       {error && (
         <div className="bg-destructive/10 text-destructive rounded-lg p-3 mb-6">
           {error}
+        </div>
+      )}
+
+      {/* Draft Status */}
+      {draftSavedAt && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+          <Check className="h-4 w-4 text-green-600" />
+          <span>Draft saved {draftSavedAt.toLocaleTimeString()}</span>
         </div>
       )}
 
