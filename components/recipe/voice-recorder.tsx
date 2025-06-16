@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Mic, MicOff, Loader2, Volume2, X } from 'lucide-react'
@@ -13,7 +13,14 @@ interface VoiceRecorderProps {
   className?: string
 }
 
-export function VoiceRecorder({ onTranscription, isProcessing = false, className }: VoiceRecorderProps) {
+export interface VoiceRecorderRef {
+  cleanup: () => void
+}
+
+export const VoiceRecorder = forwardRef<VoiceRecorderRef, VoiceRecorderProps>((
+  { onTranscription, isProcessing = false, className },
+  ref
+) => {
   const [isRecording, setIsRecording] = useState(false)
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null)
   const [transcription, setTranscription] = useState('')
@@ -58,12 +65,21 @@ export function VoiceRecorder({ onTranscription, isProcessing = false, className
       const monitorAudioLevel = () => {
         if (!analyserRef.current) return
         
-        const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount)
-        analyserRef.current.getByteFrequencyData(dataArray)
+        const bufferLength = analyserRef.current.frequencyBinCount
+        const dataArray = new Uint8Array(bufferLength)
+        analyserRef.current.getByteTimeDomainData(dataArray)
         
-        // Calculate average volume
-        const average = dataArray.reduce((a, b) => a + b) / dataArray.length
-        setAudioLevel(average / 255) // Normalize to 0-1
+        // Calculate RMS (Root Mean Square) for better volume detection
+        let sum = 0
+        for (let i = 0; i < bufferLength; i++) {
+          const sample = (dataArray[i] - 128) / 128 // Center around 0
+          sum += sample * sample
+        }
+        const rms = Math.sqrt(sum / bufferLength)
+        
+        // Apply some smoothing and amplification for better visual feedback
+        const amplifiedLevel = Math.min(1, rms * 15) // Increased sensitivity
+        setAudioLevel(amplifiedLevel)
         
         if (mediaRecorderRef.current?.state === 'recording') {
           animationFrameRef.current = requestAnimationFrame(monitorAudioLevel)
@@ -160,6 +176,31 @@ export function VoiceRecorder({ onTranscription, isProcessing = false, className
     setError(null)
   }
 
+  const cleanup = () => {
+    // Stop recording if active
+    if (isRecording) {
+      stopRecording()
+    }
+    
+    // Clear all state
+    clearRecording()
+    
+    // Clean up audio context
+    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+      audioContextRef.current.close()
+      audioContextRef.current = null
+    }
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current)
+      animationFrameRef.current = null
+    }
+  }
+
+  // Expose cleanup method via ref
+  useImperativeHandle(ref, () => ({
+    cleanup
+  }), [isRecording])
+
   return (
     <Card className={cn("p-4", className)}>
       <div className="space-y-4">
@@ -243,4 +284,4 @@ export function VoiceRecorder({ onTranscription, isProcessing = false, className
       </div>
     </Card>
   )
-}
+})

@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { VoiceRecorder } from './voice-recorder'
+import { VoiceRecorder, VoiceRecorderRef } from './voice-recorder'
 import { VoiceChangeReview } from './voice-change-review'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Mic, Loader2 } from 'lucide-react'
@@ -30,6 +30,7 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
   const [isApplying, setIsApplying] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showReview, setShowReview] = useState(false)
+  const voiceRecorderRef = useRef<VoiceRecorderRef>(null)
 
   const handleTranscription = async (text: string) => {
     setTranscript(text)
@@ -194,6 +195,24 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
     setTranscript('')
   }
 
+  const handleDialogClose = (open: boolean) => {
+    if (!open) {
+      // Clean up voice recorder
+      if (voiceRecorderRef.current) {
+        voiceRecorderRef.current.cleanup()
+      }
+      
+      // Reset all state when dialog is closed
+      setTranscript('')
+      setChanges([])
+      setIsProcessing(false)
+      setIsApplying(false)
+      setError(null)
+      setShowReview(false)
+    }
+    setIsOpen(open)
+  }
+
   return (
     <>
       <Button
@@ -205,7 +224,7 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
         Talk to Recipe
       </Button>
 
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <Dialog open={isOpen} onOpenChange={handleDialogClose}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Talk to Your Recipe</DialogTitle>
@@ -228,6 +247,7 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
                 </ul>
 
                 <VoiceRecorder
+                  ref={voiceRecorderRef}
                   onTranscription={handleTranscription}
                   isProcessing={isProcessing}
                 />
