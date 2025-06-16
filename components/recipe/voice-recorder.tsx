@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react'
+import { useState, useRef, useEffect, forwardRef, useImperativeHandle, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Mic, MicOff, Loader2, Volume2, X } from 'lucide-react'
@@ -71,15 +71,21 @@ export const VoiceRecorder = forwardRef<VoiceRecorderRef, VoiceRecorderProps>((
         
         // Calculate RMS (Root Mean Square) for better volume detection
         let sum = 0
+        let max = 0
         for (let i = 0; i < bufferLength; i++) {
           const sample = (dataArray[i] - 128) / 128 // Center around 0
           sum += sample * sample
+          max = Math.max(max, Math.abs(sample))
         }
         const rms = Math.sqrt(sum / bufferLength)
         
-        // Apply some smoothing and amplification for better visual feedback
-        const amplifiedLevel = Math.min(1, rms * 15) // Increased sensitivity
-        setAudioLevel(amplifiedLevel)
+        // Use max value for more responsive animation
+        // Combine RMS with peak detection for better visual feedback
+        const combinedLevel = Math.max(rms * 10, max * 5)
+        const amplifiedLevel = Math.min(1, combinedLevel)
+        
+        // Add some smoothing to prevent jitter
+        setAudioLevel(prev => prev * 0.7 + amplifiedLevel * 0.3)
         
         if (mediaRecorderRef.current?.state === 'recording') {
           animationFrameRef.current = requestAnimationFrame(monitorAudioLevel)
@@ -120,7 +126,7 @@ export const VoiceRecorder = forwardRef<VoiceRecorderRef, VoiceRecorderProps>((
     }
   }
 
-  const stopRecording = () => {
+  const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop()
       setIsRecording(false)
@@ -136,7 +142,7 @@ export const VoiceRecorder = forwardRef<VoiceRecorderRef, VoiceRecorderProps>((
         audioContextRef.current = null
       }
     }
-  }
+  }, [isRecording])
 
   const transcribeAudioInternal = async (blob: Blob) => {
     setIsTranscribing(true)
@@ -170,36 +176,34 @@ export const VoiceRecorder = forwardRef<VoiceRecorderRef, VoiceRecorderProps>((
   }
 
 
-  const clearRecording = () => {
+  const clearRecording = useCallback(() => {
     setAudioBlob(null)
     setTranscription('')
     setError(null)
-  }
-
-  const cleanup = () => {
-    // Stop recording if active
-    if (isRecording) {
-      stopRecording()
-    }
-    
-    // Clear all state
-    clearRecording()
-    
-    // Clean up audio context
-    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
-      audioContextRef.current.close()
-      audioContextRef.current = null
-    }
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current)
-      animationFrameRef.current = null
-    }
-  }
+  }, [])
 
   // Expose cleanup method via ref
   useImperativeHandle(ref, () => ({
-    cleanup
-  }), [isRecording])
+    cleanup: () => {
+      // Stop recording if active
+      if (isRecording) {
+        stopRecording()
+      }
+      
+      // Clear all state
+      clearRecording()
+      
+      // Clean up audio context
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+        audioContextRef.current.close()
+        audioContextRef.current = null
+      }
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+        animationFrameRef.current = null
+      }
+    }
+  }), [isRecording, stopRecording, clearRecording])
 
   return (
     <Card className={cn("p-4", className)}>
@@ -275,7 +279,7 @@ export const VoiceRecorder = forwardRef<VoiceRecorderRef, VoiceRecorderProps>((
 
         {isRecording && (
           <div className="flex flex-col items-center gap-2">
-            <VoiceWaveAnimation isActive={isRecording} audioLevel={audioLevel} />
+            <VoiceWaveAnimation isActive={true} audioLevel={audioLevel} />
             <div className="text-center text-sm text-muted-foreground">
               Listening... Click to stop
             </div>
@@ -285,3 +289,5 @@ export const VoiceRecorder = forwardRef<VoiceRecorderRef, VoiceRecorderProps>((
     </Card>
   )
 })
+
+VoiceRecorder.displayName = 'VoiceRecorder'
