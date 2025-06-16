@@ -1,6 +1,7 @@
 import { eq, and, or, ilike, desc, asc, sql, inArray } from 'drizzle-orm';
 import { db, recipes, recipePhotos, favorites, recipeCategories, recipeCategoryMappings, ingredients, instructions, recipeTags } from '@/lib/db';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { fractionToDecimal } from '@/lib/utils/fractions';
 import type { 
   RecipeWithRelations, 
   RecipeSearchParams, 
@@ -60,7 +61,7 @@ export class RecipeService {
           return {
             recipeId: recipe.id,
             ingredient: ingredient.ingredient,
-            amount: ingredient.amount || undefined,
+            amount: fractionToDecimal(ingredient.amount),
             unit: ingredient.unit || undefined,
             notes: ingredient.notes || undefined,
             orderIndex: index,
@@ -604,5 +605,134 @@ export class RecipeService {
     await db
       .delete(recipePhotos)
       .where(eq(recipePhotos.id, photoId));
+  }
+
+  /**
+   * Update ingredients for a recipe
+   */
+  async updateIngredients(recipeId: string, newIngredients: Array<{
+    recipeId: string;
+    ingredient: string;
+    amount?: number;
+    unit?: string;
+    orderIndex: number;
+    notes?: string;
+  }>): Promise<void> {
+    const userId = await this.getCurrentUserId();
+    if (!userId) throw new Error('User not authenticated');
+
+    // Verify user owns the recipe
+    const [recipe] = await db
+      .select({ createdBy: recipes.createdBy })
+      .from(recipes)
+      .where(eq(recipes.id, recipeId))
+      .limit(1);
+
+    if (!recipe || recipe.createdBy !== userId) {
+      throw new Error('Recipe not found or not authorized');
+    }
+
+    // Delete existing ingredients
+    await db.delete(ingredients).where(eq(ingredients.recipeId, recipeId));
+
+    // Insert new ingredients
+    if (newIngredients.length > 0) {
+      await db.insert(ingredients).values(newIngredients);
+    }
+  }
+
+  /**
+   * Update instructions for a recipe
+   */
+  async updateInstructions(recipeId: string, newInstructions: Array<{
+    recipeId: string;
+    stepNumber: number;
+    instruction: string;
+  }>): Promise<void> {
+    const userId = await this.getCurrentUserId();
+    if (!userId) throw new Error('User not authenticated');
+
+    // Verify user owns the recipe
+    const [recipe] = await db
+      .select({ createdBy: recipes.createdBy })
+      .from(recipes)
+      .where(eq(recipes.id, recipeId))
+      .limit(1);
+
+    if (!recipe || recipe.createdBy !== userId) {
+      throw new Error('Recipe not found or not authorized');
+    }
+
+    // Delete existing instructions
+    await db.delete(instructions).where(eq(instructions.recipeId, recipeId));
+
+    // Insert new instructions
+    if (newInstructions.length > 0) {
+      await db.insert(instructions).values(newInstructions);
+    }
+  }
+
+  /**
+   * Update categories for a recipe
+   */
+  async updateCategories(recipeId: string, categoryIds: string[]): Promise<void> {
+    const userId = await this.getCurrentUserId();
+    if (!userId) throw new Error('User not authenticated');
+
+    // Verify user owns the recipe
+    const [recipe] = await db
+      .select({ createdBy: recipes.createdBy })
+      .from(recipes)
+      .where(eq(recipes.id, recipeId))
+      .limit(1);
+
+    if (!recipe || recipe.createdBy !== userId) {
+      throw new Error('Recipe not found or not authorized');
+    }
+
+    // Delete existing category mappings
+    await db.delete(recipeCategoryMappings).where(eq(recipeCategoryMappings.recipeId, recipeId));
+
+    // Insert new category mappings
+    if (categoryIds.length > 0) {
+      await db.insert(recipeCategoryMappings).values(
+        categoryIds.map(categoryId => ({
+          recipeId,
+          categoryId,
+        }))
+      );
+    }
+  }
+
+  /**
+   * Update tags for a recipe
+   */
+  async updateTags(recipeId: string, newTags: string[]): Promise<void> {
+    const userId = await this.getCurrentUserId();
+    if (!userId) throw new Error('User not authenticated');
+
+    // Verify user owns the recipe
+    const [recipe] = await db
+      .select({ createdBy: recipes.createdBy })
+      .from(recipes)
+      .where(eq(recipes.id, recipeId))
+      .limit(1);
+
+    if (!recipe || recipe.createdBy !== userId) {
+      throw new Error('Recipe not found or not authorized');
+    }
+
+    // Delete existing tags
+    await db.delete(recipeTags).where(eq(recipeTags.recipeId, recipeId));
+
+    // Insert new tags
+    if (newTags.length > 0) {
+      await db.insert(recipeTags).values(
+        newTags.map(tag => ({
+          recipeId,
+          tag,
+        }))
+      );
+    }
   }
 }

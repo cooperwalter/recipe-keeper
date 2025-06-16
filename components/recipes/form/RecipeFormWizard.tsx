@@ -42,7 +42,8 @@ export function RecipeFormWizard() {
         sourceName: formData.sourceName,
         sourceNotes: formData.sourceNotes,
         ingredients: formData.ingredients,
-        instructions: formData.instructions,
+        // Extract just the instruction text from the objects
+        instructions: formData.instructions.map(inst => inst.instruction),
         categoryIds: formData.categoryIds,
         tags: formData.tags,
       }

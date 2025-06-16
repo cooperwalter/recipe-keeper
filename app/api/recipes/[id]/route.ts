@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { RecipeService } from '@/lib/supabase/recipes'
+import { RecipeService } from '@/lib/db/recipes'
 import { createClient } from '@/lib/supabase/server'
+import { fractionToDecimal } from '@/lib/utils/fractions'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -47,7 +48,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const recipeService = new RecipeService(supabase)
 
     // Update the recipe
-    await recipeService.updateRecipe({ id, ...body })
+    await recipeService.updateRecipe(id, body)
 
     // Update ingredients if provided
     if (body.ingredients !== undefined) {
@@ -56,7 +57,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         body.ingredients.map((ing: { ingredient: string; amount?: string; unit?: string; orderIndex?: number; notes?: string }, index: number) => ({
           recipeId: id,
           ingredient: ing.ingredient,
-          amount: ing.amount,
+          amount: fractionToDecimal(ing.amount),
           unit: ing.unit,
           orderIndex: ing.orderIndex || index,
           notes: ing.notes,

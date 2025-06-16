@@ -61,8 +61,8 @@ export async function POST(request: NextRequest) {
       cookTime: body.cookTime,
       servings: body.servings,
       categoryId: body.categoryId,
-      sourceName: body.source,
-      sourceNotes: body.notes,
+      sourceName: body.sourceName,
+      sourceNotes: body.sourceNotes,
       tags: body.tags || [],
       isPublic: body.isPublic || false,
     })
