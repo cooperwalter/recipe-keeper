@@ -20,6 +20,8 @@ describe('POST /api/transcribe', () => {
     ;(createClient as vi.MockedFunction<typeof createClient>).mockResolvedValue(mockSupabase as ReturnType<typeof createClient>)
     // Ensure we use the mock transcription path
     delete process.env.OPENAI_API_KEY
+    // Set NODE_ENV to development for tests
+    process.env.NODE_ENV = 'development'
   })
 
   it('returns 401 if user is not authenticated', async () => {
@@ -172,5 +174,52 @@ describe('POST /api/transcribe', () => {
 
     expect(response.status).toBe(500)
     expect(data.error).toBe('Failed to transcribe audio')
+  })
+
+  it('returns 503 in production without OPENAI_API_KEY for non-demo users', async () => {
+    // Set production environment
+    process.env.NODE_ENV = 'production'
+    
+    mockSupabase.auth.getUser.mockResolvedValue({ 
+      data: { user: { id: 'test-user-id', email: 'user@example.com' } } 
+    })
+
+    const formData = new FormData()
+    formData.append('audio', new Blob(['audio data'], { type: 'audio/webm' }), 'recording.webm')
+    
+    const request = new NextRequest('http://localhost/api/transcribe', {
+      method: 'POST',
+      body: formData
+    })
+
+    const response = await POST(request)
+    const data = await response.json()
+
+    expect(response.status).toBe(503)
+    expect(data.error).toBe('Voice transcription is not configured. Please contact support.')
+  })
+
+  it('works for demo user in production without OPENAI_API_KEY', async () => {
+    // Set production environment
+    process.env.NODE_ENV = 'production'
+    
+    mockSupabase.auth.getUser.mockResolvedValue({ 
+      data: { user: { id: 'demo-user-id', email: 'demo@recipeinheritancekeeper.com' } } 
+    })
+
+    const formData = new FormData()
+    formData.append('audio', new Blob(['audio data'], { type: 'audio/webm' }), 'recording.webm')
+    
+    const request = new NextRequest('http://localhost/api/transcribe', {
+      method: 'POST',
+      body: formData
+    })
+
+    const response = await POST(request)
+    const data = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(data).toHaveProperty('text')
+    expect(typeof data.text).toBe('string')
   })
 })
