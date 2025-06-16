@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { VoiceRecorder } from './voice-recorder'
 
@@ -59,7 +59,7 @@ describe('VoiceRecorder', () => {
     
     expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledWith({ audio: true })
     expect(mockMediaRecorder.start).toHaveBeenCalled()
-    expect(screen.getByText('Recording... Click to stop')).toBeInTheDocument()
+    expect(screen.getByText('Listening... Click to stop')).toBeInTheDocument()
   })
 
   it('stops recording when stop button is clicked', async () => {
@@ -146,7 +146,7 @@ describe('VoiceRecorder', () => {
     mockMediaRecorder.onstop?.()
     
     await waitFor(() => {
-      expect(screen.getByText('Failed to transcribe audio. Please try again.')).toBeInTheDocument()
+      expect(screen.getByText('Failed to transcribe audio')).toBeInTheDocument()
     })
   })
 

@@ -165,34 +165,38 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
             <div className="flex gap-2 print:hidden flex-wrap">
               <Button
                 variant="outline"
-                size="icon"
+                size="sm"
                 onClick={handleToggleFavorite}
                 disabled={isFavoriteLoading}
                 aria-label={recipe.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
               >
                 <Heart
                   className={cn(
-                    'h-4 w-4',
+                    'h-4 w-4 mr-1',
                     recipe.isFavorite && 'fill-current text-red-500'
                   )}
                 />
+                {recipe.isFavorite ? 'Favorited' : 'Favorite'}
               </Button>
-              <Button variant="outline" size="icon" onClick={handlePrint} aria-label="Print recipe">
-                <Printer className="h-4 w-4" />
+              <Button variant="outline" size="sm" onClick={handlePrint} aria-label="Print recipe">
+                <Printer className="h-4 w-4 mr-1" />
+                Print
               </Button>
               <Link href={`/protected/recipes/${recipe.id}/edit`}>
-                <Button variant="outline" size="icon" aria-label="Edit recipe">
-                  <Edit className="h-4 w-4" />
+                <Button variant="outline" size="sm" aria-label="Edit recipe">
+                  <Edit className="h-4 w-4 mr-1" />
+                  Edit
                 </Button>
               </Link>
               <Button 
                 variant="outline" 
-                size="icon" 
+                size="sm" 
                 aria-label="Delete recipe"
                 onClick={() => setShowDeleteConfirm(true)}
                 disabled={isDeleting}
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="h-4 w-4 mr-1" />
+                Delete
               </Button>
             </div>
           </div>
