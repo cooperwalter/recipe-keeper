@@ -19,15 +19,25 @@ export function VoiceRecorder({ onTranscription, isProcessing = false, className
   const [transcription, setTranscription] = useState('')
   const [isTranscribing, setIsTranscribing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [audioLevel, setAudioLevel] = useState(0)
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
+  const audioContextRef = useRef<AudioContext | null>(null)
+  const analyserRef = useRef<AnalyserNode | null>(null)
+  const animationFrameRef = useRef<number | null>(null)
 
   useEffect(() => {
     return () => {
       // Cleanup on unmount
       if (mediaRecorderRef.current && isRecording) {
         mediaRecorderRef.current.stop()
+      }
+      if (audioContextRef.current) {
+        audioContextRef.current.close()
+      }
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
       }
     }
   }, [isRecording])
@@ -36,6 +46,29 @@ export function VoiceRecorder({ onTranscription, isProcessing = false, className
     try {
       setError(null)
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      
+      // Set up audio level detection
+      audioContextRef.current = new AudioContext()
+      analyserRef.current = audioContextRef.current.createAnalyser()
+      const source = audioContextRef.current.createMediaStreamSource(stream)
+      source.connect(analyserRef.current)
+      analyserRef.current.fftSize = 256
+      
+      // Start monitoring audio levels
+      const monitorAudioLevel = () => {
+        if (!analyserRef.current) return
+        
+        const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount)
+        analyserRef.current.getByteFrequencyData(dataArray)
+        
+        // Calculate average volume
+        const average = dataArray.reduce((a, b) => a + b) / dataArray.length
+        setAudioLevel(average / 255) // Normalize to 0-1
+        
+        if (mediaRecorderRef.current?.state === 'recording') {
+          animationFrameRef.current = requestAnimationFrame(monitorAudioLevel)
+        }
+      }
       
       const mediaRecorder = new MediaRecorder(stream, {
         mimeType: 'audio/webm;codecs=opus'
@@ -64,6 +97,7 @@ export function VoiceRecorder({ onTranscription, isProcessing = false, className
       // Start recording immediately to avoid cutting off initial words
       setIsRecording(true)
       mediaRecorder.start(100) // Collect data every 100ms for more responsive feedback
+      monitorAudioLevel() // Start monitoring audio levels
     } catch (err) {
       console.error('Error accessing microphone:', err)
       setError('Unable to access microphone. Please check permissions.')
@@ -74,6 +108,17 @@ export function VoiceRecorder({ onTranscription, isProcessing = false, className
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop()
       setIsRecording(false)
+      setAudioLevel(0)
+      
+      // Stop audio level monitoring
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+        animationFrameRef.current = null
+      }
+      if (audioContextRef.current) {
+        audioContextRef.current.close()
+        audioContextRef.current = null
+      }
     }
   }
 
@@ -189,7 +234,7 @@ export function VoiceRecorder({ onTranscription, isProcessing = false, className
 
         {isRecording && (
           <div className="flex flex-col items-center gap-2">
-            <VoiceWaveAnimation isActive={isRecording} />
+            <VoiceWaveAnimation isActive={isRecording} audioLevel={audioLevel} />
             <div className="text-center text-sm text-muted-foreground">
               Listening... Click to stop
             </div>

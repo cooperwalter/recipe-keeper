@@ -33,10 +33,15 @@ export function VoiceRecipeFlow() {
   const [extractedRecipe, setExtractedRecipe] = useState<ExtractedRecipe | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [recordingTime, setRecordingTime] = useState(0)
+  const [audioLevel, setAudioLevel] = useState(0)
   
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
+  const audioContextRef = useRef<AudioContext | null>(null)
+  const analyserRef = useRef<AnalyserNode | null>(null)
+  const animationFrameRef = useRef<number | null>(null)
+  const streamRef = useRef<MediaStream | null>(null)
 
   useEffect(() => {
     // Check if browser supports speech recognition
@@ -83,6 +88,15 @@ export function VoiceRecipeFlow() {
       if (timerRef.current) {
         clearInterval(timerRef.current)
       }
+      if (audioContextRef.current) {
+        audioContextRef.current.close()
+      }
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop())
+      }
     }
   }, [])
 
@@ -92,15 +106,42 @@ export function VoiceRecipeFlow() {
       setTranscript('')
       setRecordingTime(0)
       
+      // Get microphone access for audio level monitoring
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      streamRef.current = stream
+      
+      // Set up audio level detection
+      audioContextRef.current = new AudioContext()
+      analyserRef.current = audioContextRef.current.createAnalyser()
+      const source = audioContextRef.current.createMediaStreamSource(stream)
+      source.connect(analyserRef.current)
+      analyserRef.current.fftSize = 256
+      
+      // Monitor audio levels
+      const monitorAudioLevel = () => {
+        if (!analyserRef.current) return
+        
+        const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount)
+        analyserRef.current.getByteFrequencyData(dataArray)
+        
+        // Calculate average volume
+        const average = dataArray.reduce((a, b) => a + b) / dataArray.length
+        setAudioLevel(average / 255) // Normalize to 0-1
+        
+        animationFrameRef.current = requestAnimationFrame(monitorAudioLevel)
+      }
+      
       // Set recording state immediately to avoid cutting off initial words
       setIsRecording(true)
       
       // Start speech recognition
       if (recognitionRef.current) {
         recognitionRef.current.start()
+        monitorAudioLevel() // Start monitoring
       } else {
         setError('Speech recognition not supported in your browser')
         setIsRecording(false)
+        stream.getTracks().forEach(track => track.stop())
         return
       }
       
@@ -126,7 +167,22 @@ export function VoiceRecipeFlow() {
       timerRef.current = null
     }
     
+    // Stop audio level monitoring
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current)
+      animationFrameRef.current = null
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close()
+      audioContextRef.current = null
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop())
+      streamRef.current = null
+    }
+    
     setIsRecording(false)
+    setAudioLevel(0)
   }
 
   const processVoiceInput = async () => {
@@ -218,7 +274,7 @@ export function VoiceRecipeFlow() {
               <div className="text-center space-y-2">
                 <p className="text-lg font-medium text-destructive">Recording...</p>
                 <p className="text-2xl font-mono">{formatTime(recordingTime)}</p>
-                <VoiceWaveAnimation isActive={isRecording} className="text-destructive" />
+                <VoiceWaveAnimation isActive={isRecording} audioLevel={audioLevel} className="text-destructive" />
               </div>
             )}
           </div>
