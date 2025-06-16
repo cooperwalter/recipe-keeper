@@ -52,7 +52,7 @@ This roadmap outlines the development phases for the Recipe Inheritance Keeper M
   - recipe_categories table (id, name, slug) ✅
   - recipe_category_mappings table ✅
   - recipe_tags table ✅
-  - recipe_versions table (version history) ✅
+  - recipe_versions table (version history with full recipe snapshots) ✅
 - [x] Create database migrations ✅ (using Drizzle ORM)
 - [x] Set up Row Level Security (RLS) policies ✅
 - [x] Create database triggers for version tracking ✅
@@ -305,15 +305,49 @@ This roadmap outlines the development phases for the Recipe Inheritance Keeper M
 - [ ] Optimize for paper sizes
 - [ ] Test on various printers
 
-## Phase 7: Version Control & Preservation (Week 13-14)
+## Phase 7: Version Control & Preservation (Week 13-14) 🟡 PARTIALLY COMPLETE
 
-### Version History
+### Version History 🟡 PARTIALLY COMPLETE
+**Note**: Database schema is complete with `recipe_versions` table storing full recipe snapshots as JSONB. UI implementation needed.
+
+- [x] Store complete recipe snapshot for each version ✅ (Database schema implemented)
+  - [x] Include all recipe fields (title, description, times, servings) ✅ (JSONB stores full recipe)
+  - [x] Include full ingredients list with amounts and units ✅ (JSONB stores full recipe)
+  - [x] Include complete instructions ✅ (JSONB stores full recipe)
+  - [x] Include associated photos and metadata ✅ (JSONB stores full recipe)
+  - [x] Store version creation timestamp and author ✅ (changedAt, changedBy fields)
 - [ ] Create version diff viewer
+  - [ ] Show side-by-side comparison of versions
+  - [ ] Highlight changes between versions (added/removed/modified)
+  - [ ] Display change summary (e.g., "Added 2 ingredients, modified step 3")
+  - [ ] Support comparing non-consecutive versions
 - [ ] Implement restore functionality
+  - [ ] Allow reverting to any previous version
+  - [ ] Create new version when restoring (maintain full history)
+  - [ ] Show confirmation dialog with changes preview
 - [ ] Show change attribution
+  - [ ] Display who made each change
+  - [ ] Show timestamp for each version
+  - [ ] Track change source (manual edit, OCR update, voice command)
 - [ ] Add version comments
+  - [ ] Optional comment field when saving changes
+  - [ ] Auto-generated descriptions for common changes
+  - [ ] Display comments in version timeline
 - [ ] Create version timeline
+  - [ ] Visual timeline of all recipe versions
+  - [ ] Filter by date range or author
+  - [ ] Quick preview on hover/tap
+  - [ ] Jump to specific version
 - [ ] Test version tracking
+  - [ ] Verify complete recipe capture
+  - [ ] Test with large recipes (many ingredients/steps)
+  - [ ] Ensure no data loss between versions
+  - [ ] Test concurrent version creation
+- [ ] Implement version creation triggers
+  - [ ] Auto-create version on recipe update
+  - [ ] Calculate what changed between versions
+  - [ ] Generate automatic change summaries
+  - [ ] Handle batch updates efficiently
 
 ### Change Tracking
 - [ ] Log all modifications
