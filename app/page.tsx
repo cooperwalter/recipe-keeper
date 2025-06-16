@@ -50,12 +50,6 @@ export default async function Home() {
                 Start Your Collection
               </Button>
             </Link>
-            <Link href="/protected/recipes">
-              <Button size="lg" variant="outline" className="gap-2 w-full sm:w-auto">
-                <Search className="h-5 w-5" />
-                Browse Recipes
-              </Button>
-            </Link>
           </div>
         </div>
       </section>
