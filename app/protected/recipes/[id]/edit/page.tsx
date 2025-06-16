@@ -26,6 +26,7 @@ import {
   Save
 } from 'lucide-react'
 import Link from 'next/link'
+import { VoiceToRecipe } from '@/components/recipe/voice-to-recipe'
 
 interface EditRecipePageProps {
   params: Promise<{ id: string }>
@@ -113,37 +114,64 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
     }
   }
 
-  const handleSave = async () => {
+  const handleVoiceUpdate = async (updatedData: any) => {
+    // Apply voice changes to the form state
+    setTitle(updatedData.title)
+    setDescription(updatedData.description || '')
+    setPrepTime(updatedData.prepTime?.toString() || '')
+    setCookTime(updatedData.cookTime?.toString() || '')
+    setServings(updatedData.servings?.toString() || '')
+    setSourceName(updatedData.sourceName || '')
+    setSourceNotes(updatedData.sourceNotes || '')
+    setIngredients(updatedData.ingredients.map((ing: any) => ({
+      ingredient: ing.ingredient,
+      amount: ing.amount || '',
+      unit: ing.unit || '',
+      notes: ing.notes || ''
+    })))
+    setInstructions(updatedData.instructions.map((inst: any) => ({
+      instruction: inst.instruction,
+      stepNumber: inst.stepNumber
+    })))
+    setTags(updatedData.tags || [])
+    
+    // Auto-save after voice update
+    await handleSave(updatedData)
+  }
+
+  const handleSave = async (dataOverride?: any) => {
     if (!recipe) return
     
     setIsSaving(true)
     try {
+      const dataToSave = dataOverride || {
+        title,
+        description: description || undefined,
+        prepTime: prepTime ? parseInt(prepTime) : undefined,
+        cookTime: cookTime ? parseInt(cookTime) : undefined,
+        servings: servings ? parseInt(servings) : undefined,
+        sourceName: sourceName || undefined,
+        sourceNotes: sourceNotes || undefined,
+        ingredients: ingredients.map((ing, index) => ({
+          ingredient: ing.ingredient,
+          amount: ing.amount || undefined,
+          unit: ing.unit || undefined,
+          notes: ing.notes || undefined,
+          orderIndex: index
+        })),
+        instructions: instructions.map((inst, index) => ({
+          instruction: inst.instruction,
+          stepNumber: index + 1
+        })),
+        tags
+      }
+      
       const response = await fetch(`/api/recipes/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          title,
-          description: description || undefined,
-          prepTime: prepTime ? parseInt(prepTime) : undefined,
-          cookTime: cookTime ? parseInt(cookTime) : undefined,
-          servings: servings ? parseInt(servings) : undefined,
-          sourceName: sourceName || undefined,
-          sourceNotes: sourceNotes || undefined,
-          ingredients: ingredients.map((ing, index) => ({
-            ingredient: ing.ingredient,
-            amount: ing.amount || undefined,
-            unit: ing.unit || undefined,
-            notes: ing.notes || undefined,
-            orderIndex: index
-          })),
-          instructions: instructions.map((inst, index) => ({
-            instruction: inst.instruction,
-            stepNumber: index + 1
-          })),
-          tags
-        }),
+        body: JSON.stringify(dataToSave),
       })
       
       if (!response.ok) throw new Error('Failed to update recipe')
@@ -254,9 +282,13 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
   return (
     <div className="container mx-auto py-8 px-4">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
         <h1 className="text-3xl font-bold">Edit Recipe</h1>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <VoiceToRecipe 
+            recipe={recipe} 
+            onUpdate={handleVoiceUpdate}
+          />
           <Button 
             variant="outline" 
             onClick={() => setShowDeleteConfirm(true)}
@@ -269,7 +301,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
           <Link href={`/protected/recipes/${id}`}>
             <Button variant="outline">Cancel</Button>
           </Link>
-          <Button onClick={handleSave} disabled={isSaving || !title.trim()}>
+          <Button onClick={() => handleSave()} disabled={isSaving || !title.trim()}>
             {isSaving ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
