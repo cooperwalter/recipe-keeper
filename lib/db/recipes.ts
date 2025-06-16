@@ -49,39 +49,53 @@ export class RecipeService {
 
     // Add ingredients if provided
     if (ingredientsList && ingredientsList.length > 0) {
-      const ingredientRecords = ingredientsList.map((ingredient, index) => {
-        // Handle both string and object formats
-        if (typeof ingredient === 'string') {
-          return {
-            recipeId: recipe.id,
-            ingredient,
-            orderIndex: index,
-          };
-        } else {
-          const decimalAmount = fractionToDecimal(ingredient.amount);
-          return {
-            recipeId: recipe.id,
-            ingredient: ingredient.ingredient,
-            amount: decimalAmount !== undefined ? decimalAmount.toString() : undefined,
-            unit: ingredient.unit || undefined,
-            notes: ingredient.notes || undefined,
-            orderIndex: index,
-          };
+      const validIngredients = ingredientsList.filter(ing => {
+        if (typeof ing === 'string') {
+          return ing.trim().length > 0;
         }
+        return ing.ingredient && ing.ingredient.trim().length > 0;
       });
       
-      await db.insert(ingredients).values(ingredientRecords);
+      if (validIngredients.length > 0) {
+        const ingredientRecords = validIngredients.map((ingredient, index) => {
+          // Handle both string and object formats
+          if (typeof ingredient === 'string') {
+            return {
+              recipeId: recipe.id,
+              ingredient: ingredient.trim(),
+              orderIndex: index,
+            };
+          } else {
+            const decimalAmount = fractionToDecimal(ingredient.amount);
+            return {
+              recipeId: recipe.id,
+              ingredient: ingredient.ingredient.trim(),
+              amount: decimalAmount !== undefined ? decimalAmount.toString() : undefined,
+              unit: ingredient.unit || undefined,
+              notes: ingredient.notes || undefined,
+              orderIndex: index,
+            };
+          }
+        });
+        
+        await db.insert(ingredients).values(ingredientRecords);
+      }
     }
 
     // Add instructions if provided
     if (instructionsList && instructionsList.length > 0) {
-      const instructionRecords = instructionsList.map((instruction, index) => ({
-        recipeId: recipe.id,
-        instruction,
-        stepNumber: index + 1,
-      }));
+      // Filter out empty instructions
+      const validInstructions = instructionsList.filter(inst => inst && inst.trim());
       
-      await db.insert(instructions).values(instructionRecords);
+      if (validInstructions.length > 0) {
+        const instructionRecords = validInstructions.map((instruction, index) => ({
+          recipeId: recipe.id,
+          instruction: instruction.trim(),
+          stepNumber: index + 1,
+        }));
+        
+        await db.insert(instructions).values(instructionRecords);
+      }
     }
 
     // Add category mapping if provided
@@ -649,11 +663,17 @@ export class RecipeService {
 
     // Insert new ingredients
     if (newIngredients.length > 0) {
-      const ingredientRecords = newIngredients.map(ing => ({
-        ...ing,
-        amount: ing.amount !== undefined ? ing.amount.toString() : undefined,
-      }));
-      await db.insert(ingredients).values(ingredientRecords);
+      // Filter out invalid ingredients (must have at least an ingredient name)
+      const validIngredients = newIngredients.filter(ing => ing.ingredient && ing.ingredient.trim());
+      
+      if (validIngredients.length > 0) {
+        const ingredientRecords = validIngredients.map(ing => ({
+          ...ing,
+          ingredient: ing.ingredient.trim(),
+          amount: ing.amount !== undefined ? ing.amount.toString() : undefined,
+        }));
+        await db.insert(ingredients).values(ingredientRecords);
+      }
     }
   }
 
@@ -684,7 +704,16 @@ export class RecipeService {
 
     // Insert new instructions
     if (newInstructions.length > 0) {
-      await db.insert(instructions).values(newInstructions);
+      // Filter out empty instructions
+      const validInstructions = newInstructions.filter(inst => inst.instruction && inst.instruction.trim());
+      
+      if (validInstructions.length > 0) {
+        const instructionRecords = validInstructions.map(inst => ({
+          ...inst,
+          instruction: inst.instruction.trim(),
+        }));
+        await db.insert(instructions).values(instructionRecords);
+      }
     }
   }
 
