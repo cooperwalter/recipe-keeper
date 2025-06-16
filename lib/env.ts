@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+// Check if we're in production before defining schema
+const isProduction = process.env.NODE_ENV === 'production';
+
 // Define the schema for our environment variables
 const envSchema = z.object({
   // Required Supabase variables
@@ -11,6 +14,11 @@ const envSchema = z.object({
   
   // Required for OCR functionality
   ANTHROPIC_API_KEY: z.string().min(1, "ANTHROPIC_API_KEY is required"),
+  
+  // Required in production for voice transcription
+  OPENAI_API_KEY: isProduction 
+    ? z.string().min(1, "OPENAI_API_KEY is required in production for voice transcription features")
+    : z.string().optional(),
   
   // Optional variables
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
@@ -46,8 +54,8 @@ function validateEnv(): Env {
 // Export validated environment variables
 export const env = validateEnv();
 
-// Helper to check if we're in production
-export const isProduction = process.env.NODE_ENV === 'production';
+// Re-export helper to check if we're in production
+export { isProduction };
 
 // Helper to check if we're in development
 export const isDevelopment = process.env.NODE_ENV === 'development';

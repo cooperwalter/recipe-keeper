@@ -29,7 +29,7 @@ A family recipe preservation platform that captures, digitizes, and shares cheri
 - Node.js 18+ and pnpm
 - Supabase account
 - Anthropic API key (for OCR and AI features)
-- OpenAI API key (optional, for voice transcription)
+- OpenAI API key (required in production for voice transcription)
 
 ## Setup Instructions
 
@@ -65,8 +65,9 @@ DATABASE_URL=postgresql://...
 # Anthropic API (for OCR and AI features)
 ANTHROPIC_API_KEY=your-anthropic-api-key
 
-# OpenAI API (optional, for voice transcription)
-# Without this, voice features will only work for demo users
+# OpenAI API (REQUIRED in production for voice transcription)
+# The app will not start in production without this key
+# In development, voice features will use mock transcription
 OPENAI_API_KEY=your-openai-api-key
 
 # Optional: Service role key for admin operations

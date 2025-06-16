@@ -5,6 +5,9 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { z } from 'zod';
 
+// Check if we're in production before defining schema
+const isProduction = process.env.NODE_ENV === 'production';
+
 // Define the schema for our environment variables (same as in lib/env.ts)
 const envSchema = z.object({
   // Required Supabase variables
@@ -16,6 +19,11 @@ const envSchema = z.object({
   
   // Required for OCR functionality
   ANTHROPIC_API_KEY: z.string().min(1, "ANTHROPIC_API_KEY is required"),
+  
+  // Required in production for voice transcription
+  OPENAI_API_KEY: isProduction 
+    ? z.string().min(1, "OPENAI_API_KEY is required in production for voice transcription features")
+    : z.string().optional(),
   
   // Optional variables
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
@@ -81,6 +89,12 @@ try {
   console.log(`Supabase Anon Key: ${env.NEXT_PUBLIC_SUPABASE_ANON_KEY.substring(0, 10)}...`);
   console.log(`Database URL: ${env.DATABASE_URL.replace(/:[^@]+@/, ':****@')}`);
   console.log(`Anthropic API Key: ${env.ANTHROPIC_API_KEY.substring(0, 10)}...`);
+  
+  if (env.OPENAI_API_KEY) {
+    console.log(`OpenAI API Key: ${env.OPENAI_API_KEY.substring(0, 10)}... ${isProduction ? '(required)' : '(optional)'}`);
+  } else if (!isProduction) {
+    console.log(`OpenAI API Key: Not set (optional in development)`);
+  }
   
   if (env.SUPABASE_SERVICE_ROLE_KEY) {
     console.log(`Service Role Key: ${env.SUPABASE_SERVICE_ROLE_KEY.substring(0, 10)}... (optional)`);

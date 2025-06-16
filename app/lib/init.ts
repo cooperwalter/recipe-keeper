@@ -15,5 +15,6 @@ if (typeof window === 'undefined') {
     console.log(`  - Supabase URL: ${env.NEXT_PUBLIC_SUPABASE_URL}`);
     console.log(`  - Database URL: ${env.DATABASE_URL.replace(/:[^@]+@/, ':****@')}`); // Hide password
     console.log(`  - Anthropic API: ${env.ANTHROPIC_API_KEY ? '✓ Configured' : '✗ Missing'}`);
+    console.log(`  - OpenAI API: ${env.OPENAI_API_KEY ? '✓ Configured' : '✗ Missing (voice features disabled)'}`);
   }
 }
