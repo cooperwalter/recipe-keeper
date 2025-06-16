@@ -306,7 +306,7 @@ export class RecipeService {
     // Check if user owns the recipe
     if (existing.createdBy !== userId) {
       // Special case for demo environment: allow demo users to delete demo recipes
-      const { data: { user } } = await this.supabase.auth.getUser();
+      const { data: { user } } = await this.supabase!.auth.getUser();
       const isDemoUser = user?.email === 'demo@recipekeeper.com';
       const isDemoRecipe = existing.sourceName?.includes('Demo') || 
                           existing.sourceName?.includes('Grandma') ||
