@@ -16,6 +16,8 @@ const nextConfig: NextConfig = {
     // Reduce parallel builds which can cause file conflicts
     workerThreads: false,
     cpus: 1,
+    // Use memory cache to reduce file system pressure
+    memoryBasedWorkersCount: true,
   },
   // Only configure webpack if not using Turbopack
   webpack: process.env.TURBOPACK ? undefined : (config, { dev }) => {
