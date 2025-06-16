@@ -88,7 +88,7 @@ export function VoiceRecipeFlow() {
       if (timerRef.current) {
         clearInterval(timerRef.current)
       }
-      if (audioContextRef.current) {
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
         audioContextRef.current.close()
       }
       if (animationFrameRef.current) {
@@ -172,7 +172,7 @@ export function VoiceRecipeFlow() {
       cancelAnimationFrame(animationFrameRef.current)
       animationFrameRef.current = null
     }
-    if (audioContextRef.current) {
+    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
       audioContextRef.current.close()
       audioContextRef.current = null
     }

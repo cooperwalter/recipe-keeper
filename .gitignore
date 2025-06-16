@@ -16,6 +16,9 @@
 # next.js
 /.next/
 /out/
+*.tmp
+*.tmp.*
+_buildManifest.js.tmp.*
 
 # production
 /build

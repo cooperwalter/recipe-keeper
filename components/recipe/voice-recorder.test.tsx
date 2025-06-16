@@ -3,6 +3,33 @@ import { render, screen, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { VoiceRecorder } from './voice-recorder'
 
+// Mock AudioContext
+const mockAnalyser = {
+  connect: vi.fn(),
+  fftSize: 256,
+  frequencyBinCount: 128,
+  getByteFrequencyData: vi.fn((array: Uint8Array) => {
+    // Fill with mock data
+    for (let i = 0; i < array.length; i++) {
+      array[i] = Math.floor(Math.random() * 255)
+    }
+  })
+}
+
+const mockAudioContext = {
+  createAnalyser: vi.fn(() => mockAnalyser),
+  createMediaStreamSource: vi.fn(() => ({ connect: vi.fn() })),
+  close: vi.fn(() => Promise.resolve()),
+  state: 'running'
+}
+
+global.AudioContext = vi.fn(() => mockAudioContext) as unknown as typeof AudioContext
+global.requestAnimationFrame = vi.fn((cb) => {
+  cb(0)
+  return 0
+})
+global.cancelAnimationFrame = vi.fn()
+
 // Mock navigator.mediaDevices
 const mockMediaRecorder = {
   start: vi.fn(),

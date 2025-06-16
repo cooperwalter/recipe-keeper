@@ -251,6 +251,8 @@ The app will be available at [http://localhost:3002](http://localhost:3002)
 ## Available Scripts
 
 - `pnpm dev` - Start development server
+- `pnpm dev:safe` - Start development server with auto-recovery from build errors
+- `pnpm dev:clean` - Clean build cache and start development server
 - `pnpm build` - Build for production
 - `pnpm start` - Start production server
 - `pnpm lint` - Run ESLint
@@ -333,6 +335,28 @@ pnpm test:watch
 - Check that your browser supports the Web Audio API
 - Make sure you've granted microphone permissions to the site
 - Try using Chrome or Edge for best compatibility
+
+### Development Server Issues
+
+#### "ENOENT: no such file or directory" errors with _buildManifest.js
+This is a known issue with Next.js dev server when files change frequently. To fix:
+
+1. **Use the safe development mode:**
+   ```bash
+   pnpm dev:safe
+   ```
+   This script automatically restarts the server if build manifest errors occur.
+
+2. **Or clean the build cache:**
+   ```bash
+   pnpm dev:clean
+   ```
+   This removes the `.next` directory and starts fresh.
+
+3. **If the issue persists:**
+   - Stop the dev server (Ctrl+C)
+   - Run `rm -rf .next`
+   - Start the dev server again with `pnpm dev`
 
 ## Contributing
 

@@ -2,6 +2,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack -p 3002",
+    "dev:safe": "node scripts/dev-server.js",
+    "dev:clean": "rm -rf .next && next dev --turbopack -p 3002",
     "build": "pnpm db:migrate && next build",
     "build:skip-checks": "next build",
     "db:generate": "tsx scripts/generate-migrations.ts",

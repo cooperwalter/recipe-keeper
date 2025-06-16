@@ -33,7 +33,7 @@ export function VoiceRecorder({ onTranscription, isProcessing = false, className
       if (mediaRecorderRef.current && isRecording) {
         mediaRecorderRef.current.stop()
       }
-      if (audioContextRef.current) {
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
         audioContextRef.current.close()
       }
       if (animationFrameRef.current) {
@@ -115,7 +115,7 @@ export function VoiceRecorder({ onTranscription, isProcessing = false, className
         cancelAnimationFrame(animationFrameRef.current)
         animationFrameRef.current = null
       }
-      if (audioContextRef.current) {
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
         audioContextRef.current.close()
         audioContextRef.current = null
       }
