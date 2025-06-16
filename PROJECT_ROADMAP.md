@@ -264,6 +264,15 @@ This roadmap outlines the development phases for the Recipe Inheritance Keeper M
 - [ ] Add timer integration
 - [ ] Test on various screen sizes
 
+### Interactive Ingredient Tracking
+- [ ] Allow marking ingredients used in each step
+- [ ] Create ingredient-to-step mapping interface
+- [ ] Implement step highlighting/selection
+- [ ] Show ingredient amounts when step is pressed/highlighted
+- [ ] Add visual indicators for ingredients in steps
+- [ ] Support touch and keyboard interactions
+- [ ] Test on mobile devices for touch responsiveness
+
 ## Phase 6: Sharing & Export (Week 11-12)
 
 ### Share Links
@@ -412,6 +421,19 @@ This roadmap outlines the development phases for the Recipe Inheritance Keeper M
 - [ ] Family tree integration
 - [ ] Multi-language support
 - [ ] Mobile app development
+
+### Voice-to-Recipe AI Assistant
+- [ ] Implement voice recording interface
+- [ ] Create real-time transcription display
+- [ ] Integrate LLM for natural language understanding
+- [ ] Parse voice commands into recipe modifications
+- [ ] Generate change summary with edit capability
+- [ ] Show before/after comparison
+- [ ] Add confirmation workflow before applying changes
+- [ ] Support commands like "add more salt", "change baking time to 30 minutes"
+- [ ] Handle ambiguous instructions with clarification prompts
+- [ ] Test voice recognition accuracy across accents
+- [ ] Implement undo/redo for voice changes
 
 ### Community Features
 - [ ] Recipe sharing between families
