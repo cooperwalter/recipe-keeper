@@ -166,12 +166,24 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
         method: 'DELETE',
       })
       
-      if (!response.ok) throw new Error('Failed to delete recipe')
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to delete recipe')
+      }
       
       router.push('/protected/recipes')
     } catch (error) {
       console.error('Error deleting recipe:', error)
-      alert('Failed to delete recipe. Please try again.')
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete recipe'
+      
+      // Show more helpful error messages
+      if (errorMessage.includes('Not authorized')) {
+        alert('You can only delete recipes that you created.')
+      } else if (errorMessage.includes('not found')) {
+        alert('This recipe no longer exists.')
+      } else {
+        alert(`Failed to delete recipe: ${errorMessage}`)
+      }
     } finally {
       setIsDeleting(false)
       setShowDeleteConfirm(false)

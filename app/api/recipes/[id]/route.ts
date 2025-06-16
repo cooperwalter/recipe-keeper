@@ -116,9 +116,23 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ success: true }, { status: 200 })
   } catch (error) {
     console.error('Error deleting recipe:', error)
+    
+    // Return more specific error message
+    const errorMessage = error instanceof Error ? error.message : 'Failed to delete recipe'
+    
+    // Determine appropriate status code
+    let statusCode = 500
+    if (errorMessage.includes('Not authorized')) {
+      statusCode = 403
+    } else if (errorMessage.includes('not found')) {
+      statusCode = 404
+    } else if (errorMessage.includes('not authenticated')) {
+      statusCode = 401
+    }
+    
     return NextResponse.json(
-      { error: 'Failed to delete recipe' },
-      { status: 500 }
+      { error: errorMessage },
+      { status: statusCode }
     )
   }
 }
