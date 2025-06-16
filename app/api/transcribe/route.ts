@@ -23,25 +23,32 @@ export async function POST(request: NextRequest) {
     const openaiApiKey = process.env.OPENAI_API_KEY
     
     if (!openaiApiKey) {
-      // Fallback to browser's built-in Web Speech API simulation
-      // This is a temporary solution for development
-      console.warn('OpenAI API key not found. Using mock transcription.')
+      // In development/demo mode, return mock transcription
+      if (process.env.NODE_ENV === 'development' || user.email === 'demo@recipeinheritancekeeper.com') {
+        console.warn('OpenAI API key not found. Using mock transcription.')
+        
+        const mockTranscriptions = [
+          "Add half a cup more flour to make it thicker",
+          "Change the baking time to 25 minutes instead of 20",
+          "Add a teaspoon of vanilla extract to the ingredients",
+          "Replace the sugar with honey, about three quarters of a cup",
+          "Add a note that this works best with room temperature eggs"
+        ]
+        
+        // Simulate processing delay
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        
+        // Return a random mock transcription for demo
+        const text = mockTranscriptions[Math.floor(Math.random() * mockTranscriptions.length)]
+        
+        return NextResponse.json({ text })
+      }
       
-      const mockTranscriptions = [
-        "Add half a cup more flour to make it thicker",
-        "Change the baking time to 25 minutes instead of 20",
-        "Add a teaspoon of vanilla extract to the ingredients",
-        "Replace the sugar with honey, about three quarters of a cup",
-        "Add a note that this works best with room temperature eggs"
-      ]
-      
-      // Simulate processing delay
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Return a random mock transcription for demo
-      const text = mockTranscriptions[Math.floor(Math.random() * mockTranscriptions.length)]
-      
-      return NextResponse.json({ text })
+      // In production for real users, return an error
+      return NextResponse.json(
+        { error: 'Voice transcription is not configured. Please contact support.' },
+        { status: 503 }
+      )
     }
 
     // Use OpenAI Whisper API for transcription

@@ -88,16 +88,19 @@ export function VoiceRecorder({ onTranscription, isProcessing = false, className
         body: formData
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        throw new Error('Transcription failed')
+        throw new Error(data.error || 'Transcription failed')
       }
 
-      const { text } = await response.json()
+      const { text } = data
       setTranscription(text)
       onTranscription(text)
     } catch (err) {
       console.error('Error transcribing audio:', err)
-      setError('Failed to transcribe audio. Please try again.')
+      const errorMessage = err instanceof Error ? err.message : 'Failed to transcribe audio'
+      setError(errorMessage)
     } finally {
       setIsTranscribing(false)
     }

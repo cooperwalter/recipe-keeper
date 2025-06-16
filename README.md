@@ -5,6 +5,7 @@ A family recipe preservation platform that captures, digitizes, and shares cheri
 ## Features
 
 - **Smart OCR Recipe Capture**: Upload photos of recipe cards and automatically extract text using AI
+- **Voice-to-Recipe**: Speak changes to recipes and have them interpreted by AI
 - **Recipe Management**: Create, edit, and organize recipes with ingredients and instructions
 - **Photo Gallery**: Attach multiple photos to recipes including the original recipe card
 - **Categories & Tags**: Organize recipes by category and add custom tags
@@ -27,7 +28,8 @@ A family recipe preservation platform that captures, digitizes, and shares cheri
 
 - Node.js 18+ and pnpm
 - Supabase account
-- Anthropic API key (for OCR features)
+- Anthropic API key (for OCR and AI features)
+- OpenAI API key (optional, for voice transcription)
 
 ## Setup Instructions
 
@@ -60,8 +62,12 @@ NEXT_PUBLIC_SITE_URL=https://your-app-domain.com
 # Database (use connection pooler URL from Supabase)
 DATABASE_URL=postgresql://...
 
-# Anthropic API (for OCR)
+# Anthropic API (for OCR and AI features)
 ANTHROPIC_API_KEY=your-anthropic-api-key
+
+# OpenAI API (optional, for voice transcription)
+# Without this, voice features will only work for demo users
+OPENAI_API_KEY=your-openai-api-key
 
 # Optional: Service role key for admin operations
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
@@ -311,6 +317,21 @@ pnpm test:watch
 - Make sure you've created all 4 policies for each bucket (INSERT, SELECT, UPDATE, DELETE)
 - Verify the file path follows the format: `{user-id}/{filename}`
 - The policies check that the first folder matches the authenticated user's ID
+
+### Voice Feature Issues
+
+#### "Voice transcription is not configured"
+- This error appears when the `OPENAI_API_KEY` is not set in production
+- To enable voice transcription:
+  1. Get an API key from [OpenAI Platform](https://platform.openai.com/)
+  2. Add `OPENAI_API_KEY=your-key` to your environment variables
+  3. Redeploy your application
+- Without this key, voice features will only work for the demo account
+
+#### Voice recording not working
+- Check that your browser supports the Web Audio API
+- Make sure you've granted microphone permissions to the site
+- Try using Chrome or Edge for best compatibility
 
 ## Contributing
 

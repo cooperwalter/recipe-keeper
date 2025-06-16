@@ -28,7 +28,7 @@ export function UserMenu({ userEmail }: UserMenuProps) {
     try {
       const supabase = createClient();
       await supabase.auth.signOut();
-      router.push("/auth/login");
+      router.push("/");
     } catch (error) {
       console.error("Error logging out:", error);
       setIsLoggingOut(false);
