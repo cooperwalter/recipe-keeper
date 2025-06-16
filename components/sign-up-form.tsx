@@ -47,7 +47,7 @@ export function SignUpForm({
         email,
         password,
         options: {
-          emailRedirectTo: `${siteUrl}/protected`,
+          emailRedirectTo: `${siteUrl}/protected/recipes`,
         },
       });
       
@@ -75,7 +75,7 @@ export function SignUpForm({
         });
         
         if (!signInError) {
-          router.push("/protected");
+          router.push("/protected/recipes");
           return;
         }
       }

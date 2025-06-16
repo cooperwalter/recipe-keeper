@@ -287,31 +287,31 @@ export class RecipeService {
     const userId = await this.getCurrentUserId();
     if (!userId) throw new Error('User not authenticated');
 
-    // First check if recipe exists and user owns it
+    // First check if recipe exists
     const [existing] = await db
-      .select({ id: recipes.id })
+      .select({ 
+        id: recipes.id,
+        createdBy: recipes.createdBy,
+        title: recipes.title 
+      })
       .from(recipes)
-      .where(
-        and(
-          eq(recipes.id, id),
-          eq(recipes.createdBy, userId)
-        )
-      )
+      .where(eq(recipes.id, id))
       .limit(1);
     
     if (!existing) {
-      throw new Error('Recipe not found or not authorized');
+      throw new Error('Recipe not found');
     }
     
-    // Delete the recipe
+    // Check if user owns the recipe
+    if (existing.createdBy !== userId) {
+      console.error(`Delete authorization failed: recipe owner=${existing.createdBy}, current user=${userId}`);
+      throw new Error('Not authorized to delete this recipe');
+    }
+    
+    // Delete the recipe (cascade will handle related records)
     await db
       .delete(recipes)
-      .where(
-        and(
-          eq(recipes.id, id),
-          eq(recipes.createdBy, userId)
-        )
-      );
+      .where(eq(recipes.id, id));
   }
 
   /**
