@@ -1,5 +1,19 @@
 import '@testing-library/jest-dom'
 import { vi } from 'vitest'
+import React from 'react'
+
+// Set up environment variables for tests
+process.env.ANTHROPIC_API_KEY = 'test-api-key'
+
+// Mock Next.js Image component
+vi.mock('next/image', () => ({
+  default: (props: any) => React.createElement('img', props)
+}))
+
+// Mock Next.js Link component
+vi.mock('next/link', () => ({
+  default: ({ children, href, ...props }: any) => React.createElement('a', { href, ...props }, children)
+}))
 
 // Mock Next.js router
 vi.mock('next/navigation', () => ({

@@ -58,7 +58,9 @@ describe('RecipeFormWizard', () => {
     renderWithProvider(<RecipeFormWizard />)
     
     expect(screen.getByTestId('basic-info-step')).toBeInTheDocument()
-    expect(screen.getByText('Basic Info')).toHaveClass('font-medium')
+    // The font-medium class is on the parent div, not the text
+    const basicInfoText = screen.getByText('Basic Info')
+    expect(basicInfoText.parentElement).toHaveClass('font-medium')
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '25')
   })
 

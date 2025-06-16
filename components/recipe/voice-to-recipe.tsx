@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { VoiceRecorder } from './voice-recorder'
 import { VoiceChangeReview } from './voice-change-review'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Mic, Loader2 } from 'lucide-react'
 import { RecipeWithRelations } from '@/lib/types/recipe'
 
@@ -210,6 +210,9 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Talk to Your Recipe</DialogTitle>
+            <DialogDescription>
+              Use voice commands to modify your recipe
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">

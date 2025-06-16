@@ -215,7 +215,38 @@ export function VoiceChangeReview({ changes: initialChanges, onApprove, onCancel
                     {change.type === 'modify' && change.oldValue && (
                       <div className="text-sm">
                         <span className="text-muted-foreground">From: </span>
-                        <span className="line-through">{change.oldValue}</span>
+                        <span className="line-through">
+                          {(() => {
+                            const val = change.oldValue
+                            if (change.field === 'ingredients' && typeof val === 'object' && val) {
+                              return `${val.amount || ''} ${val.unit || ''} ${val.ingredient}`.trim()
+                            } else if (change.field === 'instructions' && typeof val === 'object' && val) {
+                              return `Step ${val.stepNumber}: ${val.instruction}`
+                            } else if (change.field === 'prepTime' || change.field === 'cookTime') {
+                              return `${val} minutes`
+                            } else if (Array.isArray(val)) {
+                              return val.join(', ')
+                            }
+                            return val
+                          })()}
+                        </span>
+                      </div>
+                    )}
+
+                    {change.type === 'remove' && change.oldValue && (
+                      <div className="text-sm">
+                        <span className="text-muted-foreground">Remove: </span>
+                        <span className="font-medium">
+                          {(() => {
+                            const val = change.oldValue
+                            if (change.field === 'ingredients' && typeof val === 'object' && val) {
+                              return `${val.amount || ''} ${val.unit || ''} ${val.ingredient}`.trim()
+                            } else if (change.field === 'instructions' && typeof val === 'object' && val) {
+                              return `Step ${val.stepNumber}: ${val.instruction}`
+                            }
+                            return val
+                          })()}
+                        </span>
                       </div>
                     )}
 
