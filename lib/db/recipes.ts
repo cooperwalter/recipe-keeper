@@ -58,10 +58,11 @@ export class RecipeService {
             orderIndex: index,
           };
         } else {
+          const decimalAmount = fractionToDecimal(ingredient.amount);
           return {
             recipeId: recipe.id,
             ingredient: ingredient.ingredient,
-            amount: fractionToDecimal(ingredient.amount),
+            amount: decimalAmount !== undefined ? decimalAmount.toString() : undefined,
             unit: ingredient.unit || undefined,
             notes: ingredient.notes || undefined,
             orderIndex: index,
@@ -613,7 +614,7 @@ export class RecipeService {
   async updateIngredients(recipeId: string, newIngredients: Array<{
     recipeId: string;
     ingredient: string;
-    amount?: number;
+    amount?: number | string;
     unit?: string;
     orderIndex: number;
     notes?: string;
@@ -637,7 +638,11 @@ export class RecipeService {
 
     // Insert new ingredients
     if (newIngredients.length > 0) {
-      await db.insert(ingredients).values(newIngredients);
+      const ingredientRecords = newIngredients.map(ing => ({
+        ...ing,
+        amount: ing.amount !== undefined ? ing.amount.toString() : undefined,
+      }));
+      await db.insert(ingredients).values(ingredientRecords);
     }
   }
 
