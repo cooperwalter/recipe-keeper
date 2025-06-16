@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { spawn } = require('child_process');
+const { spawn, execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
@@ -32,7 +32,18 @@ function cleanNextDir() {
   }
 }
 
+function killPort() {
+  try {
+    log(`🔍 Checking for processes on port ${PORT}...`, 'yellow');
+    execSync(`node ${path.join(__dirname, 'kill-port.js')} ${PORT}`, { stdio: 'inherit' });
+  } catch (error) {
+    log(`⚠️  Error killing port: ${error.message}`, 'yellow');
+  }
+}
+
 function startDevServer() {
+  killPort(); // Kill any existing process on the port
+  
   log(`🚀 Starting development server on port ${PORT}...`, 'blue');
   
   const devServer = spawn('pnpm', ['next', 'dev', '--turbopack', '-p', PORT], {

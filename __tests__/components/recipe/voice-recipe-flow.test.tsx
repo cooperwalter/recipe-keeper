@@ -8,6 +8,46 @@ vi.mock('next/navigation', () => ({
   useRouter: vi.fn()
 }))
 
+// Mock AudioContext and related APIs
+const mockAnalyser = {
+  connect: vi.fn(),
+  fftSize: 256,
+  frequencyBinCount: 128,
+  getByteFrequencyData: vi.fn((array: Uint8Array) => {
+    // Fill with mock data
+    for (let i = 0; i < array.length; i++) {
+      array[i] = Math.floor(Math.random() * 255)
+    }
+  })
+}
+
+const mockAudioContext = {
+  createAnalyser: vi.fn(() => mockAnalyser),
+  createMediaStreamSource: vi.fn(() => ({ connect: vi.fn() })),
+  close: vi.fn(() => Promise.resolve()),
+  state: 'running'
+}
+
+global.AudioContext = vi.fn(() => mockAudioContext) as unknown as typeof AudioContext
+global.requestAnimationFrame = vi.fn((cb) => {
+  // Don't call immediately to avoid infinite loop
+  setTimeout(() => cb(0), 16)
+  return 0
+})
+global.cancelAnimationFrame = vi.fn()
+
+// Mock navigator.mediaDevices
+const mockMediaStream = {
+  getTracks: vi.fn(() => [{ stop: vi.fn() }])
+}
+
+Object.defineProperty(global.navigator, 'mediaDevices', {
+  writable: true,
+  value: {
+    getUserMedia: vi.fn(() => Promise.resolve(mockMediaStream as MediaStream))
+  }
+})
+
 // Mock fetch
 global.fetch = vi.fn()
 
@@ -80,18 +120,24 @@ describe('VoiceRecipeFlow', () => {
     
     // Start recording
     const micButton = screen.getByRole('button', { name: /start recording/i })
-    fireEvent.click(micButton)
+    
+    await act(async () => {
+      fireEvent.click(micButton)
+    })
     
     // Simulate speech recognition result
-    mockOnResult({
-      resultIndex: 0,
-      results: [{
-        0: { transcript: 'This is my test recipe' },
-        isFinal: true
-      }]
+    await act(async () => {
+      mockOnResult({
+        resultIndex: 0,
+        results: [{
+          0: { transcript: 'This is my test recipe' },
+          isFinal: true
+        }]
+      })
     })
     
     await waitFor(() => {
+      expect(screen.getByText('What we heard:')).toBeInTheDocument()
       expect(screen.getByText(/This is my test recipe/)).toBeInTheDocument()
     })
   })
@@ -131,22 +177,34 @@ describe('VoiceRecipeFlow', () => {
     
     // Start and stop recording
     const micButton = screen.getByRole('button', { name: /start recording/i })
-    fireEvent.click(micButton)
     
-    // Add transcript
-    mockOnResult({
-      resultIndex: 0,
-      results: [{
-        0: { transcript: 'Test recipe transcript' },
-        isFinal: true
-      }]
+    await act(async () => {
+      fireEvent.click(micButton)
     })
     
-    fireEvent.click(micButton) // Stop
+    // Add transcript
+    await act(async () => {
+      mockOnResult({
+        resultIndex: 0,
+        results: [{
+          0: { transcript: 'Test recipe transcript' },
+          isFinal: true
+        }]
+      })
+    })
+    
+    await act(async () => {
+      fireEvent.click(micButton) // Stop
+    })
     
     // Click continue
     await waitFor(() => {
       const continueButton = screen.getByRole('button', { name: /continue/i })
+      expect(continueButton).toBeInTheDocument()
+    })
+    
+    const continueButton = screen.getByRole('button', { name: /continue/i })
+    await act(async () => {
       fireEvent.click(continueButton)
     })
     
@@ -161,10 +219,15 @@ describe('VoiceRecipeFlow', () => {
     
     // Start recording
     const micButton = screen.getByRole('button', { name: /start recording/i })
-    fireEvent.click(micButton)
+    
+    await act(async () => {
+      fireEvent.click(micButton)
+    })
     
     // Simulate error
-    mockOnError({ error: 'no-speech' })
+    await act(async () => {
+      mockOnError({ error: 'no-speech' })
+    })
     
     await waitFor(() => {
       expect(screen.getByText('No speech detected. Please try again.')).toBeInTheDocument()
@@ -183,20 +246,32 @@ describe('VoiceRecipeFlow', () => {
     
     // Add transcript and process
     const micButton = screen.getByRole('button', { name: /start recording/i })
-    fireEvent.click(micButton)
     
-    mockOnResult({
-      resultIndex: 0,
-      results: [{
-        0: { transcript: 'Test recipe' },
-        isFinal: true
-      }]
+    await act(async () => {
+      fireEvent.click(micButton)
     })
     
-    fireEvent.click(micButton) // Stop
+    await act(async () => {
+      mockOnResult({
+        resultIndex: 0,
+        results: [{
+          0: { transcript: 'Test recipe' },
+          isFinal: true
+        }]
+      })
+    })
+    
+    await act(async () => {
+      fireEvent.click(micButton) // Stop
+    })
     
     await waitFor(() => {
       const continueButton = screen.getByRole('button', { name: /continue/i })
+      expect(continueButton).toBeInTheDocument()
+    })
+    
+    const continueButton = screen.getByRole('button', { name: /continue/i })
+    await act(async () => {
       fireEvent.click(continueButton)
     })
     
@@ -210,21 +285,33 @@ describe('VoiceRecipeFlow', () => {
     
     // Add transcript
     const micButton = screen.getByRole('button', { name: /start recording/i })
-    fireEvent.click(micButton)
     
-    mockOnResult({
-      resultIndex: 0,
-      results: [{
-        0: { transcript: 'Test recipe' },
-        isFinal: true
-      }]
+    await act(async () => {
+      fireEvent.click(micButton)
     })
     
-    fireEvent.click(micButton) // Stop
+    await act(async () => {
+      mockOnResult({
+        resultIndex: 0,
+        results: [{
+          0: { transcript: 'Test recipe' },
+          isFinal: true
+        }]
+      })
+    })
+    
+    await act(async () => {
+      fireEvent.click(micButton) // Stop
+    })
     
     // Click start over
     await waitFor(() => {
       const startOverButton = screen.getByRole('button', { name: /start over/i })
+      expect(startOverButton).toBeInTheDocument()
+    })
+    
+    const startOverButton = screen.getByRole('button', { name: /start over/i })
+    await act(async () => {
       fireEvent.click(startOverButton)
     })
     

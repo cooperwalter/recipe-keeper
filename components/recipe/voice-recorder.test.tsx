@@ -25,7 +25,8 @@ const mockAudioContext = {
 
 global.AudioContext = vi.fn(() => mockAudioContext) as unknown as typeof AudioContext
 global.requestAnimationFrame = vi.fn((cb) => {
-  cb(0)
+  // Don't call immediately to avoid infinite loop
+  setTimeout(() => cb(0), 16)
   return 0
 })
 global.cancelAnimationFrame = vi.fn()
