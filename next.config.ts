@@ -19,6 +19,16 @@ const nextConfig: NextConfig = {
     // Use memory cache to reduce file system pressure
     memoryBasedWorkersCount: true,
   },
+  // External packages that should not be bundled
+  serverExternalPackages: ['sharp'],
+  // Increase timeouts
+  httpAgentOptions: {
+    keepAlive: true,
+  },
+  // Disable static optimization in dev for better stability
+  ...(process.env.NODE_ENV === 'development' && {
+    staticPageGenerationTimeout: 120,
+  }),
   // Only configure webpack if not using Turbopack
   webpack: process.env.TURBOPACK ? undefined : (config, { dev }) => {
     if (dev) {
