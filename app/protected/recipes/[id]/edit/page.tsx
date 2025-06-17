@@ -281,6 +281,16 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
 
   return (
     <div className="container mx-auto py-8 px-4">
+      {/* Back Button */}
+      <div className="mb-6">
+        <Link href={`/protected/recipes/${id}`}>
+          <Button variant="outline" size="sm">
+            <ChevronLeft className="mr-2 h-4 w-4" />
+            Back to Recipe
+          </Button>
+        </Link>
+      </div>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
         <h1 className="text-3xl font-bold">Edit Recipe</h1>
@@ -298,9 +308,6 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
             <Trash2 className="mr-2 h-4 w-4" />
             Delete
           </Button>
-          <Link href={`/protected/recipes/${id}`}>
-            <Button variant="outline">Cancel</Button>
-          </Link>
           <Button onClick={() => handleSave()} disabled={isSaving || !title.trim()}>
             {isSaving ? (
               <>
@@ -532,6 +539,20 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Button */}
+      <div className="mt-8">
+        <Button 
+          variant="outline" 
+          size="lg"
+          className="w-full sm:w-[calc(100%-2rem)] mx-auto flex items-center justify-center gap-2 text-destructive border-destructive hover:bg-destructive/10 dark:text-red-400 dark:border-red-400 dark:hover:bg-red-400/20"
+          onClick={() => setShowDeleteConfirm(true)}
+          disabled={isDeleting}
+        >
+          <Trash2 className="h-5 w-5" />
+          Delete This Recipe
+        </Button>
+      </div>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>

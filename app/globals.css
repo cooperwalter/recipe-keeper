@@ -67,3 +67,18 @@
   }
 }
 
+/* Print-specific display utilities */
+@media screen {
+  .recipe-photo,
+  .recipe-source {
+    display: none !important;
+  }
+}
+
+@media print {
+  .recipe-photo,
+  .recipe-source {
+    display: block !important;
+  }
+}
+

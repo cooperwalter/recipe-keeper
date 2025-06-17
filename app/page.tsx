@@ -4,16 +4,11 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ChefHat, BookOpen, Heart, Users, Clock, Search } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
 
 export default async function Home() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   
-  // Redirect logged-in users to their recipes
-  if (user) {
-    redirect('/protected/recipes');
-  }
   return (
     <main className="min-h-screen flex flex-col">
       {/* Navigation */}
@@ -26,6 +21,13 @@ export default async function Home() {
             </Link>
           </div>
           <div className="flex items-center gap-2 sm:gap-4">
+            {user && (
+              <Link href="/protected/recipes">
+                <Button variant="outline" size="sm">
+                  My Recipes
+                </Button>
+              </Link>
+            )}
             <ThemeSwitcher />
             <AuthButton />
           </div>
@@ -44,10 +46,10 @@ export default async function Home() {
             Never lose Grandma&apos;s secret cookie recipe again.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-            <Link href="/auth/sign-up">
+            <Link href={user ? "/protected/recipes" : "/auth/sign-up"}>
               <Button size="lg" className="gap-2 w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90">
                 <BookOpen className="h-5 w-5" />
-                Start Your Collection
+                {user ? "Open Your Collection" : "Start Your Collection"}
               </Button>
             </Link>
           </div>
@@ -105,10 +107,10 @@ export default async function Home() {
             Join thousands of families who are safeguarding their treasured recipes for future generations.
           </p>
           <div className="pt-4">
-            <Link href="/auth/sign-up">
+            <Link href={user ? "/protected/recipes" : "/auth/sign-up"}>
               <Button size="lg" className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-6 text-lg">
                 <BookOpen className="h-5 w-5" />
-                Create Your Free Account
+                {user ? "Open Your Collection" : "Create Your Free Account"}
               </Button>
             </Link>
           </div>

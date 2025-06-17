@@ -43,7 +43,7 @@ export function VersionHistory({ recipeId, currentVersion = 1 }: VersionHistoryP
 
   useEffect(() => {
     fetchVersionHistory()
-  }, [recipeId])
+  }, [recipeId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchVersionHistory = async () => {
     try {

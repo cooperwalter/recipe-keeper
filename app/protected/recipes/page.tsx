@@ -17,7 +17,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { Plus, Search, X, Grid, List, Heart } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { RecipeListResponse, RecipeCategory, RecipeWithRelations } from '@/lib/types/recipe'
+import { RecipeListResponse, RecipeCategory } from '@/lib/types/recipe'
 
 const ITEMS_PER_PAGE = 12
 

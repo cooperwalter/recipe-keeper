@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { BasicInfoStep } from './BasicInfoStep'
 import { RecipeFormProvider } from './RecipeFormContext'
 
@@ -63,63 +63,80 @@ describe('BasicInfoStep', () => {
     })
   })
 
-  it('updates title field', () => {
+  it('updates title field', async () => {
     renderWithProvider()
     
     const titleInput = screen.getByLabelText('Recipe Title *')
-    fireEvent.change(titleInput, { target: { value: 'Test Recipe' } })
+    
+    await act(async () => {
+      fireEvent.change(titleInput, { target: { value: 'Test Recipe' } })
+    })
     
     expect(titleInput).toHaveValue('Test Recipe')
   })
 
-  it('updates description field', () => {
+  it('updates description field', async () => {
     renderWithProvider()
     
     const descriptionInput = screen.getByLabelText('Description')
-    fireEvent.change(descriptionInput, { target: { value: 'Test description' } })
+    
+    await act(async () => {
+      fireEvent.change(descriptionInput, { target: { value: 'Test description' } })
+    })
     
     expect(descriptionInput).toHaveValue('Test description')
   })
 
-  it('updates numeric fields', () => {
+  it('updates numeric fields', async () => {
     renderWithProvider()
     
     const prepTimeInput = screen.getByLabelText('Prep Time (minutes)')
     const cookTimeInput = screen.getByLabelText('Cook Time (minutes)')
     const servingsInput = screen.getByLabelText('Servings')
     
-    fireEvent.change(prepTimeInput, { target: { value: '15' } })
-    fireEvent.change(cookTimeInput, { target: { value: '30' } })
-    fireEvent.change(servingsInput, { target: { value: '4' } })
+    await act(async () => {
+      fireEvent.change(prepTimeInput, { target: { value: '15' } })
+      fireEvent.change(cookTimeInput, { target: { value: '30' } })
+      fireEvent.change(servingsInput, { target: { value: '4' } })
+    })
     
     expect(prepTimeInput).toHaveValue(15)
     expect(cookTimeInput).toHaveValue(30)
     expect(servingsInput).toHaveValue(4)
   })
 
-  it('handles tags input correctly', () => {
+  it('handles tags input correctly', async () => {
     renderWithProvider()
     
     const tagsInput = screen.getByLabelText('Tags')
-    fireEvent.change(tagsInput, { target: { value: 'quick, easy, vegetarian' } })
+    
+    await act(async () => {
+      fireEvent.change(tagsInput, { target: { value: 'quick, easy, vegetarian' } })
+    })
     
     expect(tagsInput).toHaveValue('quick, easy, vegetarian')
   })
 
-  it('updates source name', () => {
+  it('updates source name', async () => {
     renderWithProvider()
     
     const sourceInput = screen.getByLabelText('Recipe Source')
-    fireEvent.change(sourceInput, { target: { value: 'Grandma Rose' } })
+    
+    await act(async () => {
+      fireEvent.change(sourceInput, { target: { value: 'Grandma Rose' } })
+    })
     
     expect(sourceInput).toHaveValue('Grandma Rose')
   })
 
-  it('toggles public switch', () => {
+  it('toggles public switch', async () => {
     renderWithProvider()
     
     const publicSwitch = screen.getByLabelText('Make this recipe public')
-    fireEvent.click(publicSwitch)
+    
+    await act(async () => {
+      fireEvent.click(publicSwitch)
+    })
     
     expect(publicSwitch).toBeChecked()
   })
@@ -132,10 +149,16 @@ describe('BasicInfoStep', () => {
     })
     
     // Open dropdown
-    fireEvent.click(screen.getByRole('combobox'))
+    await act(async () => {
+      fireEvent.click(screen.getByRole('combobox'))
+    })
     
     // Select category
     await waitFor(() => {
+      expect(screen.getByText('Breakfast')).toBeInTheDocument()
+    })
+    
+    await act(async () => {
       fireEvent.click(screen.getByText('Breakfast'))
     })
     
@@ -160,17 +183,21 @@ describe('BasicInfoStep', () => {
     consoleSpy.mockRestore()
   })
 
-  it('clears numeric fields when empty', () => {
+  it('clears numeric fields when empty', async () => {
     renderWithProvider()
     
     const prepTimeInput = screen.getByLabelText('Prep Time (minutes)')
     
     // Set value
-    fireEvent.change(prepTimeInput, { target: { value: '15' } })
+    await act(async () => {
+      fireEvent.change(prepTimeInput, { target: { value: '15' } })
+    })
     expect(prepTimeInput).toHaveValue(15)
     
     // Clear value
-    fireEvent.change(prepTimeInput, { target: { value: '' } })
+    await act(async () => {
+      fireEvent.change(prepTimeInput, { target: { value: '' } })
+    })
     expect(prepTimeInput).toHaveValue(null)
   })
 })

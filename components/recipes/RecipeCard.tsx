@@ -6,7 +6,6 @@ import { Clock, Users, Heart } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
-import { useState } from 'react'
 import { RecipePlaceholder } from '@/components/recipe/recipe-placeholder'
 
 interface RecipeCardProps {

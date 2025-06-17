@@ -6,6 +6,7 @@ import { RecipeWithRelations } from '@/lib/types/recipe'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { PhotoGallery } from '@/components/recipes/PhotoGallery'
+import { VersionHistory } from '@/components/recipe/version-history'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,6 +29,7 @@ import {
   Trash2
 } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
@@ -159,7 +161,7 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
           </Link>
         </div>
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-8 recipe-header">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">{recipe.title}</h1>
             <div className="flex gap-2 print:hidden flex-wrap">
@@ -188,24 +190,14 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
                   Edit
                 </Button>
               </Link>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                aria-label="Delete recipe"
-                onClick={() => setShowDeleteConfirm(true)}
-                disabled={isDeleting}
-              >
-                <Trash2 className="h-4 w-4 mr-1" />
-                Delete
-              </Button>
             </div>
           </div>
 
           {recipe.description && (
-            <p className="text-lg text-muted-foreground mb-4">{recipe.description}</p>
+            <p className="text-lg text-muted-foreground mb-4 recipe-description">{recipe.description}</p>
           )}
 
-          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground recipe-meta">
             {totalTime > 0 && (
               <div className="flex items-center gap-1">
                 <Clock className="h-4 w-4" />
@@ -235,7 +227,7 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
           </div>
 
           {recipe.tags.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="mt-4 flex flex-wrap gap-2 recipe-tags">
               {recipe.tags.map((tag) => (
                 <span
                   key={tag}
@@ -250,19 +242,33 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
 
         {/* Recipe Photos */}
         <PhotoGallery photos={recipe.photos} recipeTitle={recipe.title} />
+        
+        {/* Print-only photo section */}
+        {recipe.photos.length > 0 && (
+          <div className="hidden recipe-photo">
+            <Image 
+              src={recipe.photos[0].photoUrl} 
+              alt={recipe.photos[0].caption || recipe.title}
+              width={600}
+              height={400}
+              className="w-full h-auto"
+              unoptimized
+            />
+          </div>
+        )}
 
         {/* Family Notes */}
         {recipe.sourceNotes && (
-          <div className="mb-8 p-6 bg-muted/50 rounded-lg">
+          <div className="mb-8 p-6 bg-muted/50 rounded-lg family-notes">
             <h2 className="text-xl font-semibold mb-2">Family Notes & Memories</h2>
             <p className="text-muted-foreground whitespace-pre-wrap">{recipe.sourceNotes}</p>
           </div>
         )}
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 recipe-content">
           {/* Ingredients */}
-          <div className="md:col-span-1">
+          <div className="md:col-span-1 ingredients-section">
             <h2 className="text-2xl font-semibold mb-4">Ingredients</h2>
             <ul className="space-y-2">
               {recipe.ingredients.map((ingredient) => (
@@ -282,12 +288,12 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
           </div>
 
           {/* Instructions */}
-          <div className="md:col-span-2">
+          <div className="md:col-span-2 instructions-section">
             <h2 className="text-2xl font-semibold mb-4">Instructions</h2>
             <ol className="space-y-4">
               {recipe.instructions.map((instruction) => (
                 <li key={instruction.id} className="flex">
-                  <span className="mr-4 flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                  <span className="mr-4 flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium step-number">
                     {instruction.stepNumber}
                   </span>
                   <p className="pt-1">{instruction.instruction}</p>
@@ -295,6 +301,30 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
               ))}
             </ol>
           </div>
+        </div>
+
+        {/* Print-only source attribution */}
+        <div className="hidden recipe-source">
+          Recipe from {recipe.sourceName || 'Recipe Keeper'} • {new Date(recipe.createdAt).toLocaleDateString()}
+        </div>
+        
+        {/* Version History */}
+        <div className="mt-12 print:hidden">
+          <VersionHistory recipeId={recipe.id} currentVersion={recipe.version} />
+        </div>
+
+        {/* Delete Button */}
+        <div className="mt-12 print:hidden">
+          <Button 
+            variant="outline" 
+            size="lg"
+            className="w-full sm:w-[calc(100%-2rem)] mx-auto flex items-center justify-center gap-2 text-destructive border-destructive hover:bg-destructive/10 dark:text-red-400 dark:border-red-400 dark:hover:bg-red-400/20"
+            onClick={() => setShowDeleteConfirm(true)}
+            disabled={isDeleting}
+          >
+            <Trash2 className="h-5 w-5" />
+            Delete This Recipe
+          </Button>
         </div>
       </article>
 

@@ -1,22 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { render, screen, waitFor, within, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { VoiceToRecipe } from './voice-to-recipe'
 
-// Mock child components
-vi.mock('./voice-recorder', () => ({
-  VoiceRecorder: ({ onTranscription }: { onTranscription: (text: string) => void }) => (
-    <div data-testid="voice-recorder">
-      <button 
-        onClick={() => onTranscription('Add more flour')}
-        data-testid="mock-transcribe"
-      >
-        Mock Transcribe
-      </button>
-    </div>
-  )
-}))
-
+// Mock components
 vi.mock('./voice-change-review', () => ({
   VoiceChangeReview: ({ changes, onApprove, onCancel }: { changes: unknown[]; onApprove: (changes: unknown[]) => void; onCancel: () => void }) => (
     <div data-testid="voice-change-review">
@@ -31,6 +18,59 @@ vi.mock('./voice-change-review', () => ({
   )
 }))
 
+vi.mock('@/components/ui/voice-wave-animation', () => ({
+  VoiceWaveAnimation: () => <div data-testid="voice-wave-animation" />
+}))
+
+// Mock MediaDevices API
+const mockMediaStream = {
+  getTracks: () => [{
+    stop: vi.fn()
+  }]
+}
+
+const mockAnalyserNode = {
+  fftSize: 2048,
+  frequencyBinCount: 1024,
+  smoothingTimeConstant: 0.8,
+  minDecibels: -90,
+  maxDecibels: -10,
+  getByteTimeDomainData: vi.fn(),
+  getByteFrequencyData: vi.fn()
+}
+
+const mockAudioContext = {
+  createAnalyser: () => mockAnalyserNode,
+  createMediaStreamSource: () => ({ connect: vi.fn() }),
+  close: vi.fn(),
+  state: 'running'
+}
+
+// Mock Speech Recognition
+const mockSpeechRecognitionInstance = {
+  continuous: false,
+  interimResults: false,
+  lang: '',
+  onresult: null,
+  onerror: null,
+  start: vi.fn(),
+  stop: vi.fn()
+}
+
+const MockSpeechRecognition = vi.fn(() => mockSpeechRecognitionInstance)
+
+// Setup global mocks
+global.navigator = {
+  ...global.navigator,
+  mediaDevices: {
+    getUserMedia: vi.fn().mockResolvedValue(mockMediaStream)
+  }
+} as Navigator
+
+global.AudioContext = vi.fn(() => mockAudioContext) as unknown as typeof AudioContext
+(window as Window & typeof globalThis & { SpeechRecognition?: unknown }).SpeechRecognition = MockSpeechRecognition
+(window as Window & typeof globalThis & { webkitSpeechRecognition?: unknown }).webkitSpeechRecognition = MockSpeechRecognition
+
 // Mock fetch
 global.fetch = vi.fn()
 
@@ -44,10 +84,10 @@ const mockRecipe = {
   sourceName: 'Test Source',
   sourceNotes: 'Test notes',
   ingredients: [
-    { id: '1', ingredient: 'flour', amount: '2', unit: 'cups', notes: null, orderIndex: 0 }
+    { id: '1', recipeId: 'test-recipe-id', ingredient: 'flour', amount: 2, unit: 'cups', notes: null, orderIndex: 0, createdAt: new Date().toISOString() }
   ],
   instructions: [
-    { id: '1', stepNumber: 1, instruction: 'Mix ingredients' }
+    { id: '1', recipeId: 'test-recipe-id', stepNumber: 1, instruction: 'Mix ingredients', createdAt: new Date().toISOString() }
   ],
   tags: ['test'],
   photos: [],
@@ -55,7 +95,9 @@ const mockRecipe = {
   isFavorite: false,
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
-  createdBy: 'test-user'
+  createdBy: 'test-user',
+  isPublic: false,
+  version: 1
 }
 
 describe('VoiceToRecipe', () => {
@@ -63,6 +105,7 @@ describe('VoiceToRecipe', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    mockAudioContext.state = 'running'
   })
 
   it('renders talk to recipe button', () => {
@@ -78,7 +121,7 @@ describe('VoiceToRecipe', () => {
     await userEvent.click(button)
     
     expect(screen.getByText('Talk to Your Recipe')).toBeInTheDocument()
-    expect(screen.getByTestId('voice-recorder')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /start recording/i })).toBeInTheDocument()
   })
 
   it('shows example commands', async () => {
@@ -106,14 +149,35 @@ describe('VoiceToRecipe', () => {
     ;(global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ changes: mockChanges })
-    })
+    } as Response)
     
     render(<VoiceToRecipe recipe={mockRecipe} onUpdate={mockOnUpdate} />)
     
     await userEvent.click(screen.getByRole('button', { name: /talk to recipe/i }))
     
-    const transcribeButton = screen.getByTestId('mock-transcribe')
-    await userEvent.click(transcribeButton)
+    // Start recording
+    const recordButton = screen.getByRole('button', { name: /start recording/i })
+    await userEvent.click(recordButton)
+    
+    // Simulate speech recognition result
+    await act(async () => {
+      if (mockSpeechRecognitionInstance.onresult) {
+        mockSpeechRecognitionInstance.onresult({
+          resultIndex: 0,
+          results: [{
+            0: { transcript: 'Add more flour' },
+            isFinal: true,
+            length: 1
+          }]
+        })
+      }
+    })
+    
+    // Stop recording
+    await userEvent.click(screen.getByRole('button', { name: /stop recording/i }))
+    
+    // Click process button
+    await userEvent.click(screen.getByRole('button', { name: /process changes/i }))
     
     await waitFor(() => {
       expect(screen.getByTestId('voice-change-review')).toBeInTheDocument()
@@ -128,8 +192,25 @@ describe('VoiceToRecipe', () => {
     
     await userEvent.click(screen.getByRole('button', { name: /talk to recipe/i }))
     
-    const transcribeButton = screen.getByTestId('mock-transcribe')
-    await userEvent.click(transcribeButton)
+    // Set transcript directly for testing
+    const recordButton = screen.getByRole('button', { name: /start recording/i })
+    await userEvent.click(recordButton)
+    
+    await act(async () => {
+      if (mockSpeechRecognitionInstance.onresult) {
+        mockSpeechRecognitionInstance.onresult({
+        resultIndex: 0,
+        results: [{
+          0: { transcript: 'Add more flour' },
+          isFinal: true,
+          length: 1
+        }]
+        })
+      }
+    })
+    
+    await userEvent.click(screen.getByRole('button', { name: /stop recording/i }))
+    await userEvent.click(screen.getByRole('button', { name: /process changes/i }))
     
     await waitFor(() => {
       expect(screen.getByText('Failed to understand the command. Please try again.')).toBeInTheDocument()
@@ -150,12 +231,31 @@ describe('VoiceToRecipe', () => {
     ;(global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ changes: mockChanges })
-    })
+    } as Response)
     
     render(<VoiceToRecipe recipe={mockRecipe} onUpdate={mockOnUpdate} />)
     
     await userEvent.click(screen.getByRole('button', { name: /talk to recipe/i }))
-    await userEvent.click(screen.getByTestId('mock-transcribe'))
+    
+    // Start and simulate recording
+    const recordButton = screen.getByRole('button', { name: /start recording/i })
+    await userEvent.click(recordButton)
+    
+    await act(async () => {
+      if (mockSpeechRecognitionInstance.onresult) {
+        mockSpeechRecognitionInstance.onresult({
+        resultIndex: 0,
+        results: [{
+          0: { transcript: 'Change cook time to 25 minutes' },
+          isFinal: true,
+          length: 1
+        }]
+        })
+      }
+    })
+    
+    await userEvent.click(screen.getByRole('button', { name: /stop recording/i }))
+    await userEvent.click(screen.getByRole('button', { name: /process changes/i }))
     
     await waitFor(() => {
       expect(screen.getByTestId('voice-change-review')).toBeInTheDocument()
@@ -187,12 +287,31 @@ describe('VoiceToRecipe', () => {
     ;(global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ changes: mockChanges })
-    })
+    } as Response)
     
     render(<VoiceToRecipe recipe={mockRecipe} onUpdate={mockOnUpdate} />)
     
     await userEvent.click(screen.getByRole('button', { name: /talk to recipe/i }))
-    await userEvent.click(screen.getByTestId('mock-transcribe'))
+    
+    // Simulate recording
+    const recordButton = screen.getByRole('button', { name: /start recording/i })
+    await userEvent.click(recordButton)
+    
+    await act(async () => {
+      if (mockSpeechRecognitionInstance.onresult) {
+        mockSpeechRecognitionInstance.onresult({
+        resultIndex: 0,
+        results: [{
+          0: { transcript: 'Add vanilla extract and remove flour' },
+          isFinal: true,
+          length: 1
+        }]
+        })
+      }
+    })
+    
+    await userEvent.click(screen.getByRole('button', { name: /stop recording/i }))
+    await userEvent.click(screen.getByRole('button', { name: /process changes/i }))
     
     await waitFor(() => {
       expect(screen.getByTestId('voice-change-review')).toBeInTheDocument()
@@ -219,12 +338,30 @@ describe('VoiceToRecipe', () => {
     ;(global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ changes: mockChanges })
-    })
+    } as Response)
     
     render(<VoiceToRecipe recipe={mockRecipe} onUpdate={mockOnUpdate} />)
     
     await userEvent.click(screen.getByRole('button', { name: /talk to recipe/i }))
-    await userEvent.click(screen.getByTestId('mock-transcribe'))
+    
+    const recordButton = screen.getByRole('button', { name: /start recording/i })
+    await userEvent.click(recordButton)
+    
+    await act(async () => {
+      if (mockSpeechRecognitionInstance.onresult) {
+        mockSpeechRecognitionInstance.onresult({
+        resultIndex: 0,
+        results: [{
+          0: { transcript: 'Add step to preheat oven' },
+          isFinal: true,
+          length: 1
+        }]
+        })
+      }
+    })
+    
+    await userEvent.click(screen.getByRole('button', { name: /stop recording/i }))
+    await userEvent.click(screen.getByRole('button', { name: /process changes/i }))
     
     await waitFor(() => {
       expect(screen.getByTestId('voice-change-review')).toBeInTheDocument()
@@ -253,12 +390,30 @@ describe('VoiceToRecipe', () => {
     ;(global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ changes: mockChanges })
-    })
+    } as Response)
     
     render(<VoiceToRecipe recipe={mockRecipe} onUpdate={mockOnUpdate} />)
     
     await userEvent.click(screen.getByRole('button', { name: /talk to recipe/i }))
-    await userEvent.click(screen.getByTestId('mock-transcribe'))
+    
+    const recordButton = screen.getByRole('button', { name: /start recording/i })
+    await userEvent.click(recordButton)
+    
+    await act(async () => {
+      if (mockSpeechRecognitionInstance.onresult) {
+        mockSpeechRecognitionInstance.onresult({
+        resultIndex: 0,
+        results: [{
+          0: { transcript: 'Change title to Updated Recipe' },
+          isFinal: true,
+          length: 1
+        }]
+        })
+      }
+    })
+    
+    await userEvent.click(screen.getByRole('button', { name: /stop recording/i }))
+    await userEvent.click(screen.getByRole('button', { name: /process changes/i }))
     
     await waitFor(() => {
       expect(screen.getByTestId('voice-change-review')).toBeInTheDocument()
@@ -283,14 +438,32 @@ describe('VoiceToRecipe', () => {
     ;(global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ changes: mockChanges })
-    })
+    } as Response)
     
     mockOnUpdate.mockResolvedValueOnce(undefined)
     
     render(<VoiceToRecipe recipe={mockRecipe} onUpdate={mockOnUpdate} />)
     
     await userEvent.click(screen.getByRole('button', { name: /talk to recipe/i }))
-    await userEvent.click(screen.getByTestId('mock-transcribe'))
+    
+    const recordButton = screen.getByRole('button', { name: /start recording/i })
+    await userEvent.click(recordButton)
+    
+    await act(async () => {
+      if (mockSpeechRecognitionInstance.onresult) {
+        mockSpeechRecognitionInstance.onresult({
+        resultIndex: 0,
+        results: [{
+          0: { transcript: 'Change servings to 6' },
+          isFinal: true,
+          length: 1
+        }]
+        })
+      }
+    })
+    
+    await userEvent.click(screen.getByRole('button', { name: /stop recording/i }))
+    await userEvent.click(screen.getByRole('button', { name: /process changes/i }))
     
     await waitFor(() => {
       expect(screen.getByTestId('voice-change-review')).toBeInTheDocument()
@@ -316,14 +489,32 @@ describe('VoiceToRecipe', () => {
     ;(global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ changes: mockChanges })
-    })
+    } as Response)
     
     mockOnUpdate.mockRejectedValueOnce(new Error('Update failed'))
     
     render(<VoiceToRecipe recipe={mockRecipe} onUpdate={mockOnUpdate} />)
     
     await userEvent.click(screen.getByRole('button', { name: /talk to recipe/i }))
-    await userEvent.click(screen.getByTestId('mock-transcribe'))
+    
+    const recordButton = screen.getByRole('button', { name: /start recording/i })
+    await userEvent.click(recordButton)
+    
+    await act(async () => {
+      if (mockSpeechRecognitionInstance.onresult) {
+        mockSpeechRecognitionInstance.onresult({
+        resultIndex: 0,
+        results: [{
+          0: { transcript: 'Change title' },
+          isFinal: true,
+          length: 1
+        }]
+        })
+      }
+    })
+    
+    await userEvent.click(screen.getByRole('button', { name: /stop recording/i }))
+    await userEvent.click(screen.getByRole('button', { name: /process changes/i }))
     
     await waitFor(() => {
       expect(screen.getByTestId('voice-change-review')).toBeInTheDocument()
@@ -342,12 +533,30 @@ describe('VoiceToRecipe', () => {
     ;(global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ changes: [] })
-    })
+    } as Response)
     
     render(<VoiceToRecipe recipe={mockRecipe} onUpdate={mockOnUpdate} />)
     
     await userEvent.click(screen.getByRole('button', { name: /talk to recipe/i }))
-    await userEvent.click(screen.getByTestId('mock-transcribe'))
+    
+    const recordButton = screen.getByRole('button', { name: /start recording/i })
+    await userEvent.click(recordButton)
+    
+    await act(async () => {
+      if (mockSpeechRecognitionInstance.onresult) {
+        mockSpeechRecognitionInstance.onresult({
+        resultIndex: 0,
+        results: [{
+          0: { transcript: 'Some text' },
+          isFinal: true,
+          length: 1
+        }]
+        })
+      }
+    })
+    
+    await userEvent.click(screen.getByRole('button', { name: /stop recording/i }))
+    await userEvent.click(screen.getByRole('button', { name: /process changes/i }))
     
     await waitFor(() => {
       expect(screen.getByTestId('voice-change-review')).toBeInTheDocument()
@@ -367,12 +576,30 @@ describe('VoiceToRecipe', () => {
     ;(global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ changes: mockChanges })
-    })
+    } as Response)
     
     render(<VoiceToRecipe recipe={mockRecipe} onUpdate={mockOnUpdate} />)
     
     await userEvent.click(screen.getByRole('button', { name: /talk to recipe/i }))
-    await userEvent.click(screen.getByTestId('mock-transcribe'))
+    
+    const recordButton = screen.getByRole('button', { name: /start recording/i })
+    await userEvent.click(recordButton)
+    
+    await act(async () => {
+      if (mockSpeechRecognitionInstance.onresult) {
+        mockSpeechRecognitionInstance.onresult({
+        resultIndex: 0,
+        results: [{
+          0: { transcript: 'Add vegetarian tag' },
+          isFinal: true,
+          length: 1
+        }]
+        })
+      }
+    })
+    
+    await userEvent.click(screen.getByRole('button', { name: /stop recording/i }))
+    await userEvent.click(screen.getByRole('button', { name: /process changes/i }))
     
     await waitFor(() => {
       expect(screen.getByTestId('voice-change-review')).toBeInTheDocument()

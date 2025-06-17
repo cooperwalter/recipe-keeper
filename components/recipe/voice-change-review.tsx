@@ -142,21 +142,21 @@ export function VoiceChangeReview({ changes: initialChanges, onApprove, onCancel
         const ingredient = ing as {ingredient: string; amount?: string; unit?: string}
         return `${ingredient.amount || ''} ${ingredient.unit || ''} ${ingredient.ingredient}`.trim()
       }
-      return String(change.newValue)
+      return change.newValue == null ? 'Nothing' : String(change.newValue)
     } else if (change.field === 'instructions') {
       const inst = change.newValue
       if (typeof inst === 'object' && inst && 'instruction' in inst) {
         const instruction = inst as {instruction: string; stepNumber: number}
         return `Step ${instruction.stepNumber}: ${instruction.instruction}`
       }
-      return String(change.newValue)
+      return change.newValue == null ? 'Nothing' : String(change.newValue)
     } else if (change.field === 'prepTime' || change.field === 'cookTime') {
       return `${change.newValue} minutes`
     } else if (change.field === 'tags' && Array.isArray(change.newValue)) {
       return change.newValue.join(', ')
     }
     
-    return String(change.newValue)
+    return change.newValue == null ? 'Nothing' : String(change.newValue)
   }
 
   return (
@@ -233,7 +233,7 @@ export function VoiceChangeReview({ changes: initialChanges, onApprove, onCancel
                             } else if (Array.isArray(val)) {
                               return val.join(', ')
                             }
-                            return String(val)
+                            return val == null ? 'Nothing' : String(val)
                           })()}
                         </span>
                       </div>
@@ -252,7 +252,7 @@ export function VoiceChangeReview({ changes: initialChanges, onApprove, onCancel
                               const instruction = val as {instruction: string; stepNumber: number}
                               return `Step ${instruction.stepNumber}: ${instruction.instruction}`
                             }
-                            return String(val)
+                            return val == null ? 'Nothing' : String(val)
                           })()}
                         </span>
                       </div>

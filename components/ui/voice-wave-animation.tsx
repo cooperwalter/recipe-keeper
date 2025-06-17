@@ -16,34 +16,47 @@ export function VoiceWaveAnimation({ isActive, audioLevel = 0, className }: Voic
     if (!isActive) return
     
     const interval = setInterval(() => {
-      setAnimationFrame(prev => prev + 1)
+      setAnimationFrame(prev => (prev + 1) % 360) // Prevent overflow
     }, 50)
     
     return () => clearInterval(interval)
   }, [isActive])
 
   return (
-    <div className={cn("flex items-center justify-center gap-1 h-8", className)}>
-      {[...Array(5)].map((_, i) => {
-        // Create a wave effect based on audio level
-        const waveHeight = audioLevel > 0.01
-          ? Math.max(0.3, Math.min(2.5, 0.3 + audioLevel * 3 * (1 + Math.sin(animationFrame / 10 + i * 0.5) * 0.5)))
-          : 1
+    <div className={cn("flex flex-col items-center justify-center gap-1", className)}>
+      <div className="flex items-center justify-center gap-1 h-12">
+        {[...Array(5)].map((_, i) => {
+        // Always show some animation when active, even without audio
+        const baseAnimation = isActive ? 0.3 + Math.sin((animationFrame / 20) + (i * 0.8)) * 0.2 : 0.3
+        
+        // Add audio level on top of base animation with more amplification
+        const audioBoost = audioLevel * 4 // Increased amplification
+        
+        // Different phase shift for each bar for more dynamic effect
+        const phaseShift = i * 0.5
+        const dynamicBoost = audioLevel * Math.sin((animationFrame / 10) + phaseShift) * 0.5
+        
+        // Combine base animation with audio level
+        const waveHeight = isActive 
+          ? Math.max(0.2, Math.min(5, baseAnimation + audioBoost + dynamicBoost))
+          : 0.3
           
         return (
           <div
             key={i}
             className={cn(
-              "w-1 h-4 rounded-full transition-transform duration-100 ease-out",
+              "w-1.5 rounded-full transition-all duration-100 ease-out origin-bottom",
               className?.includes('text-destructive') ? "bg-destructive" : "bg-primary"
             )}
             style={{
-              transform: `scaleY(${waveHeight})`,
-              opacity: isActive ? (audioLevel > 0.01 ? 1 : 0.5) : 0.3
+              height: `${8 + waveHeight * 8}px`, // Dynamic height instead of transform
+              opacity: isActive ? 0.8 + (audioLevel * 0.2) : 0.3,
+              transform: `translateY(${isActive ? Math.sin((animationFrame / 15) + (i * 0.6)) * 2 : 0}px)`
             }}
           />
         )
-      })}
+        })}
+      </div>
     </div>
   )
 }

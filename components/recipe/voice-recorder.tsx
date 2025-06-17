@@ -33,6 +33,9 @@ export const VoiceRecorder = forwardRef<VoiceRecorderRef, VoiceRecorderProps>((
   const audioContextRef = useRef<AudioContext | null>(null)
   const analyserRef = useRef<AnalyserNode | null>(null)
   const animationFrameRef = useRef<number | null>(null)
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const isCleaningUpRef = useRef(false)
+  const transcriptionTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     return () => {
@@ -46,6 +49,9 @@ export const VoiceRecorder = forwardRef<VoiceRecorderRef, VoiceRecorderProps>((
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current)
       }
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+      }
     }
   }, [isRecording])
 
@@ -57,9 +63,19 @@ export const VoiceRecorder = forwardRef<VoiceRecorderRef, VoiceRecorderProps>((
       // Set up audio level detection
       audioContextRef.current = new AudioContext()
       analyserRef.current = audioContextRef.current.createAnalyser()
+      analyserRef.current.fftSize = 2048 // Increased for better frequency resolution
+      analyserRef.current.smoothingTimeConstant = 0.8 // Increased for less jumpy values
+      analyserRef.current.minDecibels = -90 // More sensitive to quiet sounds
+      analyserRef.current.maxDecibels = -10 // Adjust range for voice
+      
       const source = audioContextRef.current.createMediaStreamSource(stream)
       source.connect(analyserRef.current)
-      analyserRef.current.fftSize = 256
+      
+      console.log('Audio context setup:', {
+        sampleRate: audioContextRef.current.sampleRate,
+        analyserFFTSize: analyserRef.current.fftSize,
+        frequencyBinCount: analyserRef.current.frequencyBinCount
+      })
       
       // Start monitoring audio levels
       const monitorAudioLevel = () => {
@@ -67,29 +83,81 @@ export const VoiceRecorder = forwardRef<VoiceRecorderRef, VoiceRecorderProps>((
         
         const bufferLength = analyserRef.current.frequencyBinCount
         const dataArray = new Uint8Array(bufferLength)
+        
+        // Get time domain data first (more reliable)
         analyserRef.current.getByteTimeDomainData(dataArray)
         
-        // Calculate RMS (Root Mean Square) for better volume detection
-        let sum = 0
+        // Calculate peak-to-peak amplitude
         let max = 0
+        let min = 255
         for (let i = 0; i < bufferLength; i++) {
-          const sample = (dataArray[i] - 128) / 128 // Center around 0
-          sum += sample * sample
-          max = Math.max(max, Math.abs(sample))
+          const sample = dataArray[i]
+          if (sample > max) max = sample
+          if (sample < min) min = sample
         }
-        const rms = Math.sqrt(sum / bufferLength)
         
-        // Use max value for more responsive animation
-        // Combine RMS with peak detection for better visual feedback
-        const combinedLevel = Math.max(rms * 10, max * 5)
-        const amplifiedLevel = Math.min(1, combinedLevel)
+        // Calculate the amplitude (0-1 range)
+        const amplitude = (max - min) / 255
+        
+        // Get frequency data
+        const freqDataArray = new Uint8Array(bufferLength)
+        analyserRef.current.getByteFrequencyData(freqDataArray)
+        
+        // Find the peak frequency magnitude
+        let maxFreq = 0
+        let avgFreq = 0
+        for (let i = 0; i < bufferLength; i++) {
+          avgFreq += freqDataArray[i]
+          if (freqDataArray[i] > maxFreq) {
+            maxFreq = freqDataArray[i]
+          }
+        }
+        avgFreq = avgFreq / bufferLength / 255
+        const freqPeak = maxFreq / 255
+        
+        // Calculate RMS from time domain data for smoothness
+        let rmsSum = 0
+        for (let i = 0; i < bufferLength; i++) {
+          // Convert to -1 to 1 range
+          const normalized = (dataArray[i] - 128) / 128
+          rmsSum += normalized * normalized
+        }
+        const rms = Math.sqrt(rmsSum / bufferLength)
+        
+        // Use multiple detection methods
+        // Amplitude gives good response to voice
+        const amplitudeLevel = amplitude * 15
+        // RMS provides smoother response
+        const rmsLevel = rms * 25
+        // Frequency peak for high frequency sounds
+        const freqLevel = Math.max(avgFreq * 15, freqPeak * 5)
+        
+        // Take the maximum of all methods
+        const level = Math.max(amplitudeLevel, rmsLevel, freqLevel)
+        const clampedLevel = Math.min(1, level)
+        
+        // Debug logging - always log to see what's happening
+        console.log('Audio analysis:', {
+          amplitude: amplitude.toFixed(3),
+          rms: rms.toFixed(3),
+          avgFreq: avgFreq.toFixed(3),
+          freqPeak: freqPeak.toFixed(3),
+          amplitudeLevel: amplitudeLevel.toFixed(3),
+          rmsLevel: rmsLevel.toFixed(3),
+          freqLevel: freqLevel.toFixed(3),
+          finalLevel: clampedLevel.toFixed(3),
+          timeData: dataArray.slice(0, 10),
+          freqData: freqDataArray.slice(0, 10),
+          max,
+          min,
+          maxFreq
+        })
         
         // Add some smoothing to prevent jitter
-        setAudioLevel(prev => prev * 0.7 + amplifiedLevel * 0.3)
-        
-        if (mediaRecorderRef.current?.state === 'recording') {
-          animationFrameRef.current = requestAnimationFrame(monitorAudioLevel)
-        }
+        setAudioLevel(prev => {
+          const newLevel = prev * 0.7 + clampedLevel * 0.3
+          return newLevel
+        })
       }
       
       const mediaRecorder = new MediaRecorder(stream, {
@@ -111,15 +179,22 @@ export const VoiceRecorder = forwardRef<VoiceRecorderRef, VoiceRecorderProps>((
         stream.getTracks().forEach(track => track.stop())
         
         // Automatically start transcription after recording stops
-        setTimeout(() => {
-          transcribeAudioInternal(blob)
+        transcriptionTimeoutRef.current = setTimeout(() => {
+          if (!isCleaningUpRef.current) {
+            transcribeAudioInternal(blob)
+          }
         }, 100)
       }
       
       // Start recording immediately to avoid cutting off initial words
       setIsRecording(true)
       mediaRecorder.start(100) // Collect data every 100ms for more responsive feedback
-      monitorAudioLevel() // Start monitoring audio levels
+      
+      // Start monitoring audio levels with setInterval for consistent updates
+      // Run every 50ms (20 times per second) for smooth animation
+      intervalRef.current = setInterval(() => {
+        monitorAudioLevel()
+      }, 50)
     } catch (err) {
       console.error('Error accessing microphone:', err)
       setError('Unable to access microphone. Please check permissions.')
@@ -133,6 +208,10 @@ export const VoiceRecorder = forwardRef<VoiceRecorderRef, VoiceRecorderProps>((
       setAudioLevel(0)
       
       // Stop audio level monitoring
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current)
         animationFrameRef.current = null
@@ -185,6 +264,15 @@ export const VoiceRecorder = forwardRef<VoiceRecorderRef, VoiceRecorderProps>((
   // Expose cleanup method via ref
   useImperativeHandle(ref, () => ({
     cleanup: () => {
+      // Set cleanup flag to prevent auto-transcription
+      isCleaningUpRef.current = true
+      
+      // Clear transcription timeout
+      if (transcriptionTimeoutRef.current) {
+        clearTimeout(transcriptionTimeoutRef.current)
+        transcriptionTimeoutRef.current = null
+      }
+      
       // Stop recording if active
       if (isRecording) {
         stopRecording()
@@ -192,6 +280,7 @@ export const VoiceRecorder = forwardRef<VoiceRecorderRef, VoiceRecorderProps>((
       
       // Clear all state
       clearRecording()
+      setIsTranscribing(false)
       
       // Clean up audio context
       if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
@@ -202,6 +291,15 @@ export const VoiceRecorder = forwardRef<VoiceRecorderRef, VoiceRecorderProps>((
         cancelAnimationFrame(animationFrameRef.current)
         animationFrameRef.current = null
       }
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
+      
+      // Reset cleanup flag after a delay
+      setTimeout(() => {
+        isCleaningUpRef.current = false
+      }, 200)
     }
   }), [isRecording, stopRecording, clearRecording])
 
@@ -279,9 +377,21 @@ export const VoiceRecorder = forwardRef<VoiceRecorderRef, VoiceRecorderProps>((
 
         {isRecording && (
           <div className="flex flex-col items-center gap-2">
-            <VoiceWaveAnimation isActive={true} audioLevel={audioLevel} />
+            <VoiceWaveAnimation isActive audioLevel={audioLevel} />
             <div className="text-center text-sm text-muted-foreground">
               Listening... Click to stop
+            </div>
+            {/* Debug: Show raw audio level with visual indicator */}
+            <div className="w-full space-y-1">
+              <div className="text-xs text-muted-foreground text-center">
+                Debug - Audio Level: {(audioLevel * 100).toFixed(1)}%
+              </div>
+              <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-primary transition-all duration-100"
+                  style={{ width: `${audioLevel * 100}%` }}
+                />
+              </div>
             </div>
           </div>
         )}

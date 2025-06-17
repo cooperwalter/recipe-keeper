@@ -11,12 +11,21 @@ vi.mock('next/navigation', () => ({
 // Mock AudioContext and related APIs
 const mockAnalyser = {
   connect: vi.fn(),
-  fftSize: 256,
-  frequencyBinCount: 128,
+  fftSize: 2048,
+  frequencyBinCount: 1024,
+  smoothingTimeConstant: 0.8,
+  minDecibels: -90,
+  maxDecibels: -10,
   getByteFrequencyData: vi.fn((array: Uint8Array) => {
     // Fill with mock data
     for (let i = 0; i < array.length; i++) {
       array[i] = Math.floor(Math.random() * 255)
+    }
+  }),
+  getByteTimeDomainData: vi.fn((array: Uint8Array) => {
+    // Fill with mock waveform data (centered around 128)
+    for (let i = 0; i < array.length; i++) {
+      array[i] = 128 + Math.floor(Math.sin(i / 10) * 20)
     }
   })
 }

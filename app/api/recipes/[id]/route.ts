@@ -47,8 +47,67 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const body = await request.json()
     const recipeService = new RecipeService(supabase)
 
-    // Update the recipe
-    await recipeService.updateRecipe(id, body)
+    // Generate change summary
+    let changeSummary = 'Updated recipe'
+    const changes: string[] = []
+    
+    // Get current recipe to compare
+    const currentRecipe = await recipeService.getRecipe(id)
+    if (!currentRecipe) {
+      return NextResponse.json({ error: 'Recipe not found' }, { status: 404 })
+    }
+
+    // Check for basic field changes
+    if (body.title && body.title !== currentRecipe.title) {
+      changes.push('title')
+    }
+    if (body.description !== undefined && body.description !== currentRecipe.description) {
+      changes.push('description')
+    }
+    if (body.prepTime !== undefined && body.prepTime !== currentRecipe.prepTime) {
+      changes.push('prep time')
+    }
+    if (body.cookTime !== undefined && body.cookTime !== currentRecipe.cookTime) {
+      changes.push('cook time')
+    }
+    if (body.servings !== undefined && body.servings !== currentRecipe.servings) {
+      changes.push('servings')
+    }
+
+    // Check for ingredient changes
+    if (body.ingredients !== undefined) {
+      const currentIngCount = currentRecipe.ingredients.length
+      const newIngCount = body.ingredients.length
+      if (newIngCount !== currentIngCount) {
+        changes.push(`ingredients (${currentIngCount} → ${newIngCount})`)
+      } else {
+        changes.push('ingredients')
+      }
+    }
+
+    // Check for instruction changes
+    if (body.instructions !== undefined) {
+      const currentStepCount = currentRecipe.instructions.length
+      const newStepCount = body.instructions.length
+      if (newStepCount !== currentStepCount) {
+        changes.push(`instructions (${currentStepCount} → ${newStepCount} steps)`)
+      } else {
+        changes.push('instructions')
+      }
+    }
+
+    // Check for tag changes
+    if (body.tags !== undefined) {
+      changes.push('tags')
+    }
+
+    // Create a descriptive change summary
+    if (changes.length > 0) {
+      changeSummary = `Updated ${changes.join(', ')}`
+    }
+
+    // Update the recipe with change summary
+    await recipeService.updateRecipe(id, body, true, changeSummary)
 
     // Update ingredients if provided
     if (body.ingredients !== undefined) {
