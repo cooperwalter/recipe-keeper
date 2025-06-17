@@ -145,6 +145,19 @@ function RecipesPageContent() {
   }
 
   const handleToggleFavorite = async (recipeId: string) => {
+    // Find the current recipe
+    const currentRecipe = recipes.recipes.find(r => r.id === recipeId)
+    if (!currentRecipe) return
+
+    // Optimistically update the UI immediately
+    const newFavoriteState = !currentRecipe.isFavorite
+    setRecipes(prev => ({
+      ...prev,
+      recipes: prev.recipes.map(recipe =>
+        recipe.id === recipeId ? { ...recipe, isFavorite: newFavoriteState } : recipe
+      ),
+    }))
+
     try {
       const response = await fetch(`/api/recipes/${recipeId}/favorite`, {
         method: 'POST',
@@ -154,15 +167,25 @@ function RecipesPageContent() {
       
       const { isFavorite } = await response.json()
       
-      // Update the recipe in the list
+      // Only update if the server response differs from our optimistic update
+      if (isFavorite !== newFavoriteState) {
+        setRecipes(prev => ({
+          ...prev,
+          recipes: prev.recipes.map(recipe =>
+            recipe.id === recipeId ? { ...recipe, isFavorite } : recipe
+          ),
+        }))
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error)
+      // Revert the optimistic update on error
       setRecipes(prev => ({
         ...prev,
         recipes: prev.recipes.map(recipe =>
-          recipe.id === recipeId ? { ...recipe, isFavorite } : recipe
+          recipe.id === recipeId ? { ...recipe, isFavorite: !newFavoriteState } : recipe
         ),
       }))
-    } catch (error) {
-      console.error('Error toggling favorite:', error)
+      // TODO: Show error toast to user
     }
   }
 

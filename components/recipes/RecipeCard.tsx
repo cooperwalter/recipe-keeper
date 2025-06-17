@@ -16,7 +16,6 @@ interface RecipeCardProps {
 }
 
 export function RecipeCard({ recipe, onToggleFavorite, className }: RecipeCardProps) {
-  const [isLoading, setIsLoading] = useState(false)
   const totalTime = (recipe.prepTime || 0) + (recipe.cookTime || 0)
   const primaryPhoto = recipe.photos.find(p => !p.isOriginal) || recipe.photos[0]
 
@@ -24,12 +23,7 @@ export function RecipeCard({ recipe, onToggleFavorite, className }: RecipeCardPr
     e.preventDefault() // Prevent navigation when clicking the heart
     if (!onToggleFavorite) return
     
-    setIsLoading(true)
-    try {
-      await onToggleFavorite(recipe.id)
-    } finally {
-      setIsLoading(false)
-    }
+    await onToggleFavorite(recipe.id)
   }
 
   return (
@@ -53,14 +47,13 @@ export function RecipeCard({ recipe, onToggleFavorite, className }: RecipeCardPr
           {onToggleFavorite && (
             <button
               onClick={handleToggleFavorite}
-              disabled={isLoading}
-              className="absolute top-2 right-2 p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors disabled:opacity-50"
+              className="absolute top-2 right-2 p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
               aria-label={recipe.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
             >
               <Heart
                 className={cn(
-                  'h-5 w-5 transition-colors',
-                  recipe.isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600'
+                  'h-5 w-5 transition-all duration-200',
+                  recipe.isFavorite ? 'fill-red-500 text-red-500 scale-110' : 'text-gray-600 hover:scale-110'
                 )}
               />
             </button>

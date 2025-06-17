@@ -6,7 +6,6 @@ import { Clock, Users, Heart, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
-import { useState } from 'react'
 import { RecipePlaceholder } from '@/components/recipe/recipe-placeholder'
 
 interface RecipeListItemProps {
@@ -16,7 +15,6 @@ interface RecipeListItemProps {
 }
 
 export function RecipeListItem({ recipe, onToggleFavorite, className }: RecipeListItemProps) {
-  const [isLoading, setIsLoading] = useState(false)
   const totalTime = (recipe.prepTime || 0) + (recipe.cookTime || 0)
   const primaryPhoto = recipe.photos.find(p => !p.isOriginal) || recipe.photos[0]
 
@@ -24,12 +22,7 @@ export function RecipeListItem({ recipe, onToggleFavorite, className }: RecipeLi
     e.preventDefault() // Prevent navigation when clicking the heart
     if (!onToggleFavorite) return
     
-    setIsLoading(true)
-    try {
-      await onToggleFavorite(recipe.id)
-    } finally {
-      setIsLoading(false)
-    }
+    await onToggleFavorite(recipe.id)
   }
 
   return (
@@ -106,14 +99,13 @@ export function RecipeListItem({ recipe, onToggleFavorite, className }: RecipeLi
                   {onToggleFavorite && (
                     <button
                       onClick={handleToggleFavorite}
-                      disabled={isLoading}
-                      className="p-2 hover:bg-muted rounded-full transition-colors disabled:opacity-50"
+                      className="p-2 hover:bg-muted rounded-full transition-colors"
                       aria-label={recipe.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                     >
                       <Heart
                         className={cn(
-                          'h-5 w-5 transition-colors',
-                          recipe.isFavorite ? 'fill-red-500 text-red-500' : 'text-muted-foreground'
+                          'h-5 w-5 transition-all duration-200',
+                          recipe.isFavorite ? 'fill-red-500 text-red-500 scale-110' : 'text-muted-foreground hover:scale-110'
                         )}
                       />
                     </button>
