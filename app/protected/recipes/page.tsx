@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect, Suspense, useRef } from 'react'
+import { useState, useEffect, Suspense, useRef, useMemo } from 'react'
 import { RecipeGrid } from '@/components/recipes/RecipeGrid'
+import { RecipeList } from '@/components/recipes/RecipeList'
 import { RecipePagination } from '@/components/recipes/RecipePagination'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,10 +13,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Plus, Search, X } from 'lucide-react'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { Plus, Search, X, Grid, List, Heart } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { RecipeListResponse, RecipeCategory } from '@/lib/types/recipe'
+import { RecipeListResponse, RecipeCategory, RecipeWithRelations } from '@/lib/types/recipe'
 
 const ITEMS_PER_PAGE = 12
 
@@ -33,6 +35,7 @@ function RecipesPageContent() {
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '')
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all')
   const [isSearching, setIsSearching] = useState(false)
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(searchParams.get('view') as 'grid' | 'list' || 'grid')
   
   const currentPage = parseInt(searchParams.get('page') || '1', 10)
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -165,6 +168,20 @@ function RecipesPageContent() {
 
   const totalPages = Math.ceil(recipes.total / ITEMS_PER_PAGE)
 
+  // Sort recipes to show favorites first
+  const sortedRecipes = useMemo(() => {
+    const favorited = recipes.recipes.filter(r => r.isFavorite)
+    const nonFavorited = recipes.recipes.filter(r => !r.isFavorite)
+    return { favorited, nonFavorited, all: [...favorited, ...nonFavorited] }
+  }, [recipes.recipes])
+
+  const handleViewModeChange = (mode: string) => {
+    if (mode === 'grid' || mode === 'list') {
+      setViewMode(mode)
+      updateSearchParams({ view: mode })
+    }
+  }
+
   return (
     <div className="w-full">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
@@ -177,7 +194,7 @@ function RecipesPageContent() {
         </Link>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -218,18 +235,88 @@ function RecipesPageContent() {
             ))}
           </SelectContent>
         </Select>
+        
+        <ToggleGroup type="single" value={viewMode} onValueChange={handleViewModeChange} className="justify-center">
+          <ToggleGroupItem value="grid" aria-label="Grid view">
+            <Grid className="h-4 w-4" />
+          </ToggleGroupItem>
+          <ToggleGroupItem value="list" aria-label="List view">
+            <List className="h-4 w-4" />
+          </ToggleGroupItem>
+        </ToggleGroup>
       </div>
 
-      <RecipeGrid
-        recipes={recipes.recipes}
-        isLoading={isLoading}
-        onToggleFavorite={handleToggleFavorite}
-        emptyMessage={
-          searchQuery || selectedCategory !== 'all'
-            ? 'No recipes found matching your criteria'
-            : 'No recipes yet'
-        }
-      />
+      {viewMode === 'grid' ? (
+        <div>
+          {sortedRecipes.favorited.length > 0 && (
+            <>
+              <div className="flex items-center gap-2 mb-4">
+                <Heart className="h-4 w-4 fill-red-500 text-red-500" />
+                <h2 className="text-lg font-semibold">Favorites</h2>
+                <span className="text-sm text-muted-foreground">({sortedRecipes.favorited.length})</span>
+              </div>
+              <RecipeGrid
+                recipes={sortedRecipes.favorited}
+                isLoading={isLoading}
+                onToggleFavorite={handleToggleFavorite}
+                emptyMessage=""
+              />
+              {sortedRecipes.nonFavorited.length > 0 && (
+                <div className="mt-8 mb-4 border-t pt-8">
+                  <h2 className="text-lg font-semibold mb-4">All Recipes</h2>
+                </div>
+              )}
+            </>
+          )}
+          {(sortedRecipes.favorited.length === 0 || sortedRecipes.nonFavorited.length > 0) && (
+            <RecipeGrid
+              recipes={sortedRecipes.favorited.length > 0 ? sortedRecipes.nonFavorited : sortedRecipes.all}
+              isLoading={isLoading && sortedRecipes.favorited.length === 0}
+              onToggleFavorite={handleToggleFavorite}
+              emptyMessage={
+                searchQuery || selectedCategory !== 'all'
+                  ? 'No recipes found matching your criteria'
+                  : 'No recipes yet'
+              }
+            />
+          )}
+        </div>
+      ) : (
+        <div>
+          {sortedRecipes.favorited.length > 0 && (
+            <>
+              <div className="flex items-center gap-2 mb-4">
+                <Heart className="h-4 w-4 fill-red-500 text-red-500" />
+                <h2 className="text-lg font-semibold">Favorites</h2>
+                <span className="text-sm text-muted-foreground">({sortedRecipes.favorited.length})</span>
+              </div>
+              <RecipeList
+                recipes={sortedRecipes.favorited}
+                isLoading={isLoading}
+                onToggleFavorite={handleToggleFavorite}
+                emptyMessage=""
+              />
+              {sortedRecipes.nonFavorited.length > 0 && (
+                <div className="mt-8 mb-4 border-t pt-8">
+                  <h2 className="text-lg font-semibold mb-4">All Recipes</h2>
+                </div>
+              )}
+            </>
+          )}
+          {(sortedRecipes.favorited.length === 0 || sortedRecipes.nonFavorited.length > 0) && (
+            <RecipeList
+              recipes={sortedRecipes.favorited.length > 0 ? sortedRecipes.nonFavorited : sortedRecipes.all}
+              isLoading={isLoading && sortedRecipes.favorited.length === 0}
+              onToggleFavorite={handleToggleFavorite}
+              emptyMessage={
+                searchQuery || selectedCategory !== 'all'
+                  ? 'No recipes found matching your criteria'
+                  : 'No recipes yet'
+              }
+            />
+          )}
+        </div>
+      )}
 
       <RecipePagination
         currentPage={currentPage}

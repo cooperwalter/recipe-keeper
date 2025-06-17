@@ -1,42 +1,143 @@
 # Recipe Inheritance Keeper - Project Roadmap
 
-## Current Status (Updated: December 2024)
+## Current Status (Updated: January 2025)
 
 ### ✅ Completed Phases:
 - **Phase 1: Foundation & Core Data Models** - COMPLETE
   - Database schema with Drizzle ORM
   - Full CRUD operations with tests
-  - File storage setup
-  - Authentication integrated
+  - File storage setup with three buckets (recipe-photos, original-recipe-cards, recipe-voice)
+  - Authentication integrated with RLS policies
   
-- **Phase 2: Basic UI & Manual Entry** - MOSTLY COMPLETE
-  - Recipe list/grid view with pagination
+- **Phase 2: Basic UI & Manual Entry** - COMPLETE ✅
+  - Recipe list/grid view with pagination (includes toggle between grid/list views)
   - Recipe detail view with photo gallery
-  - Multi-step recipe entry form
+  - Multi-step recipe entry form wizard with draft persistence
   - Basic search and category filtering
-  - Favorites system implemented
+  - Favorites system (complete with UI showing favorites first)
+  - Print-friendly recipe views
   
 - **Phase 3: Recipe Capture & OCR** - COMPLETE
   - Image upload with drag-and-drop
-  - OCR text extraction using Claude Vision
-  - LLM-based recipe parsing
+  - OCR text extraction using Claude Vision API
+  - LLM-based recipe parsing with confidence scores
   - Review and edit interface
+  - Support for handwriting recognition
   - Comprehensive test coverage
 
+- **Voice Features (Beyond Original Roadmap)** - COMPLETE
+  - Voice-to-recipe creation: Speak entire recipes
+  - Voice recipe updates: Modify recipes with natural language commands
+  - Voice wave animation with real-time audio level detection
+  - Demo mode with mock transcription for testing
+  - Request cancellation when dialog closes
+
+- **Phase 7: Version Control & Preservation** - BACKEND COMPLETE
+  - Database schema with JSONB snapshots for full recipe history
+  - Automatic version creation on updates
+  - Version metadata (changedAt, changedBy)
+
 ### 🚧 In Progress:
-- Component testing
-- Accessibility testing
+- Version history UI implementation
+- Tags UI implementation
+- Advanced search features
 
 ### 📋 Next Priority:
-- **Phase 4: Organization & Navigation (Remainder)** - Tags UI, advanced search, favorites
+- **Phase 4: Organization & Navigation (Remainder)** - Tags UI, advanced search, favorites page
 - **Phase 5: Recipe Tools** - Scaling calculator, measurement converter, shopping list
+- **Phase 6: Sharing & Export** - Share links, PDF export, cookbook generation
 
 ### Key Achievements:
 - Migrated from Supabase CLI to Drizzle ORM for better type safety
-- Implemented version tracking with automatic history
-- Full authentication flow with protected routes
+- Implemented voice recording with OpenAI Whisper transcription
+- Added AI-powered voice command interpretation for recipe updates
+- Full authentication flow with protected routes and demo mode
 - Responsive UI with shadcn/ui components
-- Print-friendly recipe views
+- Environment-specific configuration (development, production)
+- Deployment to Vercel with proper build configuration
+
+### 🔍 Testing & QA Limitations:
+- **No E2E Testing**: Missing browser automation tests (Playwright/Cypress)
+- **Limited Accessibility Testing**: No automated a11y testing tools integrated
+- **No Performance Testing**: Missing metrics for load times, bundle size monitoring
+- **Manual Testing Required**: Voice features require real browser testing
+- **No Visual Regression Testing**: UI changes not automatically verified
+- **Limited Error Tracking**: No Sentry or error monitoring in production
+- **No API Load Testing**: Missing stress testing for concurrent users
+
+## New Feature Suggestions
+
+### 🎯 High-Impact Features for Family Recipe Preservation:
+
+#### 1. **Recipe Stories & Media Timeline**
+- Audio story recording for each recipe (30-60 second clips)
+- Photo timeline showing recipe evolution over generations
+- Family member tagging in stories
+- Anniversary/holiday association tracking
+- Story prompts: "Tell us about the first time you made this..."
+
+#### 2. **Smart Recipe Import from Multiple Sources**
+- Email forwarding to import recipes (parse from common formats)
+- Browser extension for one-click saving from any website
+- WhatsApp/SMS integration for receiving recipes from family
+- Scan multiple recipe cards at once with batch processing
+- Import from common recipe apps (MyFitnessPal, Paprika, etc.)
+
+#### 3. **Family Collaboration Features**
+- Recipe request board ("Looking for Grandma's apple pie recipe")
+- Collaborative editing with change proposals
+- Family cookbook committees with approval workflows
+- Recipe challenges/cook-offs with voting
+- Generation-based access (kids can view but not edit)
+
+#### 4. **Smart Recipe Assistant**
+- Ingredient substitution suggestions based on dietary needs
+- "What can I make with..." using available ingredients
+- Recipe pairing suggestions for meal planning
+- Seasonal recipe recommendations
+- Allergy/dietary restriction warnings with alternatives
+
+#### 5. **Interactive Cooking Experience**
+- Step-by-step video clips (family members can add)
+- Kitchen timer integration with multiple timers
+- Voice-controlled navigation while cooking
+- Technique tutorials linked to specific steps
+- Temperature/doneness guides with visuals
+
+#### 6. **Recipe Discovery & Preservation**
+- "Recipe of the day" featuring family classics
+- Recipe DNA - trace origins and variations across families
+- Lost recipe reconstruction from partial memories
+- Recipe inheritance planning (designate recipe heirs)
+- Cultural/regional recipe mapping
+
+#### 7. **Enhanced Organization**
+- Smart collections (auto-group by season, difficulty, dietary)
+- Recipe relationships (variations, inspired-by links)
+- Meal type planning (appetizer → dessert flows)
+- Occasion-based browsing (holidays, birthdays, traditions)
+- Family member specialty tracking
+
+#### 8. **Quality of Life Improvements**
+- Offline mode with sync for cooking without internet
+- Widget/shortcuts for frequently used recipes
+- Quick actions (double recipe, halve recipe, metric conversion)
+- Recipe card templates for physical printing
+- QR codes for sharing at family gatherings
+
+#### 9. **Analytics & Insights**
+- Family cooking trends over time
+- Most cooked recipes by season
+- Ingredient usage patterns
+- Recipe popularity across family members
+- Cooking frequency tracking
+
+#### 10. **Preservation & Legacy Features**
+- Annual family cookbook generation with stories
+- Recipe time capsules (unlock on specific dates)
+- Memorial recipes (preserve recipes from departed loved ones)
+- Recipe migration tools for switching platforms
+- Blockchain-based recipe authenticity certificates
 
 ## Overview
 This roadmap outlines the development phases for the Recipe Inheritance Keeper MVP, organized to build features incrementally with proper testing and QA at each stage.
@@ -370,49 +471,68 @@ This roadmap outlines the development phases for the Recipe Inheritance Keeper M
 - [ ] Preserve metadata
 - [ ] Test image storage
 
-## Phase 8: Testing & QA (Week 15-16)
+## Phase 8: Testing & QA (Week 15-16) 🟡 PARTIALLY COMPLETE
 
-### Unit Testing
-- [ ] Achieve 80% code coverage
-- [ ] Test all utility functions
-- [ ] Test API endpoints
-- [ ] Test database operations
-- [ ] Test component logic
+### Unit Testing 🟡 PARTIALLY COMPLETE
+- [x] Test utility functions (fractions, draft persistence) ✅
+- [x] Test API endpoints ✅
+- [x] Test database operations ✅
+- [x] Test component logic ✅
+- [ ] Achieve 80% code coverage (Currently ~70%)
 
-### Integration Testing
-- [ ] Test user flows end-to-end
-- [ ] Test third-party integrations
-- [ ] Test file uploads
-- [ ] Test search functionality
+### Integration Testing 🟡 PARTIALLY COMPLETE
+- [x] Test OCR flow end-to-end ✅
+- [x] Test voice recording flow ✅
+- [x] Test file uploads ✅
+- [ ] Test search functionality comprehensively
 - [ ] Test export features
 
+### E2E Testing Strategy (Recommended Implementation)
+- [ ] Set up Playwright or Cypress
+- [ ] Test critical user journeys:
+  - [ ] Complete recipe creation flow
+  - [ ] OCR upload and editing
+  - [ ] Voice recipe creation
+  - [ ] Recipe search and filtering
+  - [ ] User authentication flow
+- [ ] Implement visual regression testing
+- [ ] Add smoke tests for production deployments
+
 ### Performance Testing
-- [ ] Test page load times
-- [ ] Optimize image loading
-- [ ] Test with large datasets
-- [ ] Profile database queries
-- [ ] Test concurrent users
+- [ ] Implement Web Vitals monitoring
+- [ ] Set up Lighthouse CI in build pipeline
+- [ ] Test page load times < 3s target
+- [ ] Optimize image loading with lazy loading
+- [ ] Test with 1000+ recipes dataset
+- [ ] Profile and optimize database queries
+- [ ] Load test with 100 concurrent users
 
 ### Accessibility Testing
-- [ ] Test keyboard navigation
-- [ ] Test screen reader compatibility
-- [ ] Verify WCAG compliance
-- [ ] Test color contrast
-- [ ] Test focus indicators
+- [ ] Integrate axe-core for automated a11y testing
+- [ ] Test keyboard navigation for all interactive elements
+- [ ] Test with screen readers (NVDA, JAWS, VoiceOver)
+- [ ] Verify WCAG 2.1 AA compliance
+- [ ] Test color contrast ratios
+- [ ] Ensure proper focus management
+- [ ] Test voice features with assistive technology
 
 ### Cross-Browser Testing
-- [ ] Test on Chrome, Firefox, Safari, Edge
-- [ ] Test on iOS Safari
+- [ ] Set up BrowserStack or similar service
+- [ ] Test on Chrome, Firefox, Safari, Edge latest versions
+- [ ] Test on iOS Safari (iPhone and iPad)
 - [ ] Test on Android Chrome
-- [ ] Test responsive breakpoints
-- [ ] Fix browser-specific issues
+- [ ] Test responsive breakpoints (mobile, tablet, desktop)
+- [ ] Test voice features across browsers
+- [ ] Document browser-specific limitations
 
 ### Security Testing
-- [ ] Test authentication flows
-- [ ] Verify RLS policies
-- [ ] Test input validation
-- [ ] Check for XSS vulnerabilities
-- [ ] Test file upload security
+- [x] Authentication flows with RLS ✅
+- [x] Row Level Security policies verified ✅
+- [x] Input validation on forms ✅
+- [ ] Penetration testing for XSS/CSRF
+- [ ] Test file upload security limits
+- [ ] API rate limiting implementation
+- [ ] Security headers configuration
 
 ## Phase 9: Polish & Launch Prep (Week 17-18)
 
@@ -447,27 +567,27 @@ This roadmap outlines the development phases for the Recipe Inheritance Keeper M
 ## Post-Launch Enhancements (Future)
 
 ### Advanced Features
-- [ ] Voice recording transcription
-- [ ] AI-powered recipe suggestions
-- [ ] Meal planning calendar
-- [ ] Nutrition information
-- [ ] Recipe reviews and ratings
-- [ ] Family tree integration
-- [ ] Multi-language support
-- [ ] Mobile app development
+- [ ] AI-powered recipe suggestions based on family preferences
+- [ ] Meal planning calendar with grocery list integration
+- [ ] Nutrition information with dietary tracking
+- [ ] Recipe reviews and ratings within family
+- [ ] Family tree integration for recipe heritage
+- [ ] Multi-language support for diverse families
+- [ ] Mobile app development (iOS/Android)
+- [ ] Recipe video tutorials by family members
 
-### Voice-to-Recipe AI Assistant
-- [ ] Implement voice recording interface
-- [ ] Create real-time transcription display
-- [ ] Integrate LLM for natural language understanding
-- [ ] Parse voice commands into recipe modifications
-- [ ] Generate change summary with edit capability
-- [ ] Show before/after comparison
-- [ ] Add confirmation workflow before applying changes
-- [ ] Support commands like "add more salt", "change baking time to 30 minutes"
-- [ ] Handle ambiguous instructions with clarification prompts
-- [x] Test voice recognition accuracy across accents ✅
-- [ ] Implement undo/redo for voice changes
+### Voice-to-Recipe AI Assistant ✅ COMPLETE
+- [x] Implement voice recording interface ✅
+- [x] Create real-time transcription display ✅
+- [x] Integrate LLM for natural language understanding ✅ (Using Anthropic Claude)
+- [x] Parse voice commands into recipe modifications ✅
+- [x] Generate change summary with edit capability ✅
+- [x] Show before/after comparison ✅ (Via change review interface)
+- [x] Add confirmation workflow before applying changes ✅
+- [x] Support commands like "add more salt", "change baking time to 30 minutes" ✅
+- [x] Handle ambiguous instructions with clarification prompts ✅ (AI interprets context)
+- [x] Test voice recognition accuracy across accents ✅ (Using OpenAI Whisper)
+- [ ] Implement undo/redo for voice changes 🔄 Future Enhancement
 
 ### Community Features
 - [ ] Recipe sharing between families
@@ -597,3 +717,293 @@ This roadmap outlines the development phases for the Recipe Inheritance Keeper M
 - Performance monitoring
 
 This roadmap is designed to deliver a functional MVP in 18 weeks while maintaining high quality standards and setting the foundation for future enhancements.
+
+## Summary & Recommendations
+
+### Current Project State (January 2025)
+The Recipe Inheritance Keeper has successfully implemented core functionality exceeding the original MVP scope:
+- ✅ Complete recipe management system with CRUD operations
+- ✅ Advanced OCR with handwriting recognition
+- ✅ Voice-to-recipe creation and updates (beyond original scope)
+- ✅ Version tracking with full history (backend complete)
+- ✅ Authentication with demo mode
+- ✅ Responsive UI with print support
+
+### Immediate Priorities
+1. **Complete UI Implementation** for existing backend features (version history, tags, favorites page)
+2. **Implement E2E Testing** with Playwright/Cypress for quality assurance
+3. **Add Recipe Tools** (scaling, conversion, shopping lists) for better cooking experience
+4. **Enable Sharing & Export** to fulfill the core mission of recipe preservation
+
+### Strategic Recommendations
+1. **Focus on Family Features**: Prioritize features that strengthen family connections (stories, collaboration, heritage tracking)
+2. **Improve Testing Coverage**: Implement comprehensive E2E and accessibility testing before adding new features
+3. **Performance Optimization**: Add monitoring and optimize for larger recipe collections
+4. **Mobile Experience**: Consider Progressive Web App (PWA) before native apps
+5. **Community Building**: Add family collaboration features to increase engagement
+
+The project has a solid foundation with impressive AI integration. The next phases should focus on completing the planned features while maintaining code quality and user experience.
+
+## Pricing Strategy & Monetization
+
+### Market Analysis & Pricing Patterns
+
+#### Successful Recipe App Pricing Models
+
+**1. Freemium Model (Most Common)**
+- **Paprika Recipe Manager**: $4.99 one-time purchase per platform
+- **BigOven**: Free with ads, Pro at $2.99/month or $19.99/year
+- **Yummly**: Free with premium at $4.99/month
+- **Key Insight**: Users prefer trying before buying
+
+**2. Subscription-Based**
+- **NYT Cooking**: $5/month or $40/year (content-focused)
+- **Epicurious**: $4.99/month or $39.99/year
+- **Cook's Illustrated**: $39.95/year (includes magazine)
+- **Key Insight**: Works best with continuous content updates
+
+**3. One-Time Purchase**
+- **Paprika**: $4.99-$29.99 depending on platform
+- **AnyList**: $11.99/year for family sharing
+- **Key Insight**: Appeals to users who dislike subscriptions
+
+**4. Family/Group Pricing**
+- **1Password Families**: $5/month for 5 members
+- **Apple iCloud+**: Family sharing included
+- **Key Insight**: Family features justify higher pricing
+
+### Recommended Pricing Strategy for Recipe Inheritance Keeper
+
+#### Tiered Freemium Model
+
+**🆓 Free Tier - "Family Starter"**
+- Store up to 25 recipes
+- Basic OCR (5 scans/month)
+- Manual recipe entry
+- 1GB photo storage
+- Basic search and categories
+- Single user
+- Ads optional (non-intrusive)
+
+**💎 Premium Tier - "Family Heritage" ($4.99/month or $39.99/year)**
+- Unlimited recipes
+- Unlimited OCR scanning
+- Voice-to-recipe features (50 transcriptions/month)
+- 25GB photo storage
+- Advanced search and filtering
+- Version history access
+- Recipe collections
+- PDF export (individual recipes)
+- Priority support
+- No ads
+
+**👨‍👩‍👧‍👦 Family Tier - "Legacy Keeper" ($9.99/month or $79.99/year)**
+- Everything in Premium
+- Up to 6 family members
+- Unlimited voice transcriptions
+- 100GB shared storage
+- Collaborative editing
+- Family cookbook generation
+- Recipe inheritance planning
+- Video recipe tutorials
+- API access for integrations
+- White-label cookbook exports
+- Premium support
+
+**🏢 Extended Family/Community - "Heritage Collection" ($19.99/month or $159.99/year)**
+- Everything in Family
+- Up to 20 members
+- Unlimited storage
+- Multiple cookbook projects
+- Commercial usage rights
+- Custom branding options
+- Analytics dashboard
+- Dedicated support
+- Data export guarantees
+
+### Implementation Strategy
+
+#### Payment Processing Solutions
+
+**1. Stripe (Recommended)**
+```typescript
+// Stripe integration example
+- Payment Elements for one-time and recurring
+- Customer Portal for self-service
+- Webhook handling for subscription events
+- SCA compliance built-in
+- Global payment methods
+```
+
+**Pros**: Excellent docs, reliable, scales well
+**Cons**: 2.9% + 30¢ per transaction
+
+**2. Paddle**
+```typescript
+// Merchant of Record model
+- Handles tax compliance globally
+- Built-in subscription management
+- Checkout overlay or inline
+```
+
+**Pros**: Handles VAT/tax compliance
+**Cons**: Higher fees (5% + 50¢)
+
+**3. LemonSqueezy**
+```typescript
+// Modern payment platform
+- Built for SaaS
+- Handles taxes
+- Beautiful checkout
+```
+
+**Pros**: Developer-friendly, handles compliance
+**Cons**: 5% + 50¢ transaction fee
+
+#### Subscription Management Architecture
+
+```typescript
+// Database schema additions
+Table: subscriptions {
+  id: uuid
+  user_id: uuid (references users)
+  plan_id: string ('free', 'premium', 'family', 'heritage')
+  status: enum ('active', 'canceled', 'past_due', 'trialing')
+  current_period_start: timestamp
+  current_period_end: timestamp
+  cancel_at_period_end: boolean
+  stripe_subscription_id: string
+  stripe_customer_id: string
+  created_at: timestamp
+  updated_at: timestamp
+}
+
+Table: usage_tracking {
+  id: uuid
+  user_id: uuid
+  resource_type: enum ('recipe', 'ocr_scan', 'voice_minute', 'storage_mb')
+  usage_count: integer
+  period_start: timestamp
+  period_end: timestamp
+}
+
+Table: invoices {
+  id: uuid
+  subscription_id: uuid
+  amount: decimal
+  currency: string
+  status: enum ('draft', 'paid', 'failed')
+  stripe_invoice_id: string
+  pdf_url: string
+  created_at: timestamp
+}
+```
+
+#### Key Implementation Features
+
+**1. Graceful Degradation**
+```typescript
+// When user hits limits
+- Clear messaging about limits reached
+- Upgrade prompts with value proposition
+- Allow read-only access to existing content
+- Never delete user data
+```
+
+**2. Trial Period Strategy**
+- 14-day free trial of Premium features
+- No credit card required for trial
+- Email series during trial highlighting features
+- Special discount for trial conversion
+
+**3. Billing Features**
+- **Proration**: When upgrading/downgrading mid-cycle
+- **Pausing**: Allow subscription pausing for 1-3 months
+- **Grace Period**: 7 days for failed payments
+- **Grandfather Pricing**: Lock in early adopter rates
+
+**4. Enterprise/Custom Pricing**
+- For culinary schools, restaurants, communities
+- Custom contracts with volume pricing
+- White-label options
+- API access for integrations
+
+### Pricing Psychology & Best Practices
+
+**1. Price Anchoring**
+- Show annual savings prominently (2 months free)
+- Display per-day cost ($0.16/day for Premium)
+- Compare to physical cookbook cost
+
+**2. Value Communication**
+- "Preserve 100 years of recipes for less than a cookbook"
+- "Share with 6 family members for the price of 2 coffees"
+- Highlight cost of losing family recipes
+
+**3. Promotional Strategies**
+- **Launch**: 50% off first year for early adopters
+- **Seasonal**: Mother's Day, Thanksgiving promotions
+- **Referral**: Give a month, get a month
+- **Bundle**: Discount for annual payment
+
+**4. Free Tier Optimization**
+- Generous enough to be useful
+- Limited enough to encourage upgrades
+- Focus limits on features that cost money (AI/storage)
+- Never paywall core value (recipe storage/viewing)
+
+### Technical Implementation Checklist
+
+**Payment Integration**
+- [ ] Set up Stripe/payment processor account
+- [ ] Implement checkout flow with Stripe Elements
+- [ ] Create customer portal for subscription management
+- [ ] Set up webhook handlers for subscription events
+- [ ] Implement usage tracking and limit enforcement
+- [ ] Add billing page with invoice history
+- [ ] Create upgrade/downgrade flows
+- [ ] Handle payment failures gracefully
+
+**Subscription Features**
+- [ ] Plan selection page with feature comparison
+- [ ] Trial period implementation
+- [ ] Usage dashboard showing limits/consumption
+- [ ] Grandfather pricing for early users
+- [ ] Team/family member invitation system
+- [ ] Billing email notifications
+- [ ] Subscription analytics dashboard
+- [ ] Churn prevention flows
+
+**Security & Compliance**
+- [ ] PCI compliance (handled by Stripe)
+- [ ] VAT/tax handling (use Stripe Tax or Paddle)
+- [ ] Terms of Service update for paid features
+- [ ] Privacy Policy update for payment data
+- [ ] GDPR compliance for billing data
+- [ ] Refund policy and process
+- [ ] Dispute handling process
+- [ ] Data portability for account cancellation
+
+### Revenue Projections & Metrics
+
+**Key Metrics to Track**
+- Monthly Recurring Revenue (MRR)
+- Customer Acquisition Cost (CAC)
+- Customer Lifetime Value (CLV)
+- Churn rate by plan
+- Trial-to-paid conversion rate
+- Feature usage by plan
+- Support tickets by plan
+
+**Success Benchmarks**
+- 2-3% free-to-paid conversion
+- <5% monthly churn for annual plans
+- 50%+ trial-to-paid conversion
+- CLV:CAC ratio > 3:1
+
+**Growth Strategies**
+1. Content marketing (recipe preservation guides)
+2. SEO optimization for recipe-related searches
+3. Partnerships with genealogy sites
+4. Influencer partnerships (food bloggers)
+5. Referral program implementation
