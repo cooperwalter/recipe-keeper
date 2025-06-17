@@ -45,10 +45,10 @@ function RecipesPageContent() {
     fetchCategories()
   }, [])
 
-  // Fetch recipes when search params change
+  // Fetch recipes when search params change (except view mode)
   useEffect(() => {
     fetchRecipes()
-  }, [searchParams]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [searchParams.get('q'), searchParams.get('category'), searchParams.get('page')]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle real-time search with debouncing
   useEffect(() => {
@@ -178,7 +178,10 @@ function RecipesPageContent() {
   const handleViewModeChange = (mode: string) => {
     if (mode === 'grid' || mode === 'list') {
       setViewMode(mode)
-      updateSearchParams({ view: mode })
+      // Update URL without triggering navigation
+      const params = new URLSearchParams(searchParams.toString())
+      params.set('view', mode)
+      window.history.replaceState(null, '', `?${params.toString()}`)
     }
   }
 
