@@ -128,6 +128,7 @@ export class RecipeService {
       sourceNotes: recipe.sourceNotes || undefined,
       version: recipe.version || 1,
       parentRecipeId: recipe.parentRecipeId || undefined,
+      ingredientAdjustments: recipe.ingredientAdjustments as Record<string, number> | undefined,
       createdAt: recipe.createdAt.toISOString(),
       updatedAt: recipe.updatedAt.toISOString(),
     } as Recipe;
@@ -217,6 +218,7 @@ export class RecipeService {
       sourceNotes: recipe.sourceNotes || undefined,
       version: recipe.version || 1,
       parentRecipeId: recipe.parentRecipeId || undefined,
+      ingredientAdjustments: recipe.ingredientAdjustments as Record<string, number> | undefined,
       categories: categories.map(cat => ({
         id: cat.id,
         name: cat.name,

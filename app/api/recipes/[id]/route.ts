@@ -24,7 +24,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Recipe not found' }, { status: 404 })
     }
 
-    return NextResponse.json(recipe)
+    // Add cache headers for better performance
+    const response = NextResponse.json(recipe)
+    
+    // Cache for 60 seconds with revalidation
+    response.headers.set('Cache-Control', 'private, max-age=60, stale-while-revalidate=120')
+    
+    return response
   } catch (error) {
     console.error('Error fetching recipe:', error)
     return NextResponse.json(

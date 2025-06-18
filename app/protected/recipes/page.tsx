@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense, useRef, useMemo } from 'react'
+import { useState, Suspense } from 'react'
 import { RecipeGrid } from '@/components/recipes/RecipeGrid'
 import { RecipeList } from '@/components/recipes/RecipeList'
 import { RecipePagination } from '@/components/recipes/RecipePagination'
@@ -17,7 +17,8 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { Plus, Search, X, Grid, List, Heart } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { RecipeListResponse, RecipeCategory } from '@/lib/types/recipe'
+import { useRecipes, useCategories, useToggleFavorite } from '@/lib/hooks/use-recipes'
+import { useDebouncedValue } from '@/lib/hooks/use-debounced-value'
 
 const ITEMS_PER_PAGE = 12
 
@@ -25,96 +26,24 @@ function RecipesPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   
-  const [recipes, setRecipes] = useState<RecipeListResponse>({
-    recipes: [],
-    total: 0,
-    hasMore: false,
-  })
-  const [categories, setCategories] = useState<RecipeCategory[]>([])
-  const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '')
-  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all')
-  const [isSearching, setIsSearching] = useState(false)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(searchParams.get('view') as 'grid' | 'list' || 'grid')
   
   const currentPage = parseInt(searchParams.get('page') || '1', 10)
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-
-  // Fetch categories on mount
-  useEffect(() => {
-    fetchCategories()
-  }, [])
-
-  // Fetch recipes when search params change (except view mode)
-  useEffect(() => {
-    fetchRecipes()
-  }, [searchParams.get('q'), searchParams.get('category'), searchParams.get('page')]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Handle real-time search with debouncing
-  useEffect(() => {
-    // Clear existing timeout
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current)
-    }
-
-    // Don't search if the query is the same as in URL
-    if (searchQuery === (searchParams.get('q') || '')) {
-      return
-    }
-
-    setIsSearching(true)
-
-    // Set new timeout for debounced search
-    searchTimeoutRef.current = setTimeout(() => {
-      updateSearchParams({ q: searchQuery, page: '1' })
-    }, 300) // 300ms debounce
-
-    // Cleanup
-    return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current)
-      }
-    }
-  }, [searchQuery]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const fetchRecipes = async () => {
-    setIsLoading(true)
-    setIsSearching(false)
-    try {
-      const params = new URLSearchParams()
-      const urlQuery = searchParams.get('q') || ''
-      const urlCategory = searchParams.get('category') || 'all'
-      
-      if (urlQuery) params.append('query', urlQuery)
-      if (urlCategory && urlCategory !== 'all') {
-        params.append('categoryId', urlCategory)
-      }
-      params.append('limit', ITEMS_PER_PAGE.toString())
-      params.append('offset', ((currentPage - 1) * ITEMS_PER_PAGE).toString())
-
-      const response = await fetch(`/api/recipes?${params}`)
-      if (!response.ok) throw new Error('Failed to fetch recipes')
-      
-      const data: RecipeListResponse = await response.json()
-      setRecipes(data)
-    } catch (error) {
-      console.error('Error fetching recipes:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch('/api/categories')
-      if (!response.ok) throw new Error('Failed to fetch categories')
-      
-      const data = await response.json()
-      setCategories(data)
-    } catch (error) {
-      console.error('Error fetching categories:', error)
-    }
-  }
+  const selectedCategory = searchParams.get('category') || 'all'
+  
+  // Debounce search query
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 300)
+  
+  // Use React Query hooks
+  const { data: recipesData, isLoading: isLoadingRecipes } = useRecipes({
+    query: debouncedSearchQuery,
+    categoryId: selectedCategory,
+    page: currentPage,
+  })
+  
+  const { data: categories = [] } = useCategories()
+  const toggleFavorite = useToggleFavorite()
 
   const handleClearSearch = () => {
     setSearchQuery('')
@@ -122,7 +51,6 @@ function RecipesPageContent() {
   }
 
   const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category)
     updateSearchParams({ category, page: '1' })
   }
 
@@ -145,58 +73,8 @@ function RecipesPageContent() {
   }
 
   const handleToggleFavorite = async (recipeId: string) => {
-    // Find the current recipe
-    const currentRecipe = recipes.recipes.find(r => r.id === recipeId)
-    if (!currentRecipe) return
-
-    // Optimistically update the UI immediately
-    const newFavoriteState = !currentRecipe.isFavorite
-    setRecipes(prev => ({
-      ...prev,
-      recipes: prev.recipes.map(recipe =>
-        recipe.id === recipeId ? { ...recipe, isFavorite: newFavoriteState } : recipe
-      ),
-    }))
-
-    try {
-      const response = await fetch(`/api/recipes/${recipeId}/favorite`, {
-        method: 'POST',
-      })
-      
-      if (!response.ok) throw new Error('Failed to toggle favorite')
-      
-      const { isFavorite } = await response.json()
-      
-      // Only update if the server response differs from our optimistic update
-      if (isFavorite !== newFavoriteState) {
-        setRecipes(prev => ({
-          ...prev,
-          recipes: prev.recipes.map(recipe =>
-            recipe.id === recipeId ? { ...recipe, isFavorite } : recipe
-          ),
-        }))
-      }
-    } catch (error) {
-      console.error('Error toggling favorite:', error)
-      // Revert the optimistic update on error
-      setRecipes(prev => ({
-        ...prev,
-        recipes: prev.recipes.map(recipe =>
-          recipe.id === recipeId ? { ...recipe, isFavorite: !newFavoriteState } : recipe
-        ),
-      }))
-      // TODO: Show error toast to user
-    }
+    toggleFavorite.mutate(recipeId)
   }
-
-  const totalPages = Math.ceil(recipes.total / ITEMS_PER_PAGE)
-
-  // Sort recipes to show favorites first
-  const sortedRecipes = useMemo(() => {
-    const favorited = recipes.recipes.filter(r => r.isFavorite)
-    const nonFavorited = recipes.recipes.filter(r => !r.isFavorite)
-    return { favorited, nonFavorited, all: [...favorited, ...nonFavorited] }
-  }, [recipes.recipes])
 
   const handleViewModeChange = (mode: string) => {
     if (mode === 'grid' || mode === 'list') {
@@ -207,6 +85,21 @@ function RecipesPageContent() {
       window.history.replaceState(null, '', `?${params.toString()}`)
     }
   }
+
+  // Update URL when debounced search changes
+  if (debouncedSearchQuery !== (searchParams.get('q') || '')) {
+    updateSearchParams({ q: debouncedSearchQuery, page: '1' })
+  }
+
+  const recipes = recipesData?.recipes || []
+  const totalPages = Math.ceil((recipesData?.total || 0) / ITEMS_PER_PAGE)
+  
+  // Sort recipes to show favorites first
+  const favorited = recipes.filter(r => r.isFavorite)
+  const nonFavorited = recipes.filter(r => !r.isFavorite)
+  const sortedRecipes = { favorited, nonFavorited, all: [...favorited, ...nonFavorited] }
+
+  const isSearching = searchQuery !== debouncedSearchQuery
 
   return (
     <div className="w-full">
@@ -248,7 +141,7 @@ function RecipesPageContent() {
           )}
         </div>
         
-        <Select value={searchParams.get('category') || 'all'} onValueChange={handleCategoryChange}>
+        <Select value={selectedCategory} onValueChange={handleCategoryChange}>
           <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder="All Categories" />
           </SelectTrigger>
@@ -283,7 +176,7 @@ function RecipesPageContent() {
               </div>
               <RecipeGrid
                 recipes={sortedRecipes.favorited}
-                isLoading={isLoading}
+                isLoading={isLoadingRecipes}
                 onToggleFavorite={handleToggleFavorite}
                 emptyMessage=""
               />
@@ -297,7 +190,7 @@ function RecipesPageContent() {
           {(sortedRecipes.favorited.length === 0 || sortedRecipes.nonFavorited.length > 0) && (
             <RecipeGrid
               recipes={sortedRecipes.favorited.length > 0 ? sortedRecipes.nonFavorited : sortedRecipes.all}
-              isLoading={isLoading && sortedRecipes.favorited.length === 0}
+              isLoading={isLoadingRecipes && sortedRecipes.favorited.length === 0}
               onToggleFavorite={handleToggleFavorite}
               emptyMessage={
                 searchQuery || selectedCategory !== 'all'
@@ -318,7 +211,7 @@ function RecipesPageContent() {
               </div>
               <RecipeList
                 recipes={sortedRecipes.favorited}
-                isLoading={isLoading}
+                isLoading={isLoadingRecipes}
                 onToggleFavorite={handleToggleFavorite}
                 emptyMessage=""
               />
@@ -332,7 +225,7 @@ function RecipesPageContent() {
           {(sortedRecipes.favorited.length === 0 || sortedRecipes.nonFavorited.length > 0) && (
             <RecipeList
               recipes={sortedRecipes.favorited.length > 0 ? sortedRecipes.nonFavorited : sortedRecipes.all}
-              isLoading={isLoading && sortedRecipes.favorited.length === 0}
+              isLoading={isLoadingRecipes && sortedRecipes.favorited.length === 0}
               onToggleFavorite={handleToggleFavorite}
               emptyMessage={
                 searchQuery || selectedCategory !== 'all'

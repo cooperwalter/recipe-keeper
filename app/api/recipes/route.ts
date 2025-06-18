@@ -29,7 +29,13 @@ export async function GET(request: NextRequest) {
     const recipeService = new RecipeService(supabase)
     const result = await recipeService.listRecipes(params)
 
-    return NextResponse.json(result)
+    // Add cache headers for better performance
+    const response = NextResponse.json(result)
+    
+    // Cache for 30 seconds with revalidation
+    response.headers.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60')
+    
+    return response
   } catch (error) {
     console.error('Error listing recipes:', error)
     return NextResponse.json(

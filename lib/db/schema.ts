@@ -32,6 +32,7 @@ export const recipes = pgTable('recipes', {
   sourceNotes: text('source_notes'), // family notes & memories
   version: integer('version').default(1),
   parentRecipeId: uuid('parent_recipe_id'), // for versioning - self reference added via relations
+  ingredientAdjustments: jsonb('ingredient_adjustments'), // stores custom adjustments per ingredient
 }, (table) => {
   return {
     createdByIdx: index('idx_recipes_created_by').on(table.createdBy),
@@ -125,6 +126,19 @@ export const recipeVersions = pgTable('recipe_versions', {
 }, (table) => {
   return {
     uniqueRecipeVersion: uniqueIndex('unique_recipe_version').on(table.recipeId, table.versionNumber),
+  };
+});
+
+// User profiles table
+export const userProfiles = pgTable('user_profiles', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id').notNull().unique(), // References auth.users
+  name: text('name'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => {
+  return {
+    userIdIdx: uniqueIndex('idx_user_profiles_user_id').on(table.userId),
   };
 });
 
@@ -249,3 +263,6 @@ export type NewRecipeVersion = typeof recipeVersions.$inferInsert;
 
 export type Favorite = typeof favorites.$inferSelect;
 export type NewFavorite = typeof favorites.$inferInsert;
+
+export type UserProfile = typeof userProfiles.$inferSelect;
+export type NewUserProfile = typeof userProfiles.$inferInsert;

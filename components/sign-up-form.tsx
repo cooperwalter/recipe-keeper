@@ -23,6 +23,7 @@ export function SignUpForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
+  const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -64,6 +65,11 @@ export function SignUpForm({
       if (data.user && data.user.identities && data.user.identities.length === 0) {
         setError("This email is already registered but not confirmed. Please check your email for the confirmation link.");
         return;
+      }
+      
+      // Store the name in localStorage to be saved after email confirmation
+      if (data.user && name.trim()) {
+        localStorage.setItem('pendingUserName', name.trim());
       }
       
       // For demo account in development, auto-login after signup
@@ -119,12 +125,24 @@ export function SignUpForm({
                       setEmail("demo@recipekeeper.com");
                       setPassword("DemoRecipes2024!");
                       setRepeatPassword("DemoRecipes2024!");
+                      setName("Demo User");
                     }}
                   >
                     Fill Demo Credentials
                   </Button>
                 </div>
               )}
+              <div className="grid gap-2">
+                <Label htmlFor="name">Name (optional)</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="John Doe"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  maxLength={100}
+                />
+              </div>
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input

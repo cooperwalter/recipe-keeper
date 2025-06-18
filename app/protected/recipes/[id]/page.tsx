@@ -1,12 +1,19 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useState, use, useEffect, useCallback, useRef } from 'react'
 import './print.css'
-import { RecipeWithRelations } from '@/lib/types/recipe'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { PhotoGallery } from '@/components/recipes/PhotoGallery'
 import { VersionHistory } from '@/components/recipe/version-history'
+import { RecipeScaler } from '@/components/recipe/recipe-scaler'
+import { IngredientAdjuster } from '@/components/recipe/ingredient-adjuster'
+import { 
+  formatAmount, 
+  scaleIngredientWithRules, 
+  getDisplayAmount
+} from '@/lib/utils/recipe-scaling'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,6 +39,10 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { useRecipe, useToggleFavorite } from '@/lib/hooks/use-recipes'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { recipeKeys } from '@/lib/hooks/use-recipes'
+import { debounce } from '@/lib/utils/debounce'
 
 interface RecipeDetailPageProps {
   params: Promise<{ id: string }>
@@ -40,66 +51,62 @@ interface RecipeDetailPageProps {
 export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
   const { id } = use(params)
   const router = useRouter()
-  const [recipe, setRecipe] = useState<RecipeWithRelations | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isFavoriteLoading, setIsFavoriteLoading] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
+  const queryClient = useQueryClient()
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [recipeScale, setRecipeScale] = useState(1)
+  const [customAdjustments, setCustomAdjustments] = useState<Record<string, number>>({})
+  const [isSaving, setIsSaving] = useState(false)
+  const adjustmentsRef = useRef<Record<string, number>>({})
 
+  const { data: recipe, isLoading } = useRecipe(id)
+  const toggleFavorite = useToggleFavorite()
+  
+  // Load adjustments from recipe data when it arrives
   useEffect(() => {
-    fetchRecipe()
-  }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
+    if (recipe?.ingredientAdjustments) {
+      setCustomAdjustments(recipe.ingredientAdjustments)
+      adjustmentsRef.current = recipe.ingredientAdjustments
+    }
+  }, [recipe?.ingredientAdjustments])
 
-  const fetchRecipe = async () => {
-    try {
-      const response = await fetch(`/api/recipes/${id}`)
-      if (!response.ok) {
-        if (response.status === 404) {
-          router.push('/protected/recipes')
-          return
+  // Create debounced save function
+  const saveAdjustments = useCallback(
+    (recipeId: string, adjustments: Record<string, number>) => {
+      const debouncedSave = debounce(async () => {
+      setIsSaving(true)
+      try {
+        const response = await fetch(`/api/recipes/${recipeId}/adjustments`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ adjustments })
+        })
+        
+        if (!response.ok) {
+          throw new Error('Failed to save adjustments')
         }
-        throw new Error('Failed to fetch recipe')
+      } catch (error) {
+        console.error('Error saving adjustments:', error)
+        // Could show a toast notification here
+      } finally {
+        setIsSaving(false)
       }
-      
-      const data = await response.json()
-      setRecipe(data)
-    } catch (error) {
-      console.error('Error fetching recipe:', error)
-    } finally {
-      setIsLoading(false)
+      }, 1000) // 1 second debounce
+      debouncedSave()
+    },
+    []
+  )
+
+  // Save adjustments when they change
+  useEffect(() => {
+    // Only save if adjustments have actually changed from what's in the database
+    if (JSON.stringify(customAdjustments) !== JSON.stringify(adjustmentsRef.current)) {
+      saveAdjustments(id, customAdjustments)
     }
-  }
-
-  const handleToggleFavorite = async () => {
-    if (!recipe) return
-    
-    setIsFavoriteLoading(true)
-    try {
-      const response = await fetch(`/api/recipes/${recipe.id}/favorite`, {
-        method: 'POST',
-      })
-      
-      if (!response.ok) throw new Error('Failed to toggle favorite')
-      
-      const { isFavorite } = await response.json()
-      setRecipe(prev => prev ? { ...prev, isFavorite } : null)
-    } catch (error) {
-      console.error('Error toggling favorite:', error)
-    } finally {
-      setIsFavoriteLoading(false)
-    }
-  }
-
-  const handlePrint = () => {
-    window.print()
-  }
-
-  const handleDelete = async () => {
-    if (!recipe) return
-    
-    setIsDeleting(true)
-    try {
-      const response = await fetch(`/api/recipes/${recipe.id}`, {
+  }, [id, customAdjustments, saveAdjustments])
+  
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/recipes/${id}`, {
         method: 'DELETE',
       })
       
@@ -107,11 +114,14 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
         const data = await response.json()
         throw new Error(data.error || 'Failed to delete recipe')
       }
-      
+    },
+    onSuccess: () => {
+      // Invalidate and refetch recipes list
+      queryClient.invalidateQueries({ queryKey: recipeKeys.lists() })
       // Redirect to recipes list
       router.push('/protected/recipes')
-    } catch (error) {
-      console.error('Error deleting recipe:', error)
+    },
+    onError: (error) => {
       const errorMessage = error instanceof Error ? error.message : 'Failed to delete recipe'
       
       // Show more helpful error messages
@@ -122,10 +132,22 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
       } else {
         alert(`Failed to delete recipe: ${errorMessage}`)
       }
-    } finally {
-      setIsDeleting(false)
-      setShowDeleteConfirm(false)
+    },
+  })
+
+  const handleToggleFavorite = () => {
+    if (recipe) {
+      toggleFavorite.mutate(recipe.id)
     }
+  }
+
+  const handlePrint = () => {
+    window.print()
+  }
+
+  const handleDelete = () => {
+    deleteMutation.mutate()
+    setShowDeleteConfirm(false)
   }
 
   if (isLoading) {
@@ -165,21 +187,28 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">{recipe.title}</h1>
             <div className="flex gap-2 print:hidden flex-wrap">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleToggleFavorite}
-                disabled={isFavoriteLoading}
-                aria-label={recipe.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-              >
-                <Heart
-                  className={cn(
-                    'h-4 w-4 mr-1',
-                    recipe.isFavorite && 'fill-current text-red-500'
-                  )}
-                />
-                {recipe.isFavorite ? 'Favorited' : 'Favorite'}
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleToggleFavorite}
+                    disabled={toggleFavorite.isPending}
+                    aria-label={recipe.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                  >
+                    <Heart
+                      className={cn(
+                        'h-4 w-4 mr-1',
+                        recipe.isFavorite && 'fill-current text-red-500'
+                      )}
+                    />
+                    {recipe.isFavorite ? 'Favorited' : 'Favorite'}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{recipe.isFavorite ? 'Remove from your favorites' : 'Add to your favorites for quick access'}</p>
+                </TooltipContent>
+              </Tooltip>
               <Button variant="outline" size="sm" onClick={handlePrint} aria-label="Print recipe">
                 <Printer className="h-4 w-4 mr-1" />
                 Print
@@ -265,25 +294,77 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
           </div>
         )}
 
+        {/* Recipe Scaler */}
+        <div className="mb-6 print:hidden">
+          <RecipeScaler 
+            originalServings={recipe.servings || 4} 
+            onScaleChange={(scale) => {
+              setRecipeScale(scale)
+              // Reset custom adjustments when scale changes
+              setCustomAdjustments({})
+            }}
+          />
+        </div>
+
         {/* Main Content */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 recipe-content">
           {/* Ingredients */}
           <div className="md:col-span-1 ingredients-section">
-            <h2 className="text-2xl font-semibold mb-4">Ingredients</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-semibold">Ingredients</h2>
+              {isSaving && (
+                <span className="text-xs text-muted-foreground">Saving...</span>
+              )}
+            </div>
             <ul className="space-y-2">
-              {recipe.ingredients.map((ingredient) => (
-                <li key={ingredient.id} className="flex items-start">
-                  <span className="mr-2">•</span>
-                  <span>
-                    {ingredient.amount && `${ingredient.amount} `}
-                    {ingredient.unit && `${ingredient.unit} `}
-                    {ingredient.ingredient}
-                    {ingredient.notes && (
-                      <span className="text-muted-foreground"> ({ingredient.notes})</span>
-                    )}
-                  </span>
-                </li>
-              ))}
+              {recipe.ingredients.map((ingredient) => {
+                const scaledIngredient = scaleIngredientWithRules(
+                  ingredient, 
+                  recipeScale,
+                  customAdjustments
+                )
+                const displayAmount = getDisplayAmount(scaledIngredient)
+                
+                return (
+                  <li key={ingredient.id} className="flex items-start group">
+                    <span className="mr-2">•</span>
+                    <span className={cn(
+                      "flex-1",
+                      scaledIngredient.hasCustomAdjustment && recipeScale > 1 && "text-primary"
+                    )}>
+                      {displayAmount > 0 && `${formatAmount(displayAmount)} `}
+                      {scaledIngredient.unit && `${scaledIngredient.unit} `}
+                      {scaledIngredient.ingredient}
+                      {scaledIngredient.notes && (
+                        <span className="text-muted-foreground"> ({scaledIngredient.notes})</span>
+                      )}
+                      {scaledIngredient.isAdjustable && (
+                        <IngredientAdjuster
+                          ingredientName={ingredient.ingredient}
+                          originalAmount={ingredient.amount || 0}
+                          scaledAmount={scaledIngredient.scaledAmount || 0}
+                          unit={ingredient.unit}
+                          scale={recipeScale}
+                          onAdjustment={(amount) => {
+                            if (amount === undefined) {
+                              const newAdjustments = { ...customAdjustments }
+                              delete newAdjustments[ingredient.id]
+                              setCustomAdjustments(newAdjustments)
+                            } else {
+                              setCustomAdjustments({
+                                ...customAdjustments,
+                                [ingredient.id]: amount
+                              })
+                            }
+                          }}
+                          adjustmentReason={scaledIngredient.adjustmentReason}
+                          hasCustomAdjustment={scaledIngredient.hasCustomAdjustment}
+                        />
+                      )}
+                    </span>
+                  </li>
+                )
+              })}
             </ul>
           </div>
 
@@ -320,7 +401,7 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
             size="lg"
             className="w-full sm:w-[calc(100%-2rem)] mx-auto flex items-center justify-center gap-2 text-destructive border-destructive hover:bg-destructive/10 dark:text-red-400 dark:border-red-400 dark:hover:bg-red-400/20"
             onClick={() => setShowDeleteConfirm(true)}
-            disabled={isDeleting}
+            disabled={deleteMutation.isPending}
           >
             <Trash2 className="h-5 w-5" />
             Delete This Recipe
@@ -338,13 +419,13 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              disabled={isDeleting}
+              disabled={deleteMutation.isPending}
               className="bg-destructive hover:bg-destructive/90"
             >
-              {isDeleting ? 'Deleting...' : 'Delete'}
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

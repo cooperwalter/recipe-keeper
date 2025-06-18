@@ -4,10 +4,23 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ChefHat, BookOpen, Heart, Users, Clock, Search } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { db } from "@/lib/db";
+import { userProfiles } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 
 export default async function Home() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  
+  let userName = null;
+  if (user) {
+    const [profile] = await db
+      .select()
+      .from(userProfiles)
+      .where(eq(userProfiles.userId, user.id))
+      .limit(1);
+    userName = profile?.name;
+  }
   
   return (
     <main className="min-h-screen flex flex-col">
@@ -23,7 +36,8 @@ export default async function Home() {
           <div className="flex items-center gap-2 sm:gap-4">
             {user && (
               <Link href="/protected/recipes">
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="gap-1.5">
+                  <ChefHat className="h-4 w-4" />
                   My Recipes
                 </Button>
               </Link>
@@ -38,8 +52,17 @@ export default async function Home() {
       <section className="flex-1 flex flex-col items-center justify-center px-5 py-20">
         <div className="max-w-4xl text-center space-y-6">
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight">
-            Preserve Your Family&apos;s
-            <span className="text-primary block mt-2">Culinary Heritage</span>
+            {userName ? (
+              <>
+                Welcome back, {userName}!
+                <span className="text-primary block mt-2">Your Culinary Heritage Awaits</span>
+              </>
+            ) : (
+              <>
+                Preserve Your Family&apos;s
+                <span className="text-primary block mt-2">Culinary Heritage</span>
+              </>
+            )}
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Keep your treasured family recipes safe, organized, and accessible for generations to come. 
@@ -49,7 +72,7 @@ export default async function Home() {
             <Link href={user ? "/protected/recipes" : "/auth/sign-up"}>
               <Button size="lg" className="gap-2 w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90">
                 <BookOpen className="h-5 w-5" />
-                {user ? "Open Your Collection" : "Start Your Collection"}
+                {user ? "Go to Your Collection" : "Start Your Collection"}
               </Button>
             </Link>
           </div>
@@ -110,7 +133,7 @@ export default async function Home() {
             <Link href={user ? "/protected/recipes" : "/auth/sign-up"}>
               <Button size="lg" className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-6 text-lg">
                 <BookOpen className="h-5 w-5" />
-                {user ? "Open Your Collection" : "Create Your Free Account"}
+                {user ? "Go to Your Collection" : "Create Your Free Account"}
               </Button>
             </Link>
           </div>

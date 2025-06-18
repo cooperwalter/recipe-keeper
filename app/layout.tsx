@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryProvider } from "@/lib/providers/query-provider";
 import "./globals.css";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -35,8 +37,12 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
-          <Toaster />
+          <TooltipProvider>
+            <QueryProvider>
+              {children}
+              <Toaster />
+            </QueryProvider>
+          </TooltipProvider>
         </ThemeProvider>
       </body>
     </html>

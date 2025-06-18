@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { ChevronLeft, ScanLine, PenTool, Camera, Mic } from 'lucide-react'
+import { ChevronLeft, ScanLine, PenTool, Camera, Mic, Link as LinkIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -28,7 +28,7 @@ export default function NewRecipePage() {
       </div>
 
       {/* Options */}
-      <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 max-w-5xl">
+      <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4 max-w-6xl">
         <Link href="/protected/recipes/new/ocr">
           <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-primary/50">
             <CardHeader>
@@ -119,6 +119,38 @@ export default function NewRecipePage() {
                 <li className="flex items-start gap-2">
                   <span className="text-primary">✓</span>
                   <span>Review and edit before saving</span>
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/protected/recipes/new/url">
+          <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-primary/50">
+            <CardHeader>
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-lg bg-primary/10">
+                  <LinkIcon className="h-8 w-8 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <CardTitle>Import from URL</CardTitle>
+                  <CardDescription>Extract recipe from any website</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ul className="text-sm text-muted-foreground space-y-2">
+                <li className="flex items-start gap-2">
+                  <span className="text-primary">✓</span>
+                  <span>Works with most recipe websites</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary">✓</span>
+                  <span>Automatically extracts ingredients & steps</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary">✓</span>
+                  <span>Preserves original source attribution</span>
                 </li>
               </ul>
             </CardContent>

@@ -104,10 +104,25 @@ export function VersionHistory({ recipeId, currentVersion = 1 }: VersionHistoryP
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Version History</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <GitBranch className="h-5 w-5" />
+            Version History
+          </CardTitle>
+          <CardDescription>
+            Track all changes made to this recipe over time
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-4">Loading version history...</div>
+          <div className="flex items-center justify-center py-8 text-muted-foreground">
+            <div className="text-center">
+              <div className="mb-2">Loading version history...</div>
+              <div className="animate-pulse flex justify-center gap-1">
+                <div className="h-1 w-1 bg-current rounded-full"></div>
+                <div className="h-1 w-1 bg-current rounded-full animation-delay-200"></div>
+                <div className="h-1 w-1 bg-current rounded-full animation-delay-400"></div>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     )
@@ -117,11 +132,22 @@ export function VersionHistory({ recipeId, currentVersion = 1 }: VersionHistoryP
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Version History</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <GitBranch className="h-5 w-5" />
+            Version History
+          </CardTitle>
           <CardDescription>
-            No version history available yet. Versions are created when you update the recipe.
+            Track all changes made to this recipe over time
           </CardDescription>
         </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center py-8 text-muted-foreground">
+            <div className="text-center">
+              <p className="text-sm">No version history available yet.</p>
+              <p className="text-sm">Versions are created when you update the recipe.</p>
+            </div>
+          </div>
+        </CardContent>
       </Card>
     )
   }

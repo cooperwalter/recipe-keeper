@@ -1,7 +1,9 @@
+import React from 'react'
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { RecipeCard } from './RecipeCard'
 import { RecipeWithRelations } from '@/lib/types/recipe'
+import { TestProviders } from '@/lib/test-utils/providers'
 
 // Mock the RecipePlaceholder component
 vi.mock('@/components/recipe/recipe-placeholder', () => ({
@@ -44,8 +46,12 @@ const mockRecipe: RecipeWithRelations = {
 }
 
 describe('RecipeCard', () => {
+  const renderWithProviders = (ui: React.ReactElement) => {
+    return render(<TestProviders>{ui}</TestProviders>)
+  }
+
   it('renders recipe information correctly', () => {
-    render(<RecipeCard recipe={mockRecipe} />)
+    renderWithProviders(<RecipeCard recipe={mockRecipe} />)
     
     expect(screen.getByText('Test Recipe')).toBeInTheDocument()
     expect(screen.getByText('A test recipe description')).toBeInTheDocument()
@@ -54,7 +60,7 @@ describe('RecipeCard', () => {
   })
 
   it('displays recipe photo when available', () => {
-    render(<RecipeCard recipe={mockRecipe} />)
+    renderWithProviders(<RecipeCard recipe={mockRecipe} />)
     
     const img = screen.getByAltText('Test Recipe') as HTMLImageElement
     expect(img).toBeInTheDocument()
@@ -62,7 +68,7 @@ describe('RecipeCard', () => {
   })
 
   it('displays up to 3 tags with overflow indicator', () => {
-    render(<RecipeCard recipe={mockRecipe} />)
+    renderWithProviders(<RecipeCard recipe={mockRecipe} />)
     
     expect(screen.getByText('quick')).toBeInTheDocument()
     expect(screen.getByText('easy')).toBeInTheDocument()
@@ -72,7 +78,7 @@ describe('RecipeCard', () => {
 
   it('handles favorite toggle when callback provided', async () => {
     const onToggleFavorite = vi.fn().mockResolvedValue(undefined)
-    render(<RecipeCard recipe={mockRecipe} onToggleFavorite={onToggleFavorite} />)
+    renderWithProviders(<RecipeCard recipe={mockRecipe} onToggleFavorite={onToggleFavorite} />)
     
     const favoriteButton = screen.getByLabelText('Add to favorites')
     fireEvent.click(favoriteButton)
@@ -82,14 +88,14 @@ describe('RecipeCard', () => {
 
   it('shows filled heart when recipe is favorited', () => {
     const favoritedRecipe = { ...mockRecipe, isFavorite: true }
-    render(<RecipeCard recipe={favoritedRecipe} onToggleFavorite={vi.fn()} />)
+    renderWithProviders(<RecipeCard recipe={favoritedRecipe} onToggleFavorite={vi.fn()} />)
     
     const favoriteButton = screen.getByLabelText('Remove from favorites')
     expect(favoriteButton).toBeInTheDocument()
   })
 
   it('links to recipe detail page', () => {
-    render(<RecipeCard recipe={mockRecipe} />)
+    renderWithProviders(<RecipeCard recipe={mockRecipe} />)
     
     const link = screen.getByRole('link')
     expect(link).toHaveAttribute('href', '/protected/recipes/1')
@@ -97,7 +103,7 @@ describe('RecipeCard', () => {
 
   it('prevents navigation when clicking favorite button', () => {
     const onToggleFavorite = vi.fn()
-    render(<RecipeCard recipe={mockRecipe} onToggleFavorite={onToggleFavorite} />)
+    renderWithProviders(<RecipeCard recipe={mockRecipe} onToggleFavorite={onToggleFavorite} />)
     
     const favoriteButton = screen.getByLabelText('Add to favorites')
     const event = new MouseEvent('click', { bubbles: true })
@@ -110,7 +116,7 @@ describe('RecipeCard', () => {
 
   it('handles recipes without photos', () => {
     const recipeWithoutPhoto = { ...mockRecipe, photos: [] }
-    render(<RecipeCard recipe={recipeWithoutPhoto} />)
+    renderWithProviders(<RecipeCard recipe={recipeWithoutPhoto} />)
     
     expect(screen.queryByRole('img')).not.toBeInTheDocument()
     expect(screen.getByTestId('recipe-placeholder')).toBeInTheDocument()
@@ -119,14 +125,14 @@ describe('RecipeCard', () => {
 
   it('handles recipes without time information', () => {
     const recipeWithoutTime = { ...mockRecipe, prepTime: undefined, cookTime: undefined }
-    render(<RecipeCard recipe={recipeWithoutTime} />)
+    renderWithProviders(<RecipeCard recipe={recipeWithoutTime} />)
     
     expect(screen.queryByText(/min/)).not.toBeInTheDocument()
   })
 
   it('handles recipes without servings', () => {
     const recipeWithoutServings = { ...mockRecipe, servings: undefined }
-    render(<RecipeCard recipe={recipeWithoutServings} />)
+    renderWithProviders(<RecipeCard recipe={recipeWithoutServings} />)
     
     expect(screen.queryByText(/servings/)).not.toBeInTheDocument()
   })

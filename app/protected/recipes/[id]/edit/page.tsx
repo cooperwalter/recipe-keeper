@@ -27,6 +27,8 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { VoiceToRecipe } from '@/components/recipe/voice-to-recipe'
+import { useQueryClient } from '@tanstack/react-query'
+import { recipeKeys } from '@/lib/hooks/use-recipes'
 
 interface EditRecipePageProps {
   params: Promise<{ id: string }>
@@ -49,6 +51,7 @@ interface EditableInstruction {
 export default function EditRecipePage({ params }: EditRecipePageProps) {
   const { id } = use(params)
   const router = useRouter()
+  const queryClient = useQueryClient()
   const [recipe, setRecipe] = useState<RecipeWithRelations | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -175,6 +178,10 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
       })
       
       if (!response.ok) throw new Error('Failed to update recipe')
+      
+      // Invalidate the cache for this recipe and the recipes list
+      await queryClient.invalidateQueries({ queryKey: recipeKeys.detail(id) })
+      await queryClient.invalidateQueries({ queryKey: recipeKeys.lists() })
       
       router.push(`/protected/recipes/${id}`)
     } catch (error) {

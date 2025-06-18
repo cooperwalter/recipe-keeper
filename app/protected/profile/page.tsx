@@ -2,8 +2,9 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { User, Calendar, BookOpen, Heart } from "lucide-react";
+import { Calendar, BookOpen, Heart } from "lucide-react";
 import Link from "next/link";
+import { ProfileForm } from "@/components/profile/profile-form";
 
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -36,20 +37,16 @@ export default async function ProfilePage() {
       <h1 className="text-3xl font-bold">My Profile</h1>
 
       <div className="grid gap-6 md:grid-cols-2">
+        {/* Personal Information */}
+        <ProfileForm userEmail={user.email || ''} />
+
         {/* Account Information */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Account Information
-            </CardTitle>
-            <CardDescription>Your account details</CardDescription>
+            <CardTitle>Account Details</CardTitle>
+            <CardDescription>Your membership information</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <p className="text-sm text-muted-foreground">Email</p>
-              <p className="font-medium">{user.email}</p>
-            </div>
             <div>
               <p className="text-sm text-muted-foreground">Member Since</p>
               <p className="font-medium flex items-center gap-2">
@@ -57,12 +54,11 @@ export default async function ProfilePage() {
                 {memberSince}
               </p>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">User ID</p>
-              <p className="font-mono text-xs text-muted-foreground">{user.id}</p>
-            </div>
           </CardContent>
         </Card>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
 
         {/* Recipe Statistics */}
         <Card>

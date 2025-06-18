@@ -7,6 +7,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { RecipePlaceholder } from '@/components/recipe/recipe-placeholder'
+import { usePrefetchRecipe } from '@/lib/hooks/use-recipes'
 
 interface RecipeCardProps {
   recipe: RecipeWithRelations
@@ -17,6 +18,7 @@ interface RecipeCardProps {
 export function RecipeCard({ recipe, onToggleFavorite, className }: RecipeCardProps) {
   const totalTime = (recipe.prepTime || 0) + (recipe.cookTime || 0)
   const primaryPhoto = recipe.photos.find(p => !p.isOriginal) || recipe.photos[0]
+  const prefetchRecipe = usePrefetchRecipe()
 
   const handleToggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault() // Prevent navigation when clicking the heart
@@ -24,10 +26,18 @@ export function RecipeCard({ recipe, onToggleFavorite, className }: RecipeCardPr
     
     await onToggleFavorite(recipe.id)
   }
+  
+  const handleMouseEnter = () => {
+    // Prefetch recipe details on hover
+    prefetchRecipe(recipe.id)
+  }
 
   return (
     <Link href={`/protected/recipes/${recipe.id}`}>
-      <Card className={cn('h-full hover:shadow-lg transition-shadow cursor-pointer', className)}>
+      <Card 
+        className={cn('h-full hover:shadow-lg transition-shadow cursor-pointer', className)}
+        onMouseEnter={handleMouseEnter}
+      >
         <div className="relative h-32 overflow-hidden rounded-t-lg">
           {primaryPhoto ? (
             <Image

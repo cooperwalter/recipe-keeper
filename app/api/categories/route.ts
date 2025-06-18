@@ -6,7 +6,13 @@ export async function GET() {
     const categoryService = new CategoryService()
     const categories = await categoryService.getCategories()
     
-    return NextResponse.json(categories)
+    // Add cache headers - categories change rarely
+    const response = NextResponse.json(categories)
+    
+    // Cache for 5 minutes with longer revalidation
+    response.headers.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=600')
+    
+    return response
   } catch (error) {
     console.error('Error fetching categories:', error)
     return NextResponse.json(

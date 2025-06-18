@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card'
 import { VoiceChangeReview } from './voice-change-review'
 import { VoiceWaveAnimation } from '@/components/ui/voice-wave-animation'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { Mic, MicOff, Loader2, ChevronRight } from 'lucide-react'
 import { RecipeWithRelations, Ingredient, Instruction } from '@/lib/types/recipe'
 
@@ -450,14 +451,21 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
 
   return (
     <>
-      <Button
-        variant="outline"
-        onClick={() => setIsOpen(true)}
-        className="gap-2"
-      >
-        <Mic className="h-4 w-4" />
-        Talk to Recipe
-      </Button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            onClick={() => setIsOpen(true)}
+            className="gap-2"
+          >
+            <Mic className="h-4 w-4" />
+            Talk to Recipe
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Use voice commands to quickly modify ingredients, instructions, and more</p>
+        </TooltipContent>
+      </Tooltip>
 
       <Dialog open={isOpen} onOpenChange={handleDialogClose}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">

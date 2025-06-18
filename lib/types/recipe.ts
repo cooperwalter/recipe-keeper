@@ -13,6 +13,7 @@ export interface Recipe {
   sourceNotes?: string
   version: number
   parentRecipeId?: string
+  ingredientAdjustments?: Record<string, number>
 }
 
 export interface Ingredient {
