@@ -33,6 +33,7 @@ export function IngredientAdjuster({
   originalAmount,
   scaledAmount,
   unit,
+  scale,
   onAdjustment,
   adjustmentReason,
   hasCustomAdjustment
@@ -146,20 +147,22 @@ export function IngredientAdjuster({
             </Button>
           </div>
           
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Base Amount: {formatAmount(originalAmount)} {unit}</span>
-            {hasCustomAdjustment && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-auto p-1 text-xs"
-                onClick={handleReset}
-              >
-                <RotateCcw className="h-3 w-3 mr-1" />
-                Reset
-              </Button>
-            )}
-          </div>
+          {scale && scale > 1 && (
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>Base Amount (1x): {formatAmount(originalAmount)} {unit}</span>
+              {hasCustomAdjustment && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-auto p-1 text-xs"
+                  onClick={handleReset}
+                >
+                  <RotateCcw className="h-3 w-3 mr-1" />
+                  Reset
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </PopoverContent>
     </Popover>

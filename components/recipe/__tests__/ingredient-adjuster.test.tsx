@@ -17,6 +17,7 @@ describe('IngredientAdjuster', () => {
     originalAmount: 1,
     scaledAmount: 1.5,
     unit: 'tsp',
+    scale: 2,
     onAdjustment: vi.fn(),
     adjustmentReason: 'Spices intensify with larger batches',
     hasCustomAdjustment: false
@@ -165,7 +166,7 @@ describe('IngredientAdjuster', () => {
     const button = screen.getByRole('button', { name: /adjust amount for black pepper/i })
     await user.click(button)
     
-    expect(screen.getByText('Base Amount: 1 tsp')).toBeInTheDocument()
+    expect(screen.getByText('Base Amount (1x): 1 tsp')).toBeInTheDocument()
   })
 
   it('should highlight button when ingredient is adjusted', () => {
@@ -182,7 +183,7 @@ describe('IngredientAdjuster', () => {
     const button = screen.getByRole('button', { name: /adjust amount for black pepper/i })
     await user.click(button)
     
-    expect(screen.getByText('Base Amount: 1')).toBeInTheDocument()
+    expect(screen.getByText('Base Amount (1x): 1')).toBeInTheDocument()
   })
 
   it('should close popover when reset is clicked', async () => {
@@ -198,5 +199,15 @@ describe('IngredientAdjuster', () => {
     await waitFor(() => {
       expect(screen.queryByText('Adjust black pepper')).not.toBeInTheDocument()
     })
+  })
+
+  it('should not show base amount at 1x scale', async () => {
+    const user = userEvent.setup()
+    render(<IngredientAdjuster {...defaultProps} scale={1} />)
+    
+    const button = screen.getByRole('button', { name: /adjust amount for black pepper/i })
+    await user.click(button)
+    
+    expect(screen.queryByText(/Base Amount/)).not.toBeInTheDocument()
   })
 })

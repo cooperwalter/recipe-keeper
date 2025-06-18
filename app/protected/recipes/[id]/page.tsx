@@ -54,9 +54,9 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
   const queryClient = useQueryClient()
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [recipeScale, setRecipeScale] = useState(1)
-  const [customAdjustments, setCustomAdjustments] = useState<Record<string, number>>({})
+  const [scaleAdjustments, setScaleAdjustments] = useState<Record<string, Record<string, number>>>({})
   const [isSaving, setIsSaving] = useState(false)
-  const adjustmentsRef = useRef<Record<string, number>>({})
+  const adjustmentsRef = useRef<Record<string, Record<string, number>>>({})
 
   const { data: recipe, isLoading } = useRecipe(id)
   const toggleFavorite = useToggleFavorite()
@@ -64,14 +64,25 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
   // Load adjustments from recipe data when it arrives
   useEffect(() => {
     if (recipe?.ingredientAdjustments) {
-      setCustomAdjustments(recipe.ingredientAdjustments)
-      adjustmentsRef.current = recipe.ingredientAdjustments
+      // Handle both old format (flat) and new format (scale-specific)
+      if (typeof recipe.ingredientAdjustments === 'object' && 
+          !Array.isArray(recipe.ingredientAdjustments) &&
+          (recipe.ingredientAdjustments['1'] || recipe.ingredientAdjustments['2'] || recipe.ingredientAdjustments['3'])) {
+        // New format: scale-specific adjustments
+        setScaleAdjustments(recipe.ingredientAdjustments as Record<string, Record<string, number>>)
+        adjustmentsRef.current = recipe.ingredientAdjustments as Record<string, Record<string, number>>
+      } else {
+        // Old format: migrate to scale-specific for scale 2
+        const migrated = { '2': recipe.ingredientAdjustments as Record<string, number> }
+        setScaleAdjustments(migrated)
+        adjustmentsRef.current = migrated
+      }
     }
   }, [recipe?.ingredientAdjustments])
 
   // Create debounced save function
   const saveAdjustments = useCallback(
-    (recipeId: string, adjustments: Record<string, number>) => {
+    (recipeId: string, adjustments: Record<string, Record<string, number>>) => {
       const debouncedSave = debounce(async () => {
       setIsSaving(true)
       try {
@@ -99,10 +110,10 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
   // Save adjustments when they change
   useEffect(() => {
     // Only save if adjustments have actually changed from what's in the database
-    if (JSON.stringify(customAdjustments) !== JSON.stringify(adjustmentsRef.current)) {
-      saveAdjustments(id, customAdjustments)
+    if (JSON.stringify(scaleAdjustments) !== JSON.stringify(adjustmentsRef.current)) {
+      saveAdjustments(id, scaleAdjustments)
     }
-  }, [id, customAdjustments, saveAdjustments])
+  }, [id, scaleAdjustments, saveAdjustments])
   
   const deleteMutation = useMutation({
     mutationFn: async () => {
@@ -300,8 +311,7 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
             originalServings={recipe.servings || 4} 
             onScaleChange={(scale) => {
               setRecipeScale(scale)
-              // Reset custom adjustments when scale changes
-              setCustomAdjustments({})
+              // Don't reset adjustments - they're stored per scale
             }}
           />
         </div>
@@ -318,10 +328,11 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
             </div>
             <ul className="space-y-2">
               {recipe.ingredients.map((ingredient) => {
+                const currentScaleAdjustments = scaleAdjustments[recipeScale.toString()] || {}
                 const scaledIngredient = scaleIngredientWithRules(
                   ingredient, 
                   recipeScale,
-                  customAdjustments
+                  currentScaleAdjustments
                 )
                 const displayAmount = getDisplayAmount(scaledIngredient)
                 
@@ -338,7 +349,7 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
                       {scaledIngredient.notes && (
                         <span className="text-muted-foreground"> ({scaledIngredient.notes})</span>
                       )}
-                      {scaledIngredient.isAdjustable && (
+                      {scaledIngredient.isAdjustable && recipeScale > 1 && (
                         <IngredientAdjuster
                           ingredientName={ingredient.ingredient}
                           originalAmount={ingredient.amount || 0}
@@ -346,14 +357,23 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
                           unit={ingredient.unit}
                           scale={recipeScale}
                           onAdjustment={(amount) => {
+                            const scaleKey = recipeScale.toString()
                             if (amount === undefined) {
-                              const newAdjustments = { ...customAdjustments }
-                              delete newAdjustments[ingredient.id]
-                              setCustomAdjustments(newAdjustments)
+                              const newScaleAdjustments = { ...scaleAdjustments }
+                              if (newScaleAdjustments[scaleKey]) {
+                                delete newScaleAdjustments[scaleKey][ingredient.id]
+                                if (Object.keys(newScaleAdjustments[scaleKey]).length === 0) {
+                                  delete newScaleAdjustments[scaleKey]
+                                }
+                              }
+                              setScaleAdjustments(newScaleAdjustments)
                             } else {
-                              setCustomAdjustments({
-                                ...customAdjustments,
-                                [ingredient.id]: amount
+                              setScaleAdjustments({
+                                ...scaleAdjustments,
+                                [scaleKey]: {
+                                  ...currentScaleAdjustments,
+                                  [ingredient.id]: amount
+                                }
                               })
                             }
                           }}
