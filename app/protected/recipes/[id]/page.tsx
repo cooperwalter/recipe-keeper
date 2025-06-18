@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, use, useEffect, useCallback, useRef } from 'react'
+import { useState, use } from 'react'
 import './print.css'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -11,8 +11,7 @@ import { RecipeScaler } from '@/components/recipe/recipe-scaler'
 import { IngredientAdjuster } from '@/components/recipe/ingredient-adjuster'
 import { 
   formatAmount, 
-  scaleIngredientWithRules, 
-  getDisplayAmount
+  scaleIngredient
 } from '@/lib/utils/recipe-scaling'
 import {
   AlertDialog,
@@ -39,8 +38,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { useRecipe, useToggleFavorite, useDeleteRecipe } from '@/lib/hooks/use-recipes'
-import { debounce } from '@/lib/utils/debounce'
+import { useRecipe, useToggleFavorite, useDeleteRecipe, useUpdateIngredient } from '@/lib/hooks/use-recipes'
 
 interface RecipeDetailPageProps {
   params: Promise<{ id: string }>
@@ -51,68 +49,11 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
   const router = useRouter()
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [recipeScale, setRecipeScale] = useState(1)
-  const [scaleAdjustments, setScaleAdjustments] = useState<Record<string, Record<string, number>>>({})
-  const [isSaving, setIsSaving] = useState(false)
-  const adjustmentsRef = useRef<Record<string, Record<string, number>>>({})
 
   const { data: recipe, isLoading } = useRecipe(id)
   const toggleFavorite = useToggleFavorite()
   const deleteRecipe = useDeleteRecipe()
-  
-  // Load adjustments from recipe data when it arrives
-  useEffect(() => {
-    if (recipe?.ingredientAdjustments) {
-      const adjustments = recipe.ingredientAdjustments as unknown as Record<string, unknown>
-      // Handle both old format (flat) and new format (scale-specific)
-      if (typeof adjustments === 'object' && 
-          !Array.isArray(adjustments) &&
-          (adjustments['1'] || adjustments['2'] || adjustments['3'])) {
-        // New format: scale-specific adjustments
-        setScaleAdjustments(adjustments as unknown as Record<string, Record<string, number>>)
-        adjustmentsRef.current = adjustments as unknown as Record<string, Record<string, number>>
-      } else {
-        // Old format: migrate to scale-specific for scale 2
-        const migrated = { '2': adjustments as unknown as Record<string, number> }
-        setScaleAdjustments(migrated)
-        adjustmentsRef.current = migrated
-      }
-    }
-  }, [recipe?.ingredientAdjustments])
-
-  // Create debounced save function
-  const saveAdjustments = useCallback(
-    (recipeId: string, adjustments: Record<string, Record<string, number>>) => {
-      const debouncedSave = debounce(async () => {
-      setIsSaving(true)
-      try {
-        const response = await fetch(`/api/recipes/${recipeId}/adjustments`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ adjustments })
-        })
-        
-        if (!response.ok) {
-          throw new Error('Failed to save adjustments')
-        }
-      } catch (error) {
-        console.error('Error saving adjustments:', error)
-        // Could show a toast notification here
-      } finally {
-        setIsSaving(false)
-      }
-      }, 1000) // 1 second debounce
-      debouncedSave()
-    },
-    []
-  )
-
-  // Save adjustments when they change
-  useEffect(() => {
-    // Only save if adjustments have actually changed from what's in the database
-    if (JSON.stringify(scaleAdjustments) !== JSON.stringify(adjustmentsRef.current)) {
-      saveAdjustments(id, scaleAdjustments)
-    }
-  }, [id, scaleAdjustments, saveAdjustments])
+  const updateIngredient = useUpdateIngredient()
   
 
   const handleToggleFavorite = () => {
@@ -294,10 +235,7 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
         <div className="mb-6 print:hidden">
           <RecipeScaler 
             originalServings={recipe.servings || 4} 
-            onScaleChange={(scale) => {
-              setRecipeScale(scale)
-              // Don't reset adjustments - they're stored per scale
-            }}
+            onScaleChange={setRecipeScale}
           />
         </div>
 
@@ -305,65 +243,38 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 recipe-content">
           {/* Ingredients */}
           <div className="md:col-span-1 ingredients-section">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-semibold">Ingredients</h2>
-              {isSaving && (
-                <span className="text-xs text-muted-foreground">Saving...</span>
-              )}
-            </div>
+            <h2 className="text-2xl font-semibold mb-4">Ingredients</h2>
             <ul className="space-y-2">
               {recipe.ingredients.map((ingredient) => {
-                const currentScaleAdjustments = scaleAdjustments[recipeScale.toString()] || {}
-                const scaledIngredient = scaleIngredientWithRules(
-                  ingredient, 
-                  recipeScale,
-                  currentScaleAdjustments
-                )
-                const displayAmount = getDisplayAmount(scaledIngredient)
+                const scaledIngredient = scaleIngredient(ingredient, recipeScale)
+                const displayAmount = scaledIngredient.amount || 0
                 
                 return (
                   <li key={ingredient.id} className="flex items-start group">
                     <span className="mr-2">•</span>
-                    <span className={cn(
-                      "flex-1",
-                      scaledIngredient.hasCustomAdjustment && recipeScale > 1 && "text-primary"
-                    )}>
+                    <span className="flex-1">
                       {displayAmount > 0 && `${formatAmount(displayAmount)} `}
                       {scaledIngredient.unit && `${scaledIngredient.unit} `}
                       {scaledIngredient.ingredient}
                       {scaledIngredient.notes && (
                         <span className="text-muted-foreground"> ({scaledIngredient.notes})</span>
                       )}
-                      {scaledIngredient.isAdjustable && recipeScale > 1 && (
+                      {recipeScale === 1 && ingredient.amount !== null && ingredient.amount !== undefined && (
                         <IngredientAdjuster
                           ingredientName={ingredient.ingredient}
-                          originalAmount={ingredient.amount || 0}
-                          scaledAmount={scaledIngredient.scaledAmount || 0}
+                          ingredientId={ingredient.id}
+                          originalAmount={ingredient.amount}
                           unit={ingredient.unit}
-                          scale={recipeScale}
+                          scale={1}
                           onAdjustment={(amount) => {
-                            const scaleKey = recipeScale.toString()
-                            if (amount === undefined) {
-                              const newScaleAdjustments = { ...scaleAdjustments }
-                              if (newScaleAdjustments[scaleKey]) {
-                                delete newScaleAdjustments[scaleKey][ingredient.id]
-                                if (Object.keys(newScaleAdjustments[scaleKey]).length === 0) {
-                                  delete newScaleAdjustments[scaleKey]
-                                }
-                              }
-                              setScaleAdjustments(newScaleAdjustments)
-                            } else {
-                              setScaleAdjustments({
-                                ...scaleAdjustments,
-                                [scaleKey]: {
-                                  ...currentScaleAdjustments,
-                                  [ingredient.id]: amount
-                                }
+                            if (amount !== undefined) {
+                              updateIngredient.mutate({
+                                recipeId: id,
+                                ingredientId: ingredient.id,
+                                amount
                               })
                             }
                           }}
-                          adjustmentReason={scaledIngredient.adjustmentReason}
-                          hasCustomAdjustment={scaledIngredient.hasCustomAdjustment}
                         />
                       )}
                     </span>

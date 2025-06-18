@@ -284,3 +284,61 @@ export function useUpdateRecipe() {
     },
   })
 }
+
+// Hook to update ingredient amounts directly
+export function useUpdateIngredient() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ recipeId, ingredientId, amount }: { 
+      recipeId: string; 
+      ingredientId: string; 
+      amount: number 
+    }) => {
+      const response = await fetch(`/api/recipes/${recipeId}/ingredients/${ingredientId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount }),
+      })
+      
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to update ingredient')
+      }
+      
+      return response.json()
+    },
+    onMutate: async ({ recipeId, ingredientId, amount }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: recipeKeys.detail(recipeId) })
+
+      // Snapshot the previous value
+      const previousDetail = queryClient.getQueryData(recipeKeys.detail(recipeId))
+
+      // Optimistically update the ingredient amount
+      queryClient.setQueryData(recipeKeys.detail(recipeId), (old: RecipeWithRelations | undefined) => {
+        if (!old) return old
+        return {
+          ...old,
+          ingredients: old.ingredients.map((ing) =>
+            ing.id === ingredientId ? { ...ing, amount } : ing
+          ),
+          updatedAt: new Date().toISOString(),
+        }
+      })
+
+      // Return a context with the snapshot
+      return { previousDetail }
+    },
+    onError: (err, variables, context) => {
+      // If the mutation fails, roll back
+      if (context?.previousDetail) {
+        queryClient.setQueryData(recipeKeys.detail(variables.recipeId), context.previousDetail)
+      }
+    },
+    onSettled: (data, error, variables) => {
+      // Always refetch after error or success
+      queryClient.invalidateQueries({ queryKey: recipeKeys.detail(variables.recipeId) })
+    },
+  })
+}
