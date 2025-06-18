@@ -39,9 +39,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { useRecipe, useToggleFavorite } from '@/lib/hooks/use-recipes'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { recipeKeys } from '@/lib/hooks/use-recipes'
+import { useRecipe, useToggleFavorite, useDeleteRecipe } from '@/lib/hooks/use-recipes'
 import { debounce } from '@/lib/utils/debounce'
 
 interface RecipeDetailPageProps {
@@ -51,7 +49,6 @@ interface RecipeDetailPageProps {
 export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
   const { id } = use(params)
   const router = useRouter()
-  const queryClient = useQueryClient()
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [recipeScale, setRecipeScale] = useState(1)
   const [scaleAdjustments, setScaleAdjustments] = useState<Record<string, Record<string, number>>>({})
@@ -60,20 +57,22 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
 
   const { data: recipe, isLoading } = useRecipe(id)
   const toggleFavorite = useToggleFavorite()
+  const deleteRecipe = useDeleteRecipe()
   
   // Load adjustments from recipe data when it arrives
   useEffect(() => {
     if (recipe?.ingredientAdjustments) {
+      const adjustments = recipe.ingredientAdjustments as unknown as Record<string, unknown>
       // Handle both old format (flat) and new format (scale-specific)
-      if (typeof recipe.ingredientAdjustments === 'object' && 
-          !Array.isArray(recipe.ingredientAdjustments) &&
-          (recipe.ingredientAdjustments['1'] || recipe.ingredientAdjustments['2'] || recipe.ingredientAdjustments['3'])) {
+      if (typeof adjustments === 'object' && 
+          !Array.isArray(adjustments) &&
+          (adjustments['1'] || adjustments['2'] || adjustments['3'])) {
         // New format: scale-specific adjustments
-        setScaleAdjustments(recipe.ingredientAdjustments as Record<string, Record<string, number>>)
-        adjustmentsRef.current = recipe.ingredientAdjustments as Record<string, Record<string, number>>
+        setScaleAdjustments(adjustments as unknown as Record<string, Record<string, number>>)
+        adjustmentsRef.current = adjustments as unknown as Record<string, Record<string, number>>
       } else {
         // Old format: migrate to scale-specific for scale 2
-        const migrated = { '2': recipe.ingredientAdjustments as Record<string, number> }
+        const migrated = { '2': adjustments as unknown as Record<string, number> }
         setScaleAdjustments(migrated)
         adjustmentsRef.current = migrated
       }
@@ -115,36 +114,6 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
     }
   }, [id, scaleAdjustments, saveAdjustments])
   
-  const deleteMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch(`/api/recipes/${id}`, {
-        method: 'DELETE',
-      })
-      
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Failed to delete recipe')
-      }
-    },
-    onSuccess: () => {
-      // Invalidate and refetch recipes list
-      queryClient.invalidateQueries({ queryKey: recipeKeys.lists() })
-      // Redirect to recipes list
-      router.push('/protected/recipes')
-    },
-    onError: (error) => {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to delete recipe'
-      
-      // Show more helpful error messages
-      if (errorMessage.includes('Not authorized')) {
-        alert('You can only delete recipes that you created.')
-      } else if (errorMessage.includes('not found')) {
-        alert('This recipe no longer exists.')
-      } else {
-        alert(`Failed to delete recipe: ${errorMessage}`)
-      }
-    },
-  })
 
   const handleToggleFavorite = () => {
     if (recipe) {
@@ -157,7 +126,23 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
   }
 
   const handleDelete = () => {
-    deleteMutation.mutate()
+    deleteRecipe.mutate(id, {
+      onSuccess: () => {
+        router.push('/protected/recipes')
+      },
+      onError: (error) => {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to delete recipe'
+        
+        // Show more helpful error messages
+        if (errorMessage.includes('Not authorized')) {
+          alert('You can only delete recipes that you created.')
+        } else if (errorMessage.includes('not found')) {
+          alert('This recipe no longer exists.')
+        } else {
+          alert(`Failed to delete recipe: ${errorMessage}`)
+        }
+      },
+    })
     setShowDeleteConfirm(false)
   }
 
@@ -421,7 +406,7 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
             size="lg"
             className="w-full sm:w-[calc(100%-2rem)] mx-auto flex items-center justify-center gap-2 text-destructive border-destructive hover:bg-destructive/10 dark:text-red-400 dark:border-red-400 dark:hover:bg-red-400/20"
             onClick={() => setShowDeleteConfirm(true)}
-            disabled={deleteMutation.isPending}
+            disabled={deleteRecipe.isPending}
           >
             <Trash2 className="h-5 w-5" />
             Delete This Recipe
@@ -439,13 +424,13 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteRecipe.isPending}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              disabled={deleteMutation.isPending}
+              disabled={deleteRecipe.isPending}
               className="bg-destructive hover:bg-destructive/90"
             >
-              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+              {deleteRecipe.isPending ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

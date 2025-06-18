@@ -151,3 +151,136 @@ export function usePrefetchRecipe() {
     })
   }
 }
+
+// Hook to delete a recipe with optimistic updates
+export function useDeleteRecipe() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (recipeId: string) => {
+      const response = await fetch(`/api/recipes/${recipeId}`, {
+        method: 'DELETE',
+      })
+      
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to delete recipe')
+      }
+    },
+    onMutate: async (recipeId) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: recipeKeys.lists() })
+
+      // Snapshot the previous values
+      const previousLists = queryClient.getQueriesData({ queryKey: recipeKeys.lists() })
+
+      // Optimistically remove the recipe from all lists
+      queryClient.setQueriesData({ queryKey: recipeKeys.lists() }, (old: RecipeListResponse | undefined) => {
+        if (!old) return old
+        return {
+          ...old,
+          recipes: old.recipes.filter((recipe) => recipe.id !== recipeId),
+          total: old.total - 1,
+        }
+      })
+
+      // Return a context with the snapshots
+      return { previousLists }
+    },
+    onError: (err, recipeId, context) => {
+      // If the mutation fails, use the context to roll back
+      if (context?.previousLists) {
+        context.previousLists.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data)
+        })
+      }
+    },
+    onSettled: () => {
+      // Always refetch after error or success
+      queryClient.invalidateQueries({ queryKey: recipeKeys.lists() })
+    },
+  })
+}
+
+// Hook to update a recipe with optimistic updates
+export function useUpdateRecipe() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: FormData }) => {
+      const response = await fetch(`/api/recipes/${id}`, {
+        method: 'PUT',
+        body: data,
+      })
+      
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to update recipe')
+      }
+      
+      return response.json()
+    },
+    onMutate: async ({ id, data }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: recipeKeys.detail(id) })
+      await queryClient.cancelQueries({ queryKey: recipeKeys.lists() })
+
+      // Extract basic recipe data from FormData
+      const title = data.get('title') as string
+      const description = data.get('description') as string
+      const servings = parseInt(data.get('servings') as string || '4')
+
+      // Snapshot the previous values
+      const previousDetail = queryClient.getQueryData(recipeKeys.detail(id))
+      const previousLists = queryClient.getQueriesData({ queryKey: recipeKeys.lists() })
+
+      // Optimistically update the detail view
+      queryClient.setQueryData(recipeKeys.detail(id), (old: RecipeWithRelations | undefined) => {
+        if (!old) return old
+        return {
+          ...old,
+          title,
+          description,
+          servings,
+          updatedAt: new Date().toISOString(),
+        }
+      })
+
+      // Optimistically update all recipe lists
+      queryClient.setQueriesData({ queryKey: recipeKeys.lists() }, (old: RecipeListResponse | undefined) => {
+        if (!old) return old
+        return {
+          ...old,
+          recipes: old.recipes.map((recipe) =>
+            recipe.id === id 
+              ? { ...recipe, title, description, updatedAt: new Date().toISOString() }
+              : recipe
+          ),
+        }
+      })
+
+      // Return a context with the snapshots
+      return { previousDetail, previousLists }
+    },
+    onError: (err, variables, context) => {
+      // If the mutation fails, use the context to roll back
+      if (context?.previousDetail) {
+        queryClient.setQueryData(recipeKeys.detail(variables.id), context.previousDetail)
+      }
+      if (context?.previousLists) {
+        context.previousLists.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data)
+        })
+      }
+    },
+    onSuccess: (data, variables) => {
+      // Update with the actual server data
+      queryClient.setQueryData(recipeKeys.detail(variables.id), data)
+    },
+    onSettled: (data, error, variables) => {
+      // Always refetch after error or success
+      queryClient.invalidateQueries({ queryKey: recipeKeys.detail(variables.id) })
+      queryClient.invalidateQueries({ queryKey: recipeKeys.lists() })
+    },
+  })
+}
