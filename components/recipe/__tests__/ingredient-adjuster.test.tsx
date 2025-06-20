@@ -52,7 +52,7 @@ describe('IngredientAdjuster', () => {
     expect(input).toHaveValue('1')
   })
 
-  it('should increment amount when plus button clicked', async () => {
+  it('should increment amount when plus button clicked and popover closed', async () => {
     const user = userEvent.setup()
     render(<IngredientAdjuster {...defaultProps} />)
     
@@ -62,11 +62,14 @@ describe('IngredientAdjuster', () => {
     const plusButton = screen.getByRole('button', { name: /increase amount/i })
     await user.click(plusButton)
     
+    // Close the popover by clicking outside
+    await user.click(document.body)
+    
     // 1 >= 1, so increment is 0.25, rounded to nearest 1/8
     expect(defaultProps.onAdjustment).toHaveBeenCalledWith(1.25)
   })
 
-  it('should decrement amount when minus button clicked', async () => {
+  it('should decrement amount when minus button clicked and popover closed', async () => {
     const user = userEvent.setup()
     render(<IngredientAdjuster {...defaultProps} />)
     
@@ -75,6 +78,9 @@ describe('IngredientAdjuster', () => {
     
     const minusButton = screen.getByRole('button', { name: /decrease amount/i })
     await user.click(minusButton)
+    
+    // Close the popover by clicking outside
+    await user.click(document.body)
     
     // 1 <= 1, so decrement is 0.125, rounded to nearest 1/8
     expect(defaultProps.onAdjustment).toHaveBeenCalledWith(0.875)
@@ -90,6 +96,9 @@ describe('IngredientAdjuster', () => {
     const plusButton = screen.getByRole('button', { name: /increase amount/i })
     await user.click(plusButton)
     
+    // Close the popover by clicking outside
+    await user.click(document.body)
+    
     // 0.5 < 1, so increment is 0.125
     expect(defaultProps.onAdjustment).toHaveBeenCalledWith(0.625)
   })
@@ -104,6 +113,9 @@ describe('IngredientAdjuster', () => {
     const minusButton = screen.getByRole('button', { name: /decrease amount/i })
     await user.click(minusButton)
     
+    // Close the popover by clicking outside
+    await user.click(document.body)
+    
     expect(defaultProps.onAdjustment).toHaveBeenCalledWith(0.125)
   })
 
@@ -117,6 +129,9 @@ describe('IngredientAdjuster', () => {
     const input = screen.getByRole('textbox', { name: /custom amount/i })
     await user.clear(input)
     await user.type(input, '2.5')
+    
+    // Close the popover by clicking outside
+    await user.click(document.body)
     
     expect(defaultProps.onAdjustment).toHaveBeenCalledWith(2.5)
   })
@@ -142,5 +157,33 @@ describe('IngredientAdjuster', () => {
     // Should not show unit text when unit is undefined
     const unitText = screen.queryByText('undefined')
     expect(unitText).not.toBeInTheDocument()
+  })
+
+  it('should not call onAdjustment if popover closed without changes', async () => {
+    const user = userEvent.setup()
+    render(<IngredientAdjuster {...defaultProps} />)
+    
+    const button = screen.getByRole('button', { name: /adjust amount for black pepper/i })
+    await user.click(button)
+    
+    // Close the popover without making any changes
+    await user.click(document.body)
+    
+    expect(defaultProps.onAdjustment).not.toHaveBeenCalled()
+  })
+
+  it('should update local state immediately when adjusting', async () => {
+    const user = userEvent.setup()
+    render(<IngredientAdjuster {...defaultProps} />)
+    
+    const button = screen.getByRole('button', { name: /adjust amount for black pepper/i })
+    await user.click(button)
+    
+    const plusButton = screen.getByRole('button', { name: /increase amount/i })
+    await user.click(plusButton)
+    
+    // Check that the input shows the new value immediately (formatAmount returns '1 ¼' with unicode fraction)
+    const input = screen.getByRole('textbox', { name: /custom amount/i })
+    expect(input).toHaveValue('1 ¼')
   })
 })
