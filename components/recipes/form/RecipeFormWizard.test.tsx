@@ -67,7 +67,7 @@ describe('RecipeFormWizard', () => {
   it('navigates between steps', () => {
     const validData = {
       title: 'Test Recipe',
-      ingredients: [{ ingredient: 'Test ingredient', amount: '1', unit: 'cup' }],
+      ingredients: [{ ingredient: 'Test ingredient', amount: 1, unit: 'cup' }],
       instructions: [{ instruction: 'Test instruction', stepNumber: 1 }],
     }
     renderWithProvider(<RecipeFormWizard />, validData)
@@ -99,7 +99,7 @@ describe('RecipeFormWizard', () => {
   it('shows submit button on last step', () => {
     const validData = {
       title: 'Test Recipe',
-      ingredients: [{ ingredient: 'Test ingredient', amount: '1', unit: 'cup' }],
+      ingredients: [{ ingredient: 'Test ingredient', amount: 1, unit: 'cup' }],
       instructions: [{ instruction: 'Test instruction', stepNumber: 1 }],
     }
     renderWithProvider(<RecipeFormWizard />, validData)
@@ -122,7 +122,7 @@ describe('RecipeFormWizard', () => {
     
     const validData = {
       title: 'Test Recipe',
-      ingredients: [{ ingredient: 'Test ingredient', amount: '1', unit: 'cup' }],
+      ingredients: [{ ingredient: 'Test ingredient', amount: 1, unit: 'cup' }],
       instructions: [{ instruction: 'Test instruction', stepNumber: 1 }],
     }
     renderWithProvider(<RecipeFormWizard />, validData)
@@ -148,7 +148,7 @@ describe('RecipeFormWizard', () => {
           isPublic: false,
           sourceName: '',
           sourceNotes: '',
-          ingredients: [{ ingredient: 'Test ingredient', amount: '1', unit: 'cup' }],
+          ingredients: [{ ingredient: 'Test ingredient', amount: 1, unit: 'cup' }],
           instructions: ['Test instruction'],
           categoryIds: [],
           tags: [],
@@ -168,7 +168,7 @@ describe('RecipeFormWizard', () => {
     
     const validData = {
       title: 'Test Recipe',
-      ingredients: [{ ingredient: 'Test ingredient', amount: '1', unit: 'cup' }],
+      ingredients: [{ ingredient: 'Test ingredient', amount: 1, unit: 'cup' }],
       instructions: [{ instruction: 'Test instruction', stepNumber: 1 }],
     }
     renderWithProvider(<RecipeFormWizard />, validData)
@@ -191,7 +191,7 @@ describe('RecipeFormWizard', () => {
     
     const validData = {
       title: 'Test Recipe',
-      ingredients: [{ ingredient: 'Test ingredient', amount: '1', unit: 'cup' }],
+      ingredients: [{ ingredient: 'Test ingredient', amount: 1, unit: 'cup' }],
       instructions: [{ instruction: 'Test instruction', stepNumber: 1 }],
     }
     renderWithProvider(<RecipeFormWizard />, validData)
@@ -211,7 +211,7 @@ describe('RecipeFormWizard', () => {
   it('displays step progress correctly', () => {
     const validData = {
       title: 'Test Recipe',
-      ingredients: [{ ingredient: 'Test ingredient', amount: '1', unit: 'cup' }],
+      ingredients: [{ ingredient: 'Test ingredient', amount: 1, unit: 'cup' }],
       instructions: [{ instruction: 'Test instruction', stepNumber: 1 }],
     }
     renderWithProvider(<RecipeFormWizard />, validData)

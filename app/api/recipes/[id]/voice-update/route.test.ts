@@ -69,9 +69,9 @@ describe('POST /api/recipes/[id]/voice-update', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    ;(createClient as vi.MockedFunction<typeof createClient>).mockResolvedValue(mockSupabase as ReturnType<typeof createClient>)
-    ;(RecipeService as unknown as vi.MockedClass<typeof RecipeService>).mockImplementation(() => mockRecipeService)
-    ;(Anthropic as unknown as vi.MockedClass<typeof Anthropic>).mockReturnValue(mockAnthropicClient as Anthropic)
+    ;(createClient as any).mockResolvedValue(mockSupabase)
+    ;(RecipeService as any).mockImplementation(() => mockRecipeService)
+    ;(Anthropic as any).mockReturnValue(mockAnthropicClient)
   })
 
   const createRequest = (body: Record<string, unknown>) => {
@@ -370,7 +370,7 @@ describe('POST /api/recipes/[id]/voice-update', () => {
 
   it('validates Anthropic API key is present', async () => {
     // The Anthropic constructor will throw if no API key is present
-    ;(Anthropic as unknown as vi.MockedClass<typeof Anthropic>).mockImplementationOnce(() => {
+    ;(Anthropic as any).mockImplementationOnce(() => {
       throw new Error('Missing ANTHROPIC_API_KEY')
     })
 

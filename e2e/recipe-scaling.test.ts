@@ -1,8 +1,8 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, Page } from '@playwright/test'
 
 test.describe('Recipe Scaling Feature', () => {
   // Helper to login and navigate to a recipe
-  async function navigateToRecipe(page: any) {
+  async function navigateToRecipe(page: Page) {
     // Mock a recipe with various ingredient types
     await page.route('**/api/recipes/*', async (route) => {
       if (route.request().url().includes('/api/recipes/test-recipe-123')) {

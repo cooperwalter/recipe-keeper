@@ -74,7 +74,7 @@ test.describe('Ingredient Adjustment at 1x Scale', () => {
     // Mock the ingredient update endpoint
     await page.route('**/api/recipes/test-recipe-123/ingredients/*', async (route) => {
       if (route.request().method() === 'PATCH') {
-        const body = await route.request().json()
+        const body = JSON.parse(route.request().postData() || '{}')
         await route.fulfill({
           status: 200,
           contentType: 'application/json',

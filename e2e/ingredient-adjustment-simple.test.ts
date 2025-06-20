@@ -66,7 +66,7 @@ test.describe('Ingredient Adjustment Feature', () => {
     let updatedAmount = '2'
     await page.route('**/api/recipes/test-recipe-id/ingredients/ing-1', async (route) => {
       if (route.request().method() === 'PATCH') {
-        const body = await route.request().json()
+        const body = JSON.parse(route.request().postData() || '{}')
         updatedAmount = body.amount.toString()
         await route.fulfill({
           status: 200,

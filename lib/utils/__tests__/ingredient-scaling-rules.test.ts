@@ -126,16 +126,7 @@ describe('getScalingRule', () => {
 describe('isAdjustableIngredient', () => {
   it('should return true for all ingredients', () => {
     // All ingredients are now adjustable
-    expect(isAdjustableIngredient('black pepper')).toBe(true)
-    expect(isAdjustableIngredient('salt')).toBe(true)
-    expect(isAdjustableIngredient('baking soda')).toBe(true)
-    expect(isAdjustableIngredient('dried oregano')).toBe(true)
-    expect(isAdjustableIngredient('sugar')).toBe(true)
-    expect(isAdjustableIngredient('water')).toBe(true)
-    expect(isAdjustableIngredient('flour')).toBe(true)
-    expect(isAdjustableIngredient('carrots')).toBe(true)
-    expect(isAdjustableIngredient('chicken')).toBe(true)
-    expect(isAdjustableIngredient('vanilla extract')).toBe(true)
+    expect(isAdjustableIngredient()).toBe(true)
   })
 })
 

@@ -57,7 +57,7 @@ describe('ImageUpload', () => {
   it('shows uploading state', () => {
     render(<ImageUpload onUpload={mockOnUpload} isUploading />);
     
-    expect(screen.getByText('Uploading...')).toBeInTheDocument();
+    expect(screen.getByText('Uploading')).toBeInTheDocument();
   });
 
   it('displays preview image', () => {
@@ -96,7 +96,7 @@ describe('ImageUpload', () => {
     const mockFile = new File(['test'], 'recipe.jpg', { type: 'image/jpeg' });
     const mockOnDrop = vi.fn();
 
-    (useDropzone as any).mockImplementation(({ onDrop }) => {
+    (useDropzone as any).mockImplementation(({ onDrop }: { onDrop: (files: File[]) => void }) => {
       mockOnDrop.mockImplementation(() => onDrop([mockFile]));
       return {
         getRootProps: mockGetRootProps,

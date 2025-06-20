@@ -17,11 +17,11 @@ describe('POST /api/transcribe', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    ;(createClient as vi.MockedFunction<typeof createClient>).mockResolvedValue(mockSupabase as ReturnType<typeof createClient>)
+    ;(createClient as any).mockResolvedValue(mockSupabase)
     // Ensure we use the mock transcription path
     delete process.env.OPENAI_API_KEY
     // Set NODE_ENV to development for tests
-    process.env.NODE_ENV = 'development'
+    vi.stubEnv('NODE_ENV', 'development')
   })
 
   it('returns 401 if user is not authenticated', async () => {

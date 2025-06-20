@@ -25,7 +25,7 @@ describe('draftPersistence', () => {
     sourceName: 'Test User',
     sourceNotes: 'Test notes',
     ingredients: [
-      { ingredient: 'flour', amount: '2', unit: 'cups' }
+      { ingredient: 'flour', amount: 2, unit: 'cups' }
     ],
     instructions: [
       { instruction: 'Mix ingredients', stepNumber: 1 }
