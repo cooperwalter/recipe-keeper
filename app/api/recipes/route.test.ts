@@ -89,7 +89,7 @@ describe('/api/recipes', () => {
         categoryId: 'main-dish',
         tags: ['quick', 'easy'],
         limit: 10,
-        createdBy: undefined,
+        createdBy: 'test-user-id',  // Now defaults to current user
         isPublic: undefined,
         isFavorite: undefined,
         offset: undefined,
@@ -98,15 +98,28 @@ describe('/api/recipes', () => {
       })
     })
 
-    it('should return 401 for unauthenticated user requesting favorites', async () => {
+    it('should return 401 for unauthenticated user', async () => {
       mockSupabase.auth.getUser.mockResolvedValueOnce({
         data: { user: null },
       })
 
-      const request = new NextRequest('http://localhost:3000/api/recipes?isFavorite=true')
+      const request = new NextRequest('http://localhost:3000/api/recipes')
       const response = await GET(request)
 
       expect(response.status).toBe(401)
+    })
+
+    it('should allow requesting public recipes explicitly', async () => {
+      const request = new NextRequest('http://localhost:3000/api/recipes?isPublic=true')
+      
+      await GET(request)
+
+      expect(mockRecipeService.listRecipes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          createdBy: undefined,  // Should not default to user when explicitly requesting public
+          isPublic: true,
+        })
+      )
     })
 
     it('should handle errors gracefully', async () => {

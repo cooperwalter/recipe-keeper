@@ -8,7 +8,6 @@ export async function GET(request: NextRequest) {
     const params = {
       query: searchParams.get('query') || undefined,
       categoryId: searchParams.get('categoryId') || undefined,
-      tags: searchParams.get('tags')?.split(',').filter(Boolean),
       createdBy: searchParams.get('userId') || undefined,
       isPublic: searchParams.get('isPublic') === 'true' ? true : searchParams.get('isPublic') === 'false' ? false : undefined,
       isFavorite: searchParams.get('isFavorite') === 'true' ? true : searchParams.get('isFavorite') === 'false' ? false : undefined,
@@ -18,12 +17,18 @@ export async function GET(request: NextRequest) {
       orderDirection: searchParams.get('orderDirection') as 'asc' | 'desc' | undefined || undefined,
     }
 
-    // If requesting user's own recipes or favorites, require authentication
+    // Get the current user
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     
-    if ((params.createdBy || params.isFavorite !== undefined) && !user) {
+    // This is a protected route, so user should always exist
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Default to showing only the user's own recipes unless explicitly requesting public recipes
+    if (!params.createdBy && params.isPublic !== true) {
+      params.createdBy = user.id
     }
 
     const recipeService = new RecipeService(supabase)
@@ -69,7 +74,6 @@ export async function POST(request: NextRequest) {
       categoryId: body.categoryId,
       sourceName: body.sourceName,
       sourceNotes: body.sourceNotes,
-      tags: body.tags || [],
       isPublic: body.isPublic || false,
     })
 
