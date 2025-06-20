@@ -1,5 +1,5 @@
 import { eq, and, or, ilike, desc, asc, sql, inArray } from 'drizzle-orm';
-import { db, recipes, recipePhotos, favorites, recipeCategories, recipeCategoryMappings, ingredients, instructions, recipeTags, recipeVersions } from '@/lib/db';
+import { db, recipes, recipePhotos, favorites, recipeCategories, recipeCategoryMappings, ingredients, instructions, recipeVersions, recipeTags } from '@/lib/db';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { fractionToDecimal } from '@/lib/utils/fractions';
 import { detectRecipeBadges } from '@/lib/utils/recipe-badges';
@@ -109,15 +109,6 @@ export class RecipeService {
       });
     }
 
-    // Add tags if provided
-    if (tags && tags.length > 0) {
-      const tagRecords = tags.map(tag => ({
-        recipeId: recipe.id,
-        tag,
-      }));
-      
-      await db.insert(recipeTags).values(tagRecords);
-    }
 
     // Detect badges based on ingredients
     let detectedBadges: string[] = [];
@@ -216,11 +207,6 @@ export class RecipeService {
       .where(eq(instructions.recipeId, id))
       .orderBy(asc(instructions.stepNumber));
 
-    // Get tags
-    const tagsList = await db
-      .select({ tag: recipeTags.tag })
-      .from(recipeTags)
-      .where(eq(recipeTags.recipeId, id));
 
     // Check if favorited by current user
     let isFavorite = false;
@@ -279,7 +265,7 @@ export class RecipeService {
         instruction: inst.instruction,
         createdAt: inst.createdAt.toISOString(),
       })),
-      tags: tagsList.map(t => t.tag),
+      tags: [],
       photos: photos.map(p => ({
         id: p.id,
         recipeId: p.recipeId,
@@ -605,9 +591,6 @@ export class RecipeService {
       const recipeCategories = allCategoryMappings
         .filter(m => m.recipeId === recipe.id)
         .map(m => m.category);
-      const recipeTags = allTags
-        .filter(t => t.recipeId === recipe.id)
-        .map(t => t.tag);
       
       return {
         id: recipe.id,
@@ -641,7 +624,9 @@ export class RecipeService {
           uploadedAt: p.uploadedAt.toISOString(),
         })),
         isFavorite: userFavorites.includes(recipe.id),
-        tags: recipeTags,
+        tags: allTags
+          .filter(t => t.recipeId === recipe.id)
+          .map(t => t.tag),
         ingredients: [],
         instructions: [],
       };
@@ -909,37 +894,6 @@ export class RecipeService {
     }
   }
 
-  /**
-   * Update tags for a recipe
-   */
-  async updateTags(recipeId: string, newTags: string[]): Promise<void> {
-    const userId = await this.getCurrentUserId();
-    if (!userId) throw new Error('User not authenticated');
-
-    // Verify user owns the recipe
-    const [recipe] = await db
-      .select({ createdBy: recipes.createdBy })
-      .from(recipes)
-      .where(eq(recipes.id, recipeId))
-      .limit(1);
-
-    if (!recipe || recipe.createdBy !== userId) {
-      throw new Error('Recipe not found or not authorized');
-    }
-
-    // Delete existing tags
-    await db.delete(recipeTags).where(eq(recipeTags.recipeId, recipeId));
-
-    // Insert new tags
-    if (newTags.length > 0) {
-      await db.insert(recipeTags).values(
-        newTags.map(tag => ({
-          recipeId,
-          tag,
-        }))
-      );
-    }
-  }
 
   /**
    * Get version history for a recipe
@@ -1077,10 +1031,6 @@ export class RecipeService {
       await this.updateInstructions(recipeId, versionData.instructions);
     }
 
-    // Update tags
-    if (versionData.tags) {
-      await this.updateTags(recipeId, versionData.tags);
-    }
 
     return updated;
   }
