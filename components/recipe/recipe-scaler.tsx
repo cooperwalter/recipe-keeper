@@ -34,26 +34,26 @@ export function RecipeScaler({ originalServings, onScaleChange }: RecipeScalerPr
         type="single" 
         value={scale} 
         onValueChange={handleScaleChange}
-        className="flex gap-1"
+        className="flex"
       >
         <ToggleGroupItem 
           value="1" 
           aria-label="Original size"
-          className="px-3 py-1 text-sm"
+          className="px-3 py-1 text-sm data-[state=off]:bg-muted/50 rounded-l-md rounded-r-none border-r-0"
         >
           1x
         </ToggleGroupItem>
         <ToggleGroupItem 
           value="2" 
           aria-label="Double recipe"
-          className="px-3 py-1 text-sm"
+          className="px-3 py-1 text-sm data-[state=off]:bg-muted/50 rounded-none"
         >
           2x
         </ToggleGroupItem>
         <ToggleGroupItem 
           value="3" 
           aria-label="Triple recipe"
-          className="px-3 py-1 text-sm"
+          className="px-3 py-1 text-sm data-[state=off]:bg-muted/50 rounded-r-md rounded-l-none border-l-0"
         >
           3x
         </ToggleGroupItem>
