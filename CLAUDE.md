@@ -115,4 +115,6 @@ Required in production:
 - Follow existing patterns for consistency
 - Run `pnpm lint` before committing
 - Voice features fall back to mocks in development
-- The dev server auto-recovers from file system errors
+
+## Memories
+- Whenever the "project roadmap", "roadmap", or similar, is referred to, this means the PROJECT_ROADMAP.md document in the project root.

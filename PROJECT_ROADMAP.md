@@ -72,79 +72,88 @@
 - **Limited Error Tracking**: No Sentry or error monitoring in production
 - **No API Load Testing**: Missing stress testing for concurrent users
 
-## New Feature Suggestions
+## New Feature Integration
 
-### 🎯 High-Impact Features for Family Recipe Preservation:
+The following features from the new suggestions have been integrated into the roadmap phases:
 
-#### 1. **Recipe Stories & Media Timeline**
-- Audio story recording for each recipe (30-60 second clips)
-- Photo timeline showing recipe evolution over generations
-- Family member tagging in stories
-- Anniversary/holiday association tracking
-- Story prompts: "Tell us about the first time you made this..."
+### ✅ Already Implemented:
+- **Voice-to-Recipe Creation** (Phase 3+): Speak entire recipes into existence
+- **Voice Recipe Updates** (Phase 3+): Natural language recipe modifications
+- **Recipe Badges** (Phase 8): Dietary badges (vegan, gluten-free, etc.) with visual indicators
+- **Smart Ingredient Scaling** (Phase 5): Non-linear scaling with adjustment rules
+- **Recipe Source Attribution** (Phase 2): "From {sourceName}" field implemented
+- **Basic Print Templates** (Phase 2): Print-friendly recipe views with photos
+- **Version History Backend** (Phase 7): Complete JSONB snapshots for full recipe history
 
-#### 2. **Smart Recipe Import from Multiple Sources**
-- Email forwarding to import recipes (parse from common formats)
-- Browser extension for one-click saving from any website
-- WhatsApp/SMS integration for receiving recipes from family
-- Scan multiple recipe cards at once with batch processing
-- Import from common recipe apps (MyFitnessPal, Paprika, etc.)
+### 📋 Features Integrated Into Phases:
 
-#### 3. **Family Collaboration Features**
-- Recipe request board ("Looking for Grandma's apple pie recipe")
-- Collaborative editing with change proposals
-- Family cookbook committees with approval workflows
-- Recipe challenges/cook-offs with voting
-- Generation-based access (kids can view but not edit)
+#### Phase 4: Organization & Navigation (Current Priority)
+- **Smart Collections**: Auto-group by season, difficulty, dietary ✨ NEW
+- **Recipe Relationships**: Variations, inspired-by links ✨ NEW
+- **Occasion-Based Browsing**: Holidays, birthdays, traditions ✨ NEW
+- **Family Member Specialty Tracking** ✨ NEW
+- **Recipe Request Board**: "Looking for Grandma's apple pie recipe" ✨ NEW
 
-#### 4. **Smart Recipe Assistant**
-- Ingredient substitution suggestions based on dietary needs
-- "What can I make with..." using available ingredients
-- Recipe pairing suggestions for meal planning
-- Seasonal recipe recommendations
-- Allergy/dietary restriction warnings with alternatives
+#### Phase 5: Recipe Tools (Enhanced)
+- **Smart Recipe Assistant**: Interactive Q&A on recipe view ✨ NEW
+  - Ingredient substitutions, cooking mistakes, dietary mods
+  - Technique explanations and real-time guidance
+- **"What Can I Make With..."**: Using available ingredients ✨ NEW
+- **Allergy/Dietary Warnings**: With alternatives ✨ NEW
+- **Kitchen Timer Integration**: Multiple timers ✨ NEW
+- **Quick Actions**: Double recipe, halve recipe, metric conversion ✨ NEW
 
-#### 5. **Interactive Cooking Experience**
-- Step-by-step video clips (family members can add)
-- Kitchen timer integration with multiple timers
-- Voice-controlled navigation while cooking
-- Technique tutorials linked to specific steps
-- Temperature/doneness guides with visuals
+#### Phase 6: Sharing & Export (Enhanced)
+- **QR Codes**: For sharing at family gatherings ✨ NEW
+- **Recipe Card Templates**: Enhanced physical printing ✨ NEW
+- **Email Import**: Forward recipes to import ✨ NEW
+- **Browser Extension**: One-click save from any website ✨ NEW
 
-#### 6. **Recipe Discovery & Preservation**
-- "Recipe of the day" featuring family classics
-- Recipe DNA - trace origins and variations across families
-- Lost recipe reconstruction from partial memories
-- Recipe inheritance planning (designate recipe heirs)
-- Cultural/regional recipe mapping
+#### Phase 7: Version Control & Preservation (Enhanced)
+- **Recipe Stories & Media Timeline** ✨ NEW
+  - Audio story recording (30-60 second clips)
+  - Photo timeline showing evolution
+  - Story prompts for memories
+- **Lost Recipe Reconstruction**: From partial memories ✨ NEW
+- **Memorial Recipes**: Preserve from departed loved ones ✨ NEW
 
-#### 7. **Enhanced Organization**
-- Smart collections (auto-group by season, difficulty, dietary)
-- Recipe relationships (variations, inspired-by links)
-- Meal type planning (appetizer → dessert flows)
-- Occasion-based browsing (holidays, birthdays, traditions)
-- Family member specialty tracking
+#### Phase 8: Collaboration (Enhanced)
+- **Collaborative Editing**: With change proposals ✨ NEW
+- **Family Cookbook Committees**: Approval workflows ✨ NEW
+- **Recipe Challenges/Cook-offs**: With voting ✨ NEW
+- **Generation-Based Access**: Kids view, adults edit ✨ NEW
 
-#### 8. **Quality of Life Improvements**
-- Offline mode with sync for cooking without internet
-- Widget/shortcuts for frequently used recipes
-- Quick actions (double recipe, halve recipe, metric conversion)
-- Recipe card templates for physical printing
-- QR codes for sharing at family gatherings
+#### Phase 9: Polish & Launch Prep (Enhanced)
+- **Offline Mode**: With sync capability ✨ NEW
+- **Widget/Shortcuts**: For frequently used recipes ✨ NEW
+- **Recipe Migration Tools**: From other platforms ✨ NEW
 
-#### 9. **Analytics & Insights**
-- Family cooking trends over time
-- Most cooked recipes by season
-- Ingredient usage patterns
-- Recipe popularity across family members
-- Cooking frequency tracking
+#### Phase 10: Analytics & Advanced Features ✨ NEW PHASE
+- **Auto-Generated Nutrition Analysis**
+  - Real-time calculation with USDA database
+  - Visual charts and nutrition labels
+  - Allergen detection
+- **Analytics & Insights**
+  - Family cooking trends
+  - Seasonal patterns
+  - Ingredient usage
+  - Recipe popularity
+- **Recipe Discovery**
+  - "Recipe of the day"
+  - Recipe DNA - trace origins
+  - Cultural/regional mapping
+- **Interactive Cooking Experience**
+  - Step-by-step video clips
+  - Technique tutorials
+  - Temperature/doneness guides
 
-#### 10. **Preservation & Legacy Features**
-- Annual family cookbook generation with stories
-- Recipe time capsules (unlock on specific dates)
-- Memorial recipes (preserve recipes from departed loved ones)
-- Recipe migration tools for switching platforms
-- Blockchain-based recipe authenticity certificates
+#### Phase 11: Legacy & Preservation ✨ NEW PHASE
+- **Annual Family Cookbook Generation**: With stories
+- **Recipe Time Capsules**: Unlock on specific dates
+- **Recipe Inheritance Planning**: Designate recipe heirs
+- **Blockchain Recipe Certificates**: Authenticity verification
+- **WhatsApp/SMS Integration**: Receive recipes from family
+- **Import from Recipe Apps**: MyFitnessPal, Paprika, etc.
 
 ## Overview
 This roadmap outlines the development phases for the Recipe Inheritance Keeper MVP, organized to build features incrementally with proper testing and QA at each stage.
@@ -572,6 +581,80 @@ This roadmap outlines the development phases for the Recipe Inheritance Keeper M
 - [ ] Create backup procedures
 - [ ] Plan rollback strategy
 - [ ] Prepare launch announcement
+
+### Project Rebranding
+- [ ] Choose new project name from candidates
+- [ ] Update all references to "Recipe Keeper" throughout codebase
+- [ ] Design new logo and brand identity
+- [ ] Update marketing materials and documentation
+- [ ] Register new domain name
+- [ ] Update environment variables and configuration
+- [ ] Create redirect from old URLs if applicable
+
+#### Name Candidates:
+
+**✅ AVAILABLE NAMES (No existing recipe apps found):**
+
+**Family-Focused Names:**
+- **FamilyTable** ✅ - Where families gather and share
+- **TasteLegacy** ✅ - Emphasizes both food and heritage  
+- **KitchenMemories** ✅ - Nostalgic and warm
+- **RecipeRoots** ✅ - Family tree meets recipes
+- **FlavorRoots** ✅ - Heritage and origin focus
+- **CulinaryChronicles** ✅ - Story-driven heritage
+- **GenerationCook** ✅ - Multi-generational cooking
+- **InheritedFlavors** ✅ - Passed down through family
+- **FamilyPantry** ✅ - Shared family resource
+- **RecipeLineage** ✅ - Family tree of recipes
+
+**Modern & Tech-Savvy Names:**
+- **RecipeVault** ✅ - Secure storage connotation
+- **FlavorKeep** ✅ - Modern take on preservation
+- **CookCloud** ✅ - Cloud storage for recipes
+- **RecipeFlow** ✅ - Suggests smooth workflow
+- **KitchenSync** ✅ - Play on "in sync" for family sharing
+- **TasteVault** ✅ - Security meets flavor
+- **RecipeSphere** ✅ - Global/complete collection
+- **CookKeeper** ✅ - Simple and clear purpose
+- **FlavorBank** ✅ - Store your valuable recipes
+- **RecipeNest** ✅ - Home for all recipes
+
+**Preservation-Focused Names:**
+- **TasteTreasury** ✅ - Repository of culinary wealth
+- **RecipeGuardian** ✅ - Protector of family recipes
+- **CulinaryArchives** ✅ - Professional preservation
+- **FlavorHeritage** ✅ - Taste meets tradition
+- **RecipeLegacy** ✅ - Clear inheritance theme
+- **PreservedPlates** ✅ - Saved dishes
+- **TimelessTastes** ✅ - Recipes that endure
+- **RecipeChest** ✅ - Treasure chest metaphor
+- **MemoryMeals** ✅ - Food with memories
+- **HeritageHearth** ✅ - Traditional cooking center
+
+**Warm & Inviting Names:**
+- **GatherTable** ✅ - Community and food
+- **KitchenHeart** ✅ - Center of the home
+- **RecipeWarmth** ✅ - Cozy cooking
+- **FlavorfulMemories** ✅ - Taste and nostalgia
+- **HomeCookbook** ✅ - Personal collection
+- **SavorTogether** ✅ - Shared experiences
+- **KitchenTales** ✅ - Stories from cooking
+- **RecipeHearth** ✅ - Warm gathering place
+- **TasteOfHome** ✅ - Familiar flavors (note: similar to existing Taste of Home magazine)
+- **CozyCookbook** ✅ - Comfortable and inviting
+
+**❌ TAKEN NAMES (Existing recipe apps found):**
+- **Heirloom** ❌ - Community recipe app (heirloomreci.pe)
+- **Dishcover** ❌ - AR food tour app (different focus but same name)
+- **Heritage Kitchen** ❌ - Related to existing "Kitchen Stories" app
+- **RecipeHaven** ❌ - Flutter-based recipe discovery app
+
+**Top Recommendations Based on Availability:**
+1. **TasteLegacy** - Perfect blend of food and heritage, completely unique
+2. **FamilyTable** - Clear, warm, and inviting with no conflicts
+3. **RecipeVault** - Modern, secure feeling, memorable
+4. **FlavorHeritage** - Sophisticated and meaningful
+5. **KitchenMemories** - Emotional connection, nostalgic appeal
 
 ## Post-Launch Enhancements (Future)
 
