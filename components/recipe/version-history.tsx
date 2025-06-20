@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
 import { Clock, RotateCcw, Eye, GitBranch } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Card,
   CardContent,
@@ -95,9 +96,9 @@ export function VersionHistory({ recipeId, currentVersion = 1 }: VersionHistoryP
     }
   }
 
-  const handleViewVersion = (version: RecipeVersion) => {
-    // Open version viewer (to be implemented)
-    window.open(`/protected/recipes/${recipeId}/versions/${version.versionNumber}`, '_blank')
+  const handleViewComparison = (version: RecipeVersion) => {
+    // Open version comparison with current version
+    window.open(`/protected/recipes/${recipeId}/versions/compare?v1=${currentVersion}&v2=${version.versionNumber}`, '_blank')
   }
 
   if (loading) {
@@ -112,17 +113,27 @@ export function VersionHistory({ recipeId, currentVersion = 1 }: VersionHistoryP
             Track all changes made to this recipe over time
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center py-8 text-muted-foreground">
-            <div className="text-center">
-              <div className="mb-2">Loading version history...</div>
-              <div className="animate-pulse flex justify-center gap-1">
-                <div className="h-1 w-1 bg-current rounded-full"></div>
-                <div className="h-1 w-1 bg-current rounded-full animation-delay-200"></div>
-                <div className="h-1 w-1 bg-current rounded-full animation-delay-400"></div>
+        <CardContent className="space-y-3">
+          {/* Skeleton for version items */}
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex items-start justify-between py-3 border-b last:border-0">
+              <div className="space-y-2 flex-1">
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-6 w-16" /> {/* Version number */}
+                  <Skeleton className="h-5 w-20" /> {/* Badge */}
+                </div>
+                <Skeleton className="h-4 w-3/4" /> {/* Change summary */}
+                <div className="flex items-center gap-4">
+                  <Skeleton className="h-3 w-32" /> {/* Date */}
+                  <Skeleton className="h-3 w-24" /> {/* User */}
+                </div>
+              </div>
+              <div className="flex gap-2 ml-4">
+                <Skeleton className="h-9 w-20" /> {/* View button */}
+                <Skeleton className="h-9 w-24" /> {/* Restore button */}
               </div>
             </div>
-          </div>
+          ))}
         </CardContent>
       </Card>
     )
@@ -157,8 +168,10 @@ export function VersionHistory({ recipeId, currentVersion = 1 }: VersionHistoryP
 
   const VersionItem = ({ version }: { version: RecipeVersion }) => (
     <div 
-      className="flex items-start justify-between p-4 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer"
-      onClick={() => handleViewVersion(version)}
+      className={`flex items-start justify-between p-4 rounded-lg border transition-colors ${
+        version.versionNumber !== currentVersion ? 'hover:bg-muted/50 cursor-pointer' : 'cursor-default'
+      }`}
+      onClick={() => version.versionNumber !== currentVersion && handleViewComparison(version)}
     >
       <div className="flex-1">
         <div className="flex items-center gap-2 mb-2">
@@ -180,30 +193,32 @@ export function VersionHistory({ recipeId, currentVersion = 1 }: VersionHistoryP
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={(e) => {
-            e.stopPropagation()
-            handleViewVersion(version)
-          }}
-          title="View version"
-        >
-          <Eye className="h-4 w-4" />
-        </Button>
         {version.versionNumber !== currentVersion && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation()
-              setSelectedVersion(version)
-              setShowRestoreDialog(true)
-            }}
-            title="Restore this version"
-          >
-            <RotateCcw className="h-4 w-4" />
-          </Button>
+          <>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation()
+                handleViewComparison(version)
+              }}
+              title="Compare with current version"
+            >
+              <Eye className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation()
+                setSelectedVersion(version)
+                setShowRestoreDialog(true)
+              }}
+              title="Restore this version"
+            >
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+          </>
         )}
       </div>
     </div>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { format } from 'date-fns'
-import { ArrowRight, Plus, Minus } from 'lucide-react'
+import { ArrowRight, Plus, Minus, Eye, RotateCcw } from 'lucide-react'
 import {
   Card,
   CardContent,
@@ -11,9 +11,20 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useToast } from '@/hooks/use-toast'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import type { RecipeVersion } from '@/lib/db/schema'
 
 interface VersionDiffViewerProps {
@@ -41,6 +52,9 @@ export function VersionDiffViewer({
 }: VersionDiffViewerProps) {
   const [comparison, setComparison] = useState<ComparisonData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [showRestoreDialog, setShowRestoreDialog] = useState(false)
+  const [restoring, setRestoring] = useState(false)
+  const { toast } = useToast()
 
   const fetchComparison = useCallback(async () => {
     try {
@@ -60,6 +74,40 @@ export function VersionDiffViewer({
   useEffect(() => {
     fetchComparison()
   }, [fetchComparison])
+
+  const handleViewVersion = (versionNumber: number) => {
+    window.open(`/protected/recipes/${recipeId}/versions/${versionNumber}`, '_blank')
+  }
+
+  const handleRestore = async (versionNumber: number) => {
+    setRestoring(true)
+    try {
+      const response = await fetch(
+        `/api/recipes/${recipeId}/versions/${versionNumber}/restore`,
+        { method: 'POST' }
+      )
+
+      if (!response.ok) throw new Error('Failed to restore version')
+
+      toast({
+        title: 'Success',
+        description: `Recipe restored to version ${versionNumber}`,
+      })
+
+      // Refresh the page to show updated recipe
+      window.location.reload()
+    } catch (error) {
+      console.error('Error restoring version:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to restore version',
+        variant: 'destructive',
+      })
+    } finally {
+      setRestoring(false)
+      setShowRestoreDialog(false)
+    }
+  }
 
 
   const renderFieldDiff = (diff: Difference) => {
@@ -156,7 +204,45 @@ export function VersionDiffViewer({
   }
 
   if (loading) {
-    return <div className="text-center py-8">Loading comparison...</div>
+    return (
+      <Card>
+        <CardHeader>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-8 w-32" />
+              <Skeleton className="h-6 w-16" />
+              <ArrowRight className="h-4 w-4 text-muted-foreground" />
+              <Skeleton className="h-6 w-16" />
+            </div>
+            <Skeleton className="h-4 w-96" />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4 mb-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-48" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-48" />
+              </div>
+            </div>
+          </div>
+          <Separator className="my-6" />
+          <div className="space-y-4">
+            <Skeleton className="h-10 w-full" />
+            <div className="grid grid-cols-2 gap-4">
+              <Skeleton className="h-32 w-full" />
+              <Skeleton className="h-32 w-full" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
   if (!comparison || !comparison.version1 || !comparison.version2) {
@@ -166,17 +252,44 @@ export function VersionDiffViewer({
   const { version1, version2, differences } = comparison
 
   return (
+    <>
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          Version Comparison
-          <Badge variant="outline">{version1Number === -1 ? 'Current' : `v${version1.versionNumber}`}</Badge>
-          <ArrowRight className="h-4 w-4" />
-          <Badge variant="outline">{version2Number === -1 ? 'Current' : `v${version2.versionNumber}`}</Badge>
-        </CardTitle>
-        <CardDescription>
-          Comparing changes between {version1Number === -1 ? 'current version' : `version ${version1.versionNumber}`} and {version2Number === -1 ? 'current version' : `version ${version2.versionNumber}`}
-        </CardDescription>
+        <div className="flex items-start justify-between">
+          <div className="space-y-1">
+            <CardTitle className="flex items-center gap-2">
+              Version Comparison
+              <Badge variant="outline">{version1Number === -1 ? 'Current' : `v${version1.versionNumber}`}</Badge>
+              <ArrowRight className="h-4 w-4" />
+              <Badge variant="outline">{version2Number === -1 ? 'Current' : `v${version2.versionNumber}`}</Badge>
+            </CardTitle>
+            <CardDescription>
+              Comparing changes between {version1Number === -1 ? 'current version' : `version ${version1.versionNumber}`} and {version2Number === -1 ? 'current version' : `version ${version2.versionNumber}`}
+            </CardDescription>
+          </div>
+          <div className="flex gap-2">
+            {version2Number !== -1 && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleViewVersion(version2Number)}
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  View Version {version2.versionNumber}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowRestoreDialog(true)}
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Restore to v{version2.versionNumber}
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4 mb-6">
@@ -240,6 +353,39 @@ export function VersionDiffViewer({
         )}
       </CardContent>
     </Card>
+
+    <Dialog open={showRestoreDialog} onOpenChange={setShowRestoreDialog}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Restore Recipe Version</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to restore this recipe to version {version2?.versionNumber}? This will create a new version with the contents from the selected version.
+          </DialogDescription>
+        </DialogHeader>
+        {version2 && (
+          <div className="py-4">
+            <div className="rounded-lg border p-4 bg-muted/50">
+              <p className="text-sm font-medium mb-1">Version {version2.versionNumber}</p>
+              <p className="text-sm text-muted-foreground">
+                {version2.changeSummary || 'Recipe updated'}
+              </p>
+              <p className="text-xs text-muted-foreground mt-2">
+                {format(new Date(version2.changedAt), 'MMMM d, yyyy h:mm a')}
+              </p>
+            </div>
+          </div>
+        )}
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setShowRestoreDialog(false)}>
+            Cancel
+          </Button>
+          <Button onClick={() => version2 && handleRestore(version2.versionNumber)} disabled={restoring}>
+            {restoring ? 'Restoring...' : 'Restore Version'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   )
 }
 
