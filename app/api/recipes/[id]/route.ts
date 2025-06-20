@@ -97,10 +97,6 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       }
     }
 
-    // Check for tag changes
-    if (body.tags !== undefined) {
-      changes.push('tags')
-    }
 
     // Create a descriptive change summary
     if (changes.length > 0) {

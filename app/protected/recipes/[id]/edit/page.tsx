@@ -68,8 +68,6 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
   const [sourceNotes, setSourceNotes] = useState('')
   const [ingredients, setIngredients] = useState<EditableIngredient[]>([])
   const [instructions, setInstructions] = useState<EditableInstruction[]>([])
-  const [tags, setTags] = useState<string[]>([])
-  const [tagInput, setTagInput] = useState('')
 
   useEffect(() => {
     fetchRecipe()
@@ -109,7 +107,6 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
         instruction: inst.instruction,
         stepNumber: inst.stepNumber
       })))
-      setTags(data.tags)
     } catch (error) {
       console.error('Error fetching recipe:', error)
     } finally {
@@ -136,7 +133,6 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
       instruction: inst.instruction,
       stepNumber: inst.stepNumber
     })))
-    setTags(updatedData.tags || [])
     
     // Auto-save after voice update
     await handleSave(updatedData)
@@ -166,7 +162,6 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
           instruction: inst.instruction,
           stepNumber: index + 1
         })),
-        tags
       }
       
       const response = await fetch(`/api/recipes/${id}`, {
@@ -253,16 +248,6 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
     setInstructions(updated)
   }
 
-  const addTag = () => {
-    if (tagInput.trim() && !tags.includes(tagInput.trim())) {
-      setTags([...tags, tagInput.trim()])
-      setTagInput('')
-    }
-  }
-
-  const removeTag = (tag: string) => {
-    setTags(tags.filter(t => t !== tag))
-  }
 
   if (isLoading) {
     return (
@@ -506,46 +491,6 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
         </CardContent>
       </Card>
 
-      {/* Tags */}
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>Tags</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-2">
-            <Input
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-              placeholder="Add a tag"
-              className="flex-1"
-            />
-            <Button onClick={addTag} variant="outline">
-              <Plus className="mr-2 h-4 w-4" />
-              Add
-            </Button>
-          </div>
-          {tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary"
-                >
-                  {tag}
-                  <button
-                    onClick={() => removeTag(tag)}
-                    className="ml-1 hover:text-primary/70"
-                    aria-label={`Remove ${tag} tag`}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </button>
-                </span>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       {/* Delete Button */}
       <div className="mt-8">

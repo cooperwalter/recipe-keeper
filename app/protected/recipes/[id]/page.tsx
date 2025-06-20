@@ -252,18 +252,6 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
             </div>
           </div>
 
-          {recipe.tags.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-2 recipe-tags">
-              {recipe.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
           
           {recipe.badges && recipe.badges.length > 0 && (
             <div className="mt-3">

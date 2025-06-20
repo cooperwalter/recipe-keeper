@@ -117,18 +117,6 @@ export function BasicInfoStep() {
         </Select>
       </div>
 
-      <div>
-        <Label htmlFor="tags">Tags</Label>
-        <Input
-          id="tags"
-          value={formData.tags.join(', ')}
-          onChange={(e) => updateFormData({ 
-            tags: e.target.value.split(',').map(tag => tag.trim()).filter(Boolean) 
-          })}
-          placeholder="e.g., quick, easy, vegetarian (comma-separated)"
-          className="mt-1"
-        />
-      </div>
 
       <div>
         <Label htmlFor="sourceName">Recipe Source</Label>
