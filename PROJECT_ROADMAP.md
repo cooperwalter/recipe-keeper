@@ -383,8 +383,13 @@ This roadmap outlines the development phases for the Recipe Inheritance Keeper M
 
 ### Cooking Mode
 - [ ] Design distraction-free UI
-- [ ] Implement wake lock (prevent sleep)
-- [ ] Add "Keep Screen On" toggle functionality
+- [ ] Implement Screen Wake Lock API
+  - [ ] Add "Keep Screen On" toggle in cooking mode
+  - [ ] Request wake lock when entering cooking mode
+  - [ ] Release wake lock when exiting cooking mode
+  - [ ] Add fallback for browsers without Wake Lock API
+  - [ ] Show indicator when screen lock is active
+  - [ ] Add user preference to remember setting
 - [ ] Add voice navigation (future)
 - [ ] Create step-by-step view
 - [ ] Add timer integration

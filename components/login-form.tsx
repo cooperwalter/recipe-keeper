@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { ButtonLoading } from "@/components/ui/loading-states";
 import {
   Card,
   CardContent,
@@ -122,7 +123,9 @@ export function LoginForm({
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Logging in..." : "Login"}
+                <ButtonLoading isLoading={isLoading} loadingText="Logging in...">
+                  Login
+                </ButtonLoading>
               </Button>
             </div>
             <div className="mt-4 text-center text-sm">

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { ButtonLoading } from '@/components/ui/loading-states'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -217,14 +218,9 @@ export default function UrlRecipePage() {
                 onClick={handleExtract} 
                 disabled={isExtracting || !url.trim()}
               >
-                {isExtracting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Extracting...
-                  </>
-                ) : (
-                  'Extract Recipe'
-                )}
+                <ButtonLoading isLoading={isExtracting} loadingText="Extracting recipe">
+                  Extract Recipe
+                </ButtonLoading>
               </Button>
             </div>
 
@@ -494,17 +490,12 @@ export default function UrlRecipePage() {
                 disabled={isSaving || !editedRecipe.title || editedRecipe.ingredients.length === 0}
                 className="flex-1"
               >
-                {isSaving ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
+                <ButtonLoading isLoading={isSaving} loadingText="Saving recipe">
                   <>
                     <Check className="mr-2 h-4 w-4" />
                     Save Recipe
                   </>
-                )}
+                </ButtonLoading>
               </Button>
               <Button
                 variant="outline"
