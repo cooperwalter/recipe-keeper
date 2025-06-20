@@ -33,6 +33,7 @@ export const recipes = pgTable('recipes', {
   version: integer('version').default(1),
   parentRecipeId: uuid('parent_recipe_id'), // for versioning - self reference added via relations
   ingredientAdjustments: jsonb('ingredient_adjustments'), // stores custom adjustments per ingredient
+  badges: text('badges').array(), // dietary badges like vegan, gluten-free, etc
 }, (table) => {
   return {
     createdByIdx: index('idx_recipes_created_by').on(table.createdBy),
