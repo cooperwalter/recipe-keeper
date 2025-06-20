@@ -59,6 +59,9 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
   const updateIngredient = useUpdateIngredient()
   const updateAdjustments = useUpdateAdjustments()
   
+  // Local state for optimistic favorite updates
+  const [optimisticFavorite, setOptimisticFavorite] = useState<boolean | null>(null)
+  
   // Local state for adjustments to show immediately in UI
   const [localAdjustments, setLocalAdjustments] = useState<Record<string, number>>({})
   
@@ -90,9 +93,19 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
 
   const handleToggleFavorite = () => {
     if (recipe) {
+      // Set optimistic state immediately
+      setOptimisticFavorite(!displayedFavorite)
       toggleFavorite.mutate(recipe.id)
     }
   }
+  
+  // Determine the displayed favorite state
+  const displayedFavorite = optimisticFavorite !== null ? optimisticFavorite : recipe?.isFavorite || false
+  
+  // Reset optimistic state when the actual data changes
+  useEffect(() => {
+    setOptimisticFavorite(null)
+  }, [recipe?.isFavorite])
 
   const handlePrint = () => {
     window.print()
@@ -143,7 +156,7 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
     <>
       <article className="container mx-auto pt-0 pb-8 px-4">
         {/* Back to Recipes Button */}
-        <div className="mb-8 print:hidden">
+        <div className="mb-4 sm:mb-6 print:hidden">
           <Link href="/protected/recipes">
             <Button variant="ghost" size="sm">
               <ChevronLeft className="h-4 w-4 mr-1" />
@@ -152,7 +165,7 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
           </Link>
         </div>
         {/* Header */}
-        <div className="mb-8 recipe-header">
+        <div className="mb-6 sm:mb-8 recipe-header">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
             <div className="flex items-center gap-2">
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">{recipe.title}</h1>
@@ -162,34 +175,23 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
                     variant="ghost"
                     size="icon"
                     onClick={handleToggleFavorite}
-                    disabled={toggleFavorite.isPending}
-                    aria-label={recipe.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                    aria-label={displayedFavorite ? 'Remove from favorites' : 'Add to favorites'}
                     className="h-8 w-8 print:hidden [&_svg]:size-5"
                   >
                     <Heart
                       className={cn(
                         'h-5 w-5',
-                        recipe.isFavorite && 'fill-current text-red-500'
+                        displayedFavorite && 'fill-current text-red-500'
                       )}
                     />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{recipe.isFavorite ? 'Remove from your favorites' : 'Add to your favorites for quick access'}</p>
+                  <p>{displayedFavorite ? 'Remove from your favorites' : 'Add to your favorites for quick access'}</p>
                 </TooltipContent>
               </Tooltip>
             </div>
             <div className="grid grid-cols-3 sm:flex sm:flex-nowrap gap-2 print:hidden">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handlePrint} 
-                aria-label="Print recipe"
-                className="w-full sm:w-auto"
-              >
-                <Printer className="h-4 w-4 mr-1" />
-                Print
-              </Button>
               <div className="w-full sm:w-auto">
                 <VoiceRecipeChat recipe={recipe} />
               </div>
@@ -204,6 +206,16 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
                   Edit
                 </Button>
               </Link>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handlePrint} 
+                aria-label="Print recipe"
+                className="w-full sm:w-auto"
+              >
+                <Printer className="h-4 w-4 mr-1" />
+                Print
+              </Button>
             </div>
           </div>
 
@@ -494,7 +506,7 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
 
 function RecipeDetailSkeleton() {
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="container mx-auto pt-0 pb-8 px-4">
       <Skeleton className="h-10 w-3/4 mb-4" />
       <Skeleton className="h-6 w-full max-w-2xl mb-4" />
       <div className="flex gap-4 mb-8">
