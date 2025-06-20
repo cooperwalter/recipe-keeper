@@ -14,6 +14,7 @@ export interface Recipe {
   version: number
   parentRecipeId?: string
   ingredientAdjustments?: Record<string, number>
+  badges?: string[]
 }
 
 export interface Ingredient {
