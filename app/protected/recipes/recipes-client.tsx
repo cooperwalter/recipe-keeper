@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { Plus, Search, X, Grid, List, Heart } from 'lucide-react'
+import { Plus, Search, X, Grid, List } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useRecipes, useCategories, useToggleFavorite } from '@/lib/hooks/use-recipes'
@@ -123,9 +123,13 @@ export default function RecipesPageContent({ initialSearchParams }: RecipesPageC
   const totalPages = Math.ceil((recipesData?.total || 0) / ITEMS_PER_PAGE)
   
   // Sort recipes to show favorites first
-  const favorited = recipes.filter(r => r.isFavorite)
-  const nonFavorited = recipes.filter(r => !r.isFavorite)
-  const sortedRecipes = { favorited, nonFavorited, all: [...favorited, ...nonFavorited] }
+  const sortedRecipes = [...recipes].sort((a, b) => {
+    // Favorites always come first
+    if (a.isFavorite && !b.isFavorite) return -1
+    if (!a.isFavorite && b.isFavorite) return 1
+    // Within favorites and non-favorites, maintain original order
+    return 0
+  })
 
   const isSearching = searchQuery !== debouncedSearchQuery
 
@@ -194,75 +198,27 @@ export default function RecipesPageContent({ initialSearchParams }: RecipesPageC
       </div>
 
       {viewMode === 'grid' ? (
-        <div>
-          {sortedRecipes.favorited.length > 0 && (
-            <>
-              <div className="flex items-center gap-2 mb-4">
-                <Heart className="h-4 w-4 fill-red-500 text-red-500" />
-                <h2 className="text-lg font-semibold">Favorites</h2>
-                <span className="text-sm text-muted-foreground">({sortedRecipes.favorited.length})</span>
-              </div>
-              <RecipeGrid
-                recipes={sortedRecipes.favorited}
-                isLoading={isLoadingRecipes}
-                onToggleFavorite={handleToggleFavorite}
-                emptyMessage=""
-              />
-              {sortedRecipes.nonFavorited.length > 0 && (
-                <div className="mt-8 mb-4 border-t pt-8">
-                  <h2 className="text-lg font-semibold mb-4">All Recipes</h2>
-                </div>
-              )}
-            </>
-          )}
-          {(sortedRecipes.favorited.length === 0 || sortedRecipes.nonFavorited.length > 0) && (
-            <RecipeGrid
-              recipes={sortedRecipes.favorited.length > 0 ? sortedRecipes.nonFavorited : sortedRecipes.all}
-              isLoading={isLoadingRecipes && sortedRecipes.favorited.length === 0}
-              onToggleFavorite={handleToggleFavorite}
-              emptyMessage={
-                searchQuery || selectedCategory !== 'all'
-                  ? 'No recipes found matching your criteria'
-                  : 'No recipes yet'
-              }
-            />
-          )}
-        </div>
+        <RecipeGrid
+          recipes={sortedRecipes}
+          isLoading={isLoadingRecipes}
+          onToggleFavorite={handleToggleFavorite}
+          emptyMessage={
+            searchQuery || selectedCategory !== 'all'
+              ? 'No recipes found matching your criteria'
+              : 'No recipes yet'
+          }
+        />
       ) : (
-        <div>
-          {sortedRecipes.favorited.length > 0 && (
-            <>
-              <div className="flex items-center gap-2 mb-4">
-                <Heart className="h-4 w-4 fill-red-500 text-red-500" />
-                <h2 className="text-lg font-semibold">Favorites</h2>
-                <span className="text-sm text-muted-foreground">({sortedRecipes.favorited.length})</span>
-              </div>
-              <RecipeList
-                recipes={sortedRecipes.favorited}
-                isLoading={isLoadingRecipes}
-                onToggleFavorite={handleToggleFavorite}
-                emptyMessage=""
-              />
-              {sortedRecipes.nonFavorited.length > 0 && (
-                <div className="mt-8 mb-4 border-t pt-8">
-                  <h2 className="text-lg font-semibold mb-4">All Recipes</h2>
-                </div>
-              )}
-            </>
-          )}
-          {(sortedRecipes.favorited.length === 0 || sortedRecipes.nonFavorited.length > 0) && (
-            <RecipeList
-              recipes={sortedRecipes.favorited.length > 0 ? sortedRecipes.nonFavorited : sortedRecipes.all}
-              isLoading={isLoadingRecipes && sortedRecipes.favorited.length === 0}
-              onToggleFavorite={handleToggleFavorite}
-              emptyMessage={
-                searchQuery || selectedCategory !== 'all'
-                  ? 'No recipes found matching your criteria'
-                  : 'No recipes yet'
-              }
-            />
-          )}
-        </div>
+        <RecipeList
+          recipes={sortedRecipes}
+          isLoading={isLoadingRecipes}
+          onToggleFavorite={handleToggleFavorite}
+          emptyMessage={
+            searchQuery || selectedCategory !== 'all'
+              ? 'No recipes found matching your criteria'
+              : 'No recipes yet'
+          }
+        />
       )}
 
       <RecipePagination

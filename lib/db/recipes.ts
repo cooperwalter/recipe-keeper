@@ -2,13 +2,15 @@ import { eq, and, or, ilike, desc, asc, sql, inArray } from 'drizzle-orm';
 import { db, recipes, recipePhotos, favorites, recipeCategories, recipeCategoryMappings, ingredients, instructions, recipeTags, recipeVersions } from '@/lib/db';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { fractionToDecimal } from '@/lib/utils/fractions';
+import { detectRecipeBadges } from '@/lib/utils/recipe-badges';
 import type { 
   RecipeWithRelations, 
   RecipeSearchParams, 
   RecipeListResponse,
   Recipe,
   RecipePhoto,
-  CreateRecipeInput
+  CreateRecipeInput,
+  Ingredient
 } from '@/lib/types/recipe';
 import type { RecipeVersion } from '@/lib/db/schema';
 
@@ -39,7 +41,7 @@ export class RecipeService {
     // Start a transaction
     const { ingredients: ingredientsList, instructions: instructionsList, categoryId, tags, ...recipeData } = input;
     
-    // Create the recipe
+    // Create the recipe (without badges initially)
     const [recipe] = await db
       .insert(recipes)
       .values({
@@ -117,6 +119,39 @@ export class RecipeService {
       await db.insert(recipeTags).values(tagRecords);
     }
 
+    // Detect badges based on ingredients
+    let detectedBadges: string[] = [];
+    if (ingredientsList && ingredientsList.length > 0) {
+      // Get the inserted ingredients to analyze
+      const recipeIngredients = await db
+        .select()
+        .from(ingredients)
+        .where(eq(ingredients.recipeId, recipe.id));
+      
+      // Convert to Ingredient type for badge detection
+      const ingredientsForBadges: Ingredient[] = recipeIngredients.map(ing => ({
+        id: ing.id,
+        recipeId: ing.recipeId,
+        ingredient: ing.ingredient,
+        amount: ing.amount ? parseFloat(ing.amount) : undefined,
+        unit: ing.unit || undefined,
+        orderIndex: ing.orderIndex,
+        notes: ing.notes || undefined,
+        createdAt: ing.createdAt.toISOString()
+      }));
+      
+      // Detect badges
+      detectedBadges = detectRecipeBadges(ingredientsForBadges);
+      
+      // Update recipe with badges
+      if (detectedBadges.length > 0) {
+        await db
+          .update(recipes)
+          .set({ badges: detectedBadges })
+          .where(eq(recipes.id, recipe.id));
+      }
+    }
+
     return {
       ...recipe,
       description: recipe.description || undefined,
@@ -129,6 +164,7 @@ export class RecipeService {
       version: recipe.version || 1,
       parentRecipeId: recipe.parentRecipeId || undefined,
       ingredientAdjustments: recipe.ingredientAdjustments as Record<string, number> | undefined,
+      badges: detectedBadges.length > 0 ? detectedBadges : undefined,
       createdAt: recipe.createdAt.toISOString(),
       updatedAt: recipe.updatedAt.toISOString(),
     } as Recipe;
@@ -219,6 +255,7 @@ export class RecipeService {
       version: recipe.version || 1,
       parentRecipeId: recipe.parentRecipeId || undefined,
       ingredientAdjustments: recipe.ingredientAdjustments as Record<string, number> | undefined,
+      badges: recipe.badges || undefined,
       categories: categories.map(cat => ({
         id: cat.id,
         name: cat.name,
@@ -587,6 +624,7 @@ export class RecipeService {
         sourceNotes: recipe.sourceNotes || undefined,
         version: recipe.version || 1,
         parentRecipeId: recipe.parentRecipeId || undefined,
+        badges: recipe.badges || undefined,
         categories: recipeCategories.map(cat => ({
           id: cat.id,
           name: cat.name,
@@ -772,6 +810,31 @@ export class RecipeService {
         await db.insert(ingredients).values(ingredientRecords);
       }
     }
+    
+    // Re-detect badges after updating ingredients
+    const updatedIngredients = await db
+      .select()
+      .from(ingredients)
+      .where(eq(ingredients.recipeId, recipeId));
+    
+    const ingredientsForBadges: Ingredient[] = updatedIngredients.map(ing => ({
+      id: ing.id,
+      recipeId: ing.recipeId,
+      ingredient: ing.ingredient,
+      amount: ing.amount ? parseFloat(ing.amount) : undefined,
+      unit: ing.unit || undefined,
+      orderIndex: ing.orderIndex,
+      notes: ing.notes || undefined,
+      createdAt: ing.createdAt.toISOString()
+    }));
+    
+    const detectedBadges = detectRecipeBadges(ingredientsForBadges);
+    
+    // Update recipe with new badges
+    await db
+      .update(recipes)
+      .set({ badges: detectedBadges.length > 0 ? detectedBadges : null })
+      .where(eq(recipes.id, recipeId));
   }
 
   /**

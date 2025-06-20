@@ -8,6 +8,7 @@ import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { RecipePlaceholder } from '@/components/recipe/recipe-placeholder'
 import { usePrefetchRecipe } from '@/lib/hooks/use-recipes'
+import { RecipeBadges } from '@/components/recipe/recipe-badges'
 
 interface RecipeCardProps {
   recipe: RecipeWithRelations
@@ -75,6 +76,14 @@ export function RecipeCard({ recipe, onToggleFavorite, className }: RecipeCardPr
           )}
         </CardHeader>
         <CardContent className="pt-0 px-6 pb-4">
+          {recipe.badges && recipe.badges.length > 0 && (
+            <RecipeBadges 
+              badges={recipe.badges} 
+              size="sm" 
+              className="mb-3"
+              showTooltip={false}
+            />
+          )}
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             {totalTime > 0 && (
               <div className="flex items-center gap-1">
