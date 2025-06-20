@@ -49,8 +49,8 @@ export default function RecipesPageContent({ initialSearchParams }: RecipesPageC
   )
   const selectedCategory = searchParams.get('category') || initialSearchParams?.category || 'all'
   
-  // Debounce search query
-  const debouncedSearchQuery = useDebouncedValue(searchQuery, 300)
+  // Debounce search query - reduced from 300ms to 150ms for faster results
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 150)
   
   // Use React Query hooks - will use pre-fetched data on first render
   const { data: recipesData, isLoading: isLoadingRecipes } = useRecipes({
@@ -149,7 +149,7 @@ export default function RecipesPageContent({ initialSearchParams }: RecipesPageC
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            type="search"
+            type="text"
             placeholder="Search recipes..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -187,11 +187,19 @@ export default function RecipesPageContent({ initialSearchParams }: RecipesPageC
           </SelectContent>
         </Select>
         
-        <ToggleGroup type="single" value={viewMode} onValueChange={handleViewModeChange} className="justify-center">
-          <ToggleGroupItem value="grid" aria-label="Grid view">
+        <ToggleGroup type="single" value={viewMode} onValueChange={handleViewModeChange} className="flex">
+          <ToggleGroupItem 
+            value="grid" 
+            aria-label="Grid view"
+            className="px-3 py-1 data-[state=off]:bg-muted/50 rounded-l-md rounded-r-none border-r-0"
+          >
             <Grid className="h-4 w-4" />
           </ToggleGroupItem>
-          <ToggleGroupItem value="list" aria-label="List view">
+          <ToggleGroupItem 
+            value="list" 
+            aria-label="List view"
+            className="px-3 py-1 data-[state=off]:bg-muted/50 rounded-r-md rounded-l-none border-l-0"
+          >
             <List className="h-4 w-4" />
           </ToggleGroupItem>
         </ToggleGroup>
