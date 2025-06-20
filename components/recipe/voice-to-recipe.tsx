@@ -7,7 +7,7 @@ import { VoiceChangeReview } from './voice-change-review'
 import { VoiceWaveAnimation } from '@/components/ui/voice-wave-animation'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { Mic, MicOff, Loader2, ChevronRight } from 'lucide-react'
+import { Mic, MicOff, Loader2 } from 'lucide-react'
 import { RecipeWithRelations, Ingredient, Instruction } from '@/lib/types/recipe'
 
 // Type for Web Speech API's SpeechRecognition
@@ -63,7 +63,7 @@ interface VoiceToRecipeProps {
 
 interface RecipeChange {
   type: 'add' | 'remove' | 'modify'
-  field: 'title' | 'description' | 'ingredients' | 'instructions' | 'prepTime' | 'cookTime' | 'servings' | 'notes' | 'tags'
+  field: 'title' | 'description' | 'ingredients' | 'instructions' | 'prepTime' | 'cookTime' | 'servings' | 'sourceName' | 'sourceNotes' | 'tags' | 'categories' | 'isPublic' | 'badges'
   oldValue?: unknown
   newValue?: unknown
   details?: string
@@ -89,6 +89,8 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
   const analyserRef = useRef<AnalyserNode | null>(null)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const isRecordingRef = useRef<boolean>(false)
+  const processTranscriptRef = useRef<((text: string) => void) | null>(null)
 
   const startRecording = useCallback(async () => {
     try {
@@ -119,6 +121,7 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
         recognition.lang = 'en-US'
         
         recognition.onresult = (event: SpeechRecognitionEvent) => {
+          console.log('Speech recognition result:', event)
           let finalTranscript = ''
           let interimTranscript = ''
           
@@ -131,6 +134,8 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
             }
           }
           
+          console.log('Final transcript:', finalTranscript, 'Interim:', interimTranscript)
+          
           if (finalTranscript) {
             setTranscript(prev => prev + finalTranscript)
           }
@@ -141,6 +146,24 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
           console.error('Speech recognition error:', event.error)
           if (event.error === 'no-speech') {
             setError('No speech detected. Please try speaking again.')
+          } else if (event.error === 'not-allowed') {
+            setError('Microphone access denied. Please allow microphone access.')
+          } else if (event.error === 'network') {
+            setError('Network error. Please check your internet connection.')
+          } else {
+            setError(`Speech recognition error: ${event.error}`)
+          }
+        }
+        
+        recognition.onend = () => {
+          console.log('Speech recognition ended')
+          // If recognition ends unexpectedly while recording, restart it
+          if (isRecordingRef.current && recognitionRef.current) {
+            try {
+              recognition.start()
+            } catch (err) {
+              console.error('Error restarting recognition:', err)
+            }
           }
         }
         
@@ -176,6 +199,7 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
       }, 1000)
       
       setIsRecording(true)
+      isRecordingRef.current = true
     } catch (err) {
       console.error('Error starting recording:', err)
       setError('Failed to access microphone')
@@ -236,9 +260,29 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
     }
     
     setIsRecording(false)
+    isRecordingRef.current = false
     setAudioLevel(0)
+    
+    // Combine live transcript with main transcript
+    const finalTranscript = transcript + (liveTranscript ? ' ' + liveTranscript : '')
+    const trimmedTranscript = finalTranscript.trim()
+    
+    console.log('Final transcript:', trimmedTranscript)
+    setTranscript(trimmedTranscript)
     setLiveTranscript('')
-  }, [])
+    
+    // Automatically process the transcript if we have one
+    if (trimmedTranscript) {
+      console.log('Processing transcript:', trimmedTranscript)
+      setTimeout(() => {
+        processTranscriptRef.current?.(trimmedTranscript)
+      }, 500)
+    } else if (recordingTime > 0) {
+      // If we recorded something but got no transcript
+      console.log('No transcript detected after recording for', recordingTime, 'seconds')
+      setError('No speech was detected. Please try speaking more clearly.')
+    }
+  }, [transcript, liveTranscript, recordingTime])
 
   const processTranscript = useCallback(async (text: string) => {
     setError(null)
@@ -258,18 +302,41 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          transcript: text,
-          currentRecipe: recipe 
+          transcript: text
         }),
         signal: abortControllerRef.current.signal
       })
 
+      let data
+      const contentType = response.headers.get('content-type')
+      
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('Response is not JSON. Content-Type:', contentType)
+        console.error('Response status:', response.status, response.statusText)
+        throw new Error('Server returned an invalid response format')
+      }
+      
+      try {
+        data = await response.json()
+      } catch (jsonError) {
+        console.error('Failed to parse response as JSON:', jsonError)
+        console.error('Response headers:', response.headers)
+        throw new Error('Server returned an invalid response')
+      }
+      
       if (!response.ok) {
-        throw new Error('Failed to process voice command')
+        console.error('API error:', data)
+        throw new Error(data?.error || 'Failed to process voice command')
       }
 
-      const data = await response.json()
-      setChanges(data.changes || [])
+      console.log('Voice update response:', data)
+      
+      if (!data.changes || data.changes.length === 0) {
+        setError('I couldn\'t understand what changes you want to make. Please try speaking more clearly.')
+        return
+      }
+      
+      setChanges(data.changes)
       setShowReview(true)
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
@@ -277,12 +344,29 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
         return
       }
       console.error('Error processing voice command:', err)
-      setError('Failed to understand the command. Please try again.')
+      
+      // Provide more specific error messages
+      if (err instanceof Error) {
+        if (err.message.includes('Server returned an invalid response')) {
+          setError('The server encountered an error. Please check your internet connection and try again.')
+        } else if (err.message.includes('ANTHROPIC_API_KEY')) {
+          setError('Voice processing is not properly configured. Please contact support.')
+        } else {
+          setError(err.message || 'Failed to understand the command. Please try again.')
+        }
+      } else {
+        setError('Failed to understand the command. Please try again.')
+      }
     } finally {
       setIsProcessing(false)
       abortControllerRef.current = null
     }
   }, [recipe])
+
+  // Update the ref whenever processTranscript changes
+  useEffect(() => {
+    processTranscriptRef.current = processTranscript
+  }, [processTranscript])
 
   const applyChanges = async (approvedChanges: RecipeChange[]) => {
     setIsApplying(true)
@@ -299,9 +383,12 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
         servings: recipe.servings,
         sourceName: recipe.sourceName,
         sourceNotes: recipe.sourceNotes,
+        isPublic: recipe.isPublic || false,
+        badges: recipe.badges ? [...recipe.badges] : [],
         ingredients: [...recipe.ingredients],
         instructions: [...recipe.instructions],
-        tags: [...recipe.tags]
+        tags: [...recipe.tags],
+        categories: recipe.categories ? [...recipe.categories] : []
       }
 
       // Apply each change
@@ -309,6 +396,7 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
         switch (change.field) {
           case 'title':
           case 'description':
+          case 'sourceName':
             if (change.type === 'modify') {
               updatedData[change.field] = change.newValue as string
             }
@@ -319,6 +407,12 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
           case 'servings':
             if (change.type === 'modify') {
               updatedData[change.field] = parseInt(change.newValue as string) || 0
+            }
+            break
+            
+          case 'isPublic':
+            if (change.type === 'modify') {
+              updatedData.isPublic = change.newValue as boolean
             }
             break
 
@@ -386,10 +480,35 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
             }
             break
 
-          case 'notes':
+          case 'sourceNotes':
             if (change.type === 'modify') {
               updatedData.sourceNotes = change.newValue as string
             }
+            break
+            
+          case 'badges':
+            if (change.type === 'modify') {
+              updatedData.badges = Array.isArray(change.newValue) ? change.newValue as string[] : [change.newValue as string]
+            } else if (change.type === 'add') {
+              const newBadge = Array.isArray(change.newValue) ? (change.newValue as string[])[0] : change.newValue as string
+              if (!updatedData.badges) {
+                updatedData.badges = []
+              }
+              if (!updatedData.badges.includes(newBadge)) {
+                updatedData.badges.push(newBadge)
+              }
+            } else if (change.type === 'remove') {
+              if (updatedData.badges) {
+                const badgeToRemove = change.oldValue as string
+                updatedData.badges = updatedData.badges.filter(badge => badge !== badgeToRemove)
+              }
+            }
+            break
+            
+          case 'categories':
+            // Categories are more complex as they're objects with id, name, etc.
+            // For now, we'll just log a message as categories need special handling
+            console.log('Category changes need to be implemented with proper category lookup')
             break
         }
       }
@@ -459,11 +578,11 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
             className="gap-2"
           >
             <Mic className="h-4 w-4" />
-            Talk to Recipe
+            Speak to Edit
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>Use voice commands to quickly modify ingredients, instructions, and more</p>
+          <p>Use voice commands to quickly modify any part of your recipe</p>
         </TooltipContent>
       </Tooltip>
 
@@ -487,6 +606,9 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
                   <li>&quot;Change the baking time to 25 minutes&quot;</li>
                   <li>&quot;Remove the vanilla extract&quot;</li>
                   <li>&quot;Add a note about room temperature eggs&quot;</li>
+                  <li>&quot;Change the recipe source to Grandma Mary&quot;</li>
+                  <li>&quot;Make this recipe public&quot;</li>
+                  <li>&quot;Add vegan and gluten-free badges&quot;</li>
                 </ul>
 
                 {/* Recording Controls */}
@@ -530,15 +652,13 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
                   </Card>
                 )}
 
-                {/* Process Button */}
-                {transcript && !isRecording && !isProcessing && (
-                  <Button
-                    onClick={() => processTranscript(transcript)}
-                    className="w-full"
-                  >
-                    <ChevronRight className="mr-2 h-4 w-4" />
-                    Process Changes
-                  </Button>
+                {/* Auto-processing message */}
+                {transcript && !isRecording && !isProcessing && !showReview && (
+                  <Card className="p-4">
+                    <p className="text-sm text-muted-foreground text-center">
+                      Processing will start automatically...
+                    </p>
+                  </Card>
                 )}
 
                 {isProcessing && (

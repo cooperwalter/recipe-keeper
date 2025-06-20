@@ -111,13 +111,13 @@ describe('VoiceToRecipe', () => {
   it('renders talk to recipe button', () => {
     render(<VoiceToRecipe recipe={mockRecipe} onUpdate={mockOnUpdate} />)
     
-    expect(screen.getByRole('button', { name: /talk to recipe/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /speak to edit/i })).toBeInTheDocument()
   })
 
   it('opens dialog when button is clicked', async () => {
     render(<VoiceToRecipe recipe={mockRecipe} onUpdate={mockOnUpdate} />)
     
-    const button = screen.getByRole('button', { name: /talk to recipe/i })
+    const button = screen.getByRole('button', { name: /speak to edit/i })
     await userEvent.click(button)
     
     expect(screen.getByText('Talk to Your Recipe')).toBeInTheDocument()
@@ -127,7 +127,7 @@ describe('VoiceToRecipe', () => {
   it('shows example commands', async () => {
     render(<VoiceToRecipe recipe={mockRecipe} onUpdate={mockOnUpdate} />)
     
-    await userEvent.click(screen.getByRole('button', { name: /talk to recipe/i }))
+    await userEvent.click(screen.getByRole('button', { name: /speak to edit/i }))
     
     expect(screen.getByText(/Add more flour, about half a cup/)).toBeInTheDocument()
     expect(screen.getByText(/Change the baking time to 25 minutes/)).toBeInTheDocument()
@@ -148,12 +148,15 @@ describe('VoiceToRecipe', () => {
     
     ;(global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
+      headers: {
+        get: () => 'application/json'
+      },
       json: async () => ({ changes: mockChanges })
-    } as Response)
+    } as unknown as Response)
     
     render(<VoiceToRecipe recipe={mockRecipe} onUpdate={mockOnUpdate} />)
     
-    await userEvent.click(screen.getByRole('button', { name: /talk to recipe/i }))
+    await userEvent.click(screen.getByRole('button', { name: /speak to edit/i }))
     
     // Start recording
     const recordButton = screen.getByRole('button', { name: /start recording/i })
@@ -176,8 +179,10 @@ describe('VoiceToRecipe', () => {
     // Stop recording
     await userEvent.click(screen.getByRole('button', { name: /stop recording/i }))
     
-    // Click process button
-    await userEvent.click(screen.getByRole('button', { name: /process changes/i }))
+    // Wait for automatic processing
+    await waitFor(() => {
+      expect(screen.getByText(/Processing will start automatically/)).toBeInTheDocument()
+    })
     
     await waitFor(() => {
       expect(screen.getByTestId('voice-change-review')).toBeInTheDocument()
@@ -190,7 +195,7 @@ describe('VoiceToRecipe', () => {
     
     render(<VoiceToRecipe recipe={mockRecipe} onUpdate={mockOnUpdate} />)
     
-    await userEvent.click(screen.getByRole('button', { name: /talk to recipe/i }))
+    await userEvent.click(screen.getByRole('button', { name: /speak to edit/i }))
     
     // Set transcript directly for testing
     const recordButton = screen.getByRole('button', { name: /start recording/i })
@@ -210,10 +215,10 @@ describe('VoiceToRecipe', () => {
     })
     
     await userEvent.click(screen.getByRole('button', { name: /stop recording/i }))
-    await userEvent.click(screen.getByRole('button', { name: /process changes/i }))
     
+    // Wait for automatic processing and error
     await waitFor(() => {
-      expect(screen.getByText('Failed to understand the command. Please try again.')).toBeInTheDocument()
+      expect(screen.getByText('Network error')).toBeInTheDocument()
     })
   })
 
@@ -230,12 +235,15 @@ describe('VoiceToRecipe', () => {
     
     ;(global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
+      headers: {
+        get: () => 'application/json'
+      },
       json: async () => ({ changes: mockChanges })
-    } as Response)
+    } as unknown as Response)
     
     render(<VoiceToRecipe recipe={mockRecipe} onUpdate={mockOnUpdate} />)
     
-    await userEvent.click(screen.getByRole('button', { name: /talk to recipe/i }))
+    await userEvent.click(screen.getByRole('button', { name: /speak to edit/i }))
     
     // Start and simulate recording
     const recordButton = screen.getByRole('button', { name: /start recording/i })
@@ -255,7 +263,6 @@ describe('VoiceToRecipe', () => {
     })
     
     await userEvent.click(screen.getByRole('button', { name: /stop recording/i }))
-    await userEvent.click(screen.getByRole('button', { name: /process changes/i }))
     
     await waitFor(() => {
       expect(screen.getByTestId('voice-change-review')).toBeInTheDocument()
@@ -286,12 +293,15 @@ describe('VoiceToRecipe', () => {
     
     ;(global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
+      headers: {
+        get: () => 'application/json'
+      },
       json: async () => ({ changes: mockChanges })
-    } as Response)
+    } as unknown as Response)
     
     render(<VoiceToRecipe recipe={mockRecipe} onUpdate={mockOnUpdate} />)
     
-    await userEvent.click(screen.getByRole('button', { name: /talk to recipe/i }))
+    await userEvent.click(screen.getByRole('button', { name: /speak to edit/i }))
     
     // Simulate recording
     const recordButton = screen.getByRole('button', { name: /start recording/i })
@@ -311,7 +321,6 @@ describe('VoiceToRecipe', () => {
     })
     
     await userEvent.click(screen.getByRole('button', { name: /stop recording/i }))
-    await userEvent.click(screen.getByRole('button', { name: /process changes/i }))
     
     await waitFor(() => {
       expect(screen.getByTestId('voice-change-review')).toBeInTheDocument()
@@ -337,12 +346,15 @@ describe('VoiceToRecipe', () => {
     
     ;(global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
+      headers: {
+        get: () => 'application/json'
+      },
       json: async () => ({ changes: mockChanges })
-    } as Response)
+    } as unknown as Response)
     
     render(<VoiceToRecipe recipe={mockRecipe} onUpdate={mockOnUpdate} />)
     
-    await userEvent.click(screen.getByRole('button', { name: /talk to recipe/i }))
+    await userEvent.click(screen.getByRole('button', { name: /speak to edit/i }))
     
     const recordButton = screen.getByRole('button', { name: /start recording/i })
     await userEvent.click(recordButton)
@@ -361,7 +373,6 @@ describe('VoiceToRecipe', () => {
     })
     
     await userEvent.click(screen.getByRole('button', { name: /stop recording/i }))
-    await userEvent.click(screen.getByRole('button', { name: /process changes/i }))
     
     await waitFor(() => {
       expect(screen.getByTestId('voice-change-review')).toBeInTheDocument()
@@ -389,12 +400,15 @@ describe('VoiceToRecipe', () => {
     
     ;(global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
+      headers: {
+        get: () => 'application/json'
+      },
       json: async () => ({ changes: mockChanges })
-    } as Response)
+    } as unknown as Response)
     
     render(<VoiceToRecipe recipe={mockRecipe} onUpdate={mockOnUpdate} />)
     
-    await userEvent.click(screen.getByRole('button', { name: /talk to recipe/i }))
+    await userEvent.click(screen.getByRole('button', { name: /speak to edit/i }))
     
     const recordButton = screen.getByRole('button', { name: /start recording/i })
     await userEvent.click(recordButton)
@@ -413,7 +427,6 @@ describe('VoiceToRecipe', () => {
     })
     
     await userEvent.click(screen.getByRole('button', { name: /stop recording/i }))
-    await userEvent.click(screen.getByRole('button', { name: /process changes/i }))
     
     await waitFor(() => {
       expect(screen.getByTestId('voice-change-review')).toBeInTheDocument()
@@ -437,14 +450,17 @@ describe('VoiceToRecipe', () => {
     
     ;(global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
+      headers: {
+        get: () => 'application/json'
+      },
       json: async () => ({ changes: mockChanges })
-    } as Response)
+    } as unknown as Response)
     
     mockOnUpdate.mockResolvedValueOnce(undefined)
     
     render(<VoiceToRecipe recipe={mockRecipe} onUpdate={mockOnUpdate} />)
     
-    await userEvent.click(screen.getByRole('button', { name: /talk to recipe/i }))
+    await userEvent.click(screen.getByRole('button', { name: /speak to edit/i }))
     
     const recordButton = screen.getByRole('button', { name: /start recording/i })
     await userEvent.click(recordButton)
@@ -463,7 +479,6 @@ describe('VoiceToRecipe', () => {
     })
     
     await userEvent.click(screen.getByRole('button', { name: /stop recording/i }))
-    await userEvent.click(screen.getByRole('button', { name: /process changes/i }))
     
     await waitFor(() => {
       expect(screen.getByTestId('voice-change-review')).toBeInTheDocument()
@@ -488,14 +503,17 @@ describe('VoiceToRecipe', () => {
     
     ;(global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
+      headers: {
+        get: () => 'application/json'
+      },
       json: async () => ({ changes: mockChanges })
-    } as Response)
+    } as unknown as Response)
     
     mockOnUpdate.mockRejectedValueOnce(new Error('Update failed'))
     
     render(<VoiceToRecipe recipe={mockRecipe} onUpdate={mockOnUpdate} />)
     
-    await userEvent.click(screen.getByRole('button', { name: /talk to recipe/i }))
+    await userEvent.click(screen.getByRole('button', { name: /speak to edit/i }))
     
     const recordButton = screen.getByRole('button', { name: /start recording/i })
     await userEvent.click(recordButton)
@@ -514,7 +532,6 @@ describe('VoiceToRecipe', () => {
     })
     
     await userEvent.click(screen.getByRole('button', { name: /stop recording/i }))
-    await userEvent.click(screen.getByRole('button', { name: /process changes/i }))
     
     await waitFor(() => {
       expect(screen.getByTestId('voice-change-review')).toBeInTheDocument()
@@ -532,12 +549,15 @@ describe('VoiceToRecipe', () => {
   it('handles empty changes response', async () => {
     ;(global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
+      headers: {
+        get: () => 'application/json'
+      },
       json: async () => ({ changes: [] })
-    } as Response)
+    } as unknown as Response)
     
     render(<VoiceToRecipe recipe={mockRecipe} onUpdate={mockOnUpdate} />)
     
-    await userEvent.click(screen.getByRole('button', { name: /talk to recipe/i }))
+    await userEvent.click(screen.getByRole('button', { name: /speak to edit/i }))
     
     const recordButton = screen.getByRole('button', { name: /start recording/i })
     await userEvent.click(recordButton)
@@ -556,11 +576,9 @@ describe('VoiceToRecipe', () => {
     })
     
     await userEvent.click(screen.getByRole('button', { name: /stop recording/i }))
-    await userEvent.click(screen.getByRole('button', { name: /process changes/i }))
     
     await waitFor(() => {
-      expect(screen.getByTestId('voice-change-review')).toBeInTheDocument()
-      expect(screen.getByTestId('changes-count')).toHaveTextContent('0 changes')
+      expect(screen.getByText(/couldn't understand what changes you want to make/)).toBeInTheDocument()
     })
   })
 
@@ -575,12 +593,15 @@ describe('VoiceToRecipe', () => {
     
     ;(global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
       ok: true,
+      headers: {
+        get: () => 'application/json'
+      },
       json: async () => ({ changes: mockChanges })
-    } as Response)
+    } as unknown as Response)
     
     render(<VoiceToRecipe recipe={mockRecipe} onUpdate={mockOnUpdate} />)
     
-    await userEvent.click(screen.getByRole('button', { name: /talk to recipe/i }))
+    await userEvent.click(screen.getByRole('button', { name: /speak to edit/i }))
     
     const recordButton = screen.getByRole('button', { name: /start recording/i })
     await userEvent.click(recordButton)
@@ -599,7 +620,6 @@ describe('VoiceToRecipe', () => {
     })
     
     await userEvent.click(screen.getByRole('button', { name: /stop recording/i }))
-    await userEvent.click(screen.getByRole('button', { name: /process changes/i }))
     
     await waitFor(() => {
       expect(screen.getByTestId('voice-change-review')).toBeInTheDocument()
