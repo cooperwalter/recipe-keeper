@@ -154,7 +154,7 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
         {/* Header */}
         <div className="mb-8 recipe-header">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
-            <div className="flex items-start gap-2">
+            <div className="flex items-center gap-2">
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">{recipe.title}</h1>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -164,7 +164,7 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
                     onClick={handleToggleFavorite}
                     disabled={toggleFavorite.isPending}
                     aria-label={recipe.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                    className="h-8 w-8 print:hidden"
+                    className="h-8 w-8 print:hidden [&_svg]:size-5"
                   >
                     <Heart
                       className={cn(
