@@ -67,11 +67,8 @@ ${recipe.sourceNotes ? `Family Notes: ${recipe.sourceNotes}` : ''}
 ${recipe.tags.length > 0 ? `Tags: ${recipe.tags.join(', ')}` : ''}
 `
 
-    // Build conversation messages
-    const messages = [
-      {
-        role: 'system' as const,
-        content: `You are a helpful cooking assistant with deep knowledge about recipes and cooking techniques. You have access to the complete details of a specific recipe and can answer questions about it.
+    // Build system prompt
+    const systemPrompt = `You are a helpful cooking assistant with deep knowledge about recipes and cooking techniques. You have access to the complete details of a specific recipe and can answer questions about it.
 
 Your responses should be:
 - Helpful and specific to the recipe
@@ -92,7 +89,9 @@ You can help with:
 Here is the recipe you're helping with:
 
 ${recipeContext}`
-      },
+
+    // Build conversation messages (without system role)
+    const messages = [
       // Include conversation history
       ...conversationHistory.map(msg => ({
         role: msg.role as 'user' | 'assistant',
@@ -109,6 +108,7 @@ ${recipeContext}`
     const completion = await anthropic.messages.create({
       model: 'claude-3-5-sonnet-20241022',
       max_tokens: 1000,
+      system: systemPrompt,
       messages: messages,
       temperature: 0.7
     })
