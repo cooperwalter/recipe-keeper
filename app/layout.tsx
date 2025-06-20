@@ -5,6 +5,7 @@ import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryProvider } from "@/lib/providers/query-provider";
+import { ReactDevToolsInit } from "@/components/dev/react-devtools-init";
 import "./globals.css";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -39,6 +40,7 @@ export default function RootLayout({
         >
           <TooltipProvider>
             <QueryProvider>
+              <ReactDevToolsInit />
               {children}
               <Toaster />
             </QueryProvider>
