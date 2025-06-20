@@ -45,7 +45,7 @@ export function RecipeList({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col space-y-4">
       {recipes.map((recipe) => (
         <RecipeListItem
           key={recipe.id}

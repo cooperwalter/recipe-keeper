@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { Upload, X, Image as ImageIcon, Loader2, Camera, FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { LoadingText } from "@/components/ui/loading-states";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
@@ -128,13 +129,15 @@ export function ImageUpload({
             )}
             
             <div className="space-y-2">
-              <p className="text-sm font-medium">
-                {isUploading
-                  ? "Uploading..."
-                  : isDragActive
-                  ? "Drop your recipe image here"
-                  : "Upload your recipe image"}
-              </p>
+              {isUploading ? (
+                <LoadingText text="Uploading" className="text-sm font-medium" />
+              ) : (
+                <p className="text-sm font-medium">
+                  {isDragActive
+                    ? "Drop your recipe image here"
+                    : "Upload your recipe image"}
+                </p>
+              )}
               <p className="text-xs text-muted-foreground">
                 Tap to take a photo or choose from gallery
               </p>

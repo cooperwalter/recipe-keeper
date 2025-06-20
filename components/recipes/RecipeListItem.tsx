@@ -28,17 +28,17 @@ export function RecipeListItem({ recipe, onToggleFavorite, className }: RecipeLi
   return (
     <Link href={`/protected/recipes/${recipe.id}`}>
       <Card className={cn('hover:shadow-lg transition-shadow cursor-pointer', className)}>
-        <div className="p-4">
+        <div className="p-6">
           <div className="flex gap-4">
             {/* Image */}
-            <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg">
+            <div className="relative h-28 w-28 flex-shrink-0 overflow-hidden rounded-lg">
               {primaryPhoto ? (
                 <Image
                   src={primaryPhoto.photoUrl}
                   alt={recipe.title}
                   fill
                   className="object-cover"
-                  sizes="96px"
+                  sizes="112px"
                 />
               ) : (
                 <RecipePlaceholder 
@@ -54,7 +54,7 @@ export function RecipeListItem({ recipe, onToggleFavorite, className }: RecipeLi
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-lg line-clamp-1">{recipe.title}</h3>
                   {recipe.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+                    <p className="text-sm text-muted-foreground line-clamp-2 mt-2">
                       {recipe.description}
                     </p>
                   )}
@@ -62,7 +62,7 @@ export function RecipeListItem({ recipe, onToggleFavorite, className }: RecipeLi
                 <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
               </div>
 
-              <div className="flex items-center justify-between mt-3">
+              <div className="flex items-center justify-between mt-4">
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   {totalTime > 0 && (
                     <div className="flex items-center gap-1">
