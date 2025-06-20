@@ -39,11 +39,10 @@
 
 ### 🚧 In Progress:
 - Version history UI implementation
-- Tags UI implementation
 - Advanced search features
 
 ### 📋 Next Priority:
-- **Phase 4: Organization & Navigation (Remainder)** - Tags UI, advanced search
+- **Phase 4: Organization & Navigation (Remainder)** - Advanced search
 - **Phase 5: Recipe Tools** - Scaling calculator, measurement converter, shopping list
 - **Phase 6: Sharing & Export** - Share links, PDF export, cookbook generation
 - **Phase 9: Polish & Launch Prep** - Documentation, performance optimization
@@ -314,13 +313,11 @@ This roadmap outlines the development phases for the Recipe Inheritance Keeper M
 
 ## Phase 4: Organization & Navigation (Week 7-8) 🟡 MOSTLY COMPLETE
 
-### Categories & Tags 🟡 PARTIALLY COMPLETE
+### Categories & Tags
 - [x] Create category management UI ✅
-- [ ] Implement tag creation/editing 🔄 UI Not Yet Implemented
-- [ ] Add bulk categorization
-- [ ] Create tag autocomplete
 - [x] Design category browse page ✅
 - [x] Test category assignment ✅
+- [ ] Tags - DEFERRED TO FUTURE RELEASE (see Phase 12 below)
 
 ### Advanced Search
 - [ ] Add ingredient search
@@ -1258,3 +1255,48 @@ The revised pricing strategy focuses on:
 5. **Support**: Multiple channels designed for users of all technical abilities
 
 By accounting for AI costs while keeping the user experience simple and friendly, Recipe Inheritance Keeper can sustainably serve families of all generations while preserving their culinary heritage.
+
+## Phase 12: Recipe Tags System (Future Release)
+
+### Overview
+A comprehensive tagging system to help users organize and discover recipes through flexible, user-defined labels.
+
+### Features
+- **Tag Management**
+  - Create custom tags (e.g., "quick", "holiday", "grandma's favorite")
+  - Tag autocomplete and suggestions
+  - Bulk tag operations
+  - Tag renaming and merging
+  
+- **Tag-Based Organization**
+  - Filter recipes by multiple tags
+  - Tag cloud visualization
+  - Smart tag suggestions based on recipe content
+  - Hierarchical tags (e.g., "cuisine/italian", "diet/vegan")
+  
+- **Tag UI Components**
+  - Tag pills on recipe cards and detail pages
+  - Tag input with typeahead
+  - Tag management page
+  - Popular tags display
+  
+- **Advanced Tag Features**
+  - Auto-tagging based on ingredients (e.g., "vegetarian", "gluten-free")
+  - Seasonal tag suggestions
+  - Family member tags (e.g., "dad's favorite", "kids love it")
+  - Event/occasion tags (e.g., "thanksgiving", "potluck")
+
+### Technical Implementation
+- Database schema already exists (recipe_tags table)
+- Backend API support partially implemented
+- Requires UI components and frontend integration
+- Search integration for tag-based filtering
+
+### Rationale for Deferral
+Tags were removed from the initial release to:
+1. Simplify the user experience for the MVP
+2. Focus on core recipe management features
+3. Gather user feedback on organization needs
+4. Allow time to design a more intuitive tagging system
+
+The existing category system provides basic organization, while tags can be added later as a power-user feature based on actual usage patterns and user requests.
