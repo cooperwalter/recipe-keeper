@@ -168,9 +168,9 @@ describe('scaleIngredientWithRules', () => {
   })
 
   it('should use custom adjustments when provided', () => {
-    const customAdjustments = { '1': 1.25 }
+    const customAdjustments = { '1-2': 1.25 }
     const scaled = scaleIngredientWithRules(baseIngredient, 2, customAdjustments)
-    expect(scaled.customAmount).toBe(1.25)
+    expect(scaled.scaledAmount).toBe(1.25)
     expect(scaled.hasCustomAdjustment).toBe(true)
   })
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { db } from '@/lib/db'
-import { ingredients } from '@/lib/db/schema'
+import { ingredients, recipes } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 
 interface RouteParams {
@@ -24,6 +24,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Invalid amount' }, { status: 400 })
     }
 
+    console.log('Updating ingredient:', { recipeId, ingredientId, amount })
+
     // Update the ingredient amount
     const [updated] = await db
       .update(ingredients)
@@ -42,7 +44,19 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Ingredient not found' }, { status: 404 })
     }
 
-    return NextResponse.json(updated)
+    // Also update the recipe's updatedAt timestamp
+    await db
+      .update(recipes)
+      .set({ updatedAt: new Date() })
+      .where(eq(recipes.id, recipeId))
+
+    console.log('Updated ingredient:', updated)
+
+    return NextResponse.json({
+      ...updated,
+      amount: parseFloat(updated.amount || '0'),
+      createdAt: updated.createdAt.toISOString()
+    })
   } catch (error) {
     console.error('Error updating ingredient:', error)
     return NextResponse.json(

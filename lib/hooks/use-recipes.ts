@@ -285,6 +285,77 @@ export function useUpdateRecipe() {
   })
 }
 
+// Hook to update ingredient adjustments
+export function useUpdateAdjustments() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ recipeId, adjustments }: { 
+      recipeId: string; 
+      adjustments: Record<string, number>
+    }) => {
+      console.log('useUpdateAdjustments mutationFn called:', { recipeId, adjustments })
+      const response = await fetch(`/api/recipes/${recipeId}/adjustments`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adjustments }),
+      })
+      console.log('API response status:', response.status)
+      if (!response.ok) {
+        const error = await response.text()
+        console.error('API error:', error)
+        throw new Error('Failed to update adjustments')
+      }
+      const data = await response.json() as RecipeWithRelations
+      console.log('API returned adjustments:', data.ingredientAdjustments)
+      return data
+    },
+    onMutate: async ({ recipeId, adjustments }) => {
+      // Cancel outgoing refetches to prevent race conditions
+      await queryClient.cancelQueries({ queryKey: recipeKeys.detail(recipeId) })
+      await queryClient.cancelQueries({ queryKey: recipeKeys.lists() })
+
+      // Snapshot the previous value
+      const previousRecipe = queryClient.getQueryData<RecipeWithRelations>(recipeKeys.detail(recipeId))
+
+
+      // Optimistically update with deep merge to preserve other recipe data
+      queryClient.setQueryData(recipeKeys.detail(recipeId), (old: RecipeWithRelations | undefined) => {
+        if (!old) return old
+        return {
+          ...old,
+          ingredientAdjustments: adjustments,
+          // Preserve the updatedAt to prevent flashing
+          updatedAt: old.updatedAt
+        }
+      })
+
+      return { previousRecipe }
+    },
+    onError: (err, variables, context) => {
+      console.error('Failed to update adjustments:', err)
+      if (context?.previousRecipe) {
+        queryClient.setQueryData(recipeKeys.detail(variables.recipeId), context.previousRecipe)
+      }
+    },
+    onSuccess: (data, variables) => {
+      // Only update the ingredientAdjustments field to prevent overwriting local state
+      queryClient.setQueryData(recipeKeys.detail(variables.recipeId), (old: RecipeWithRelations | undefined) => {
+        if (!old) return data
+        return {
+          ...old,
+          ingredientAdjustments: data.ingredientAdjustments,
+          updatedAt: data.updatedAt
+        }
+      })
+    },
+    onSettled: () => {
+      // Don't invalidate queries as this causes the UI to refetch and lose state
+      // The optimistic update should be sufficient
+    },
+  })
+}
+
 // Hook to update ingredient amounts directly
 export function useUpdateIngredient() {
   const queryClient = useQueryClient()
@@ -311,6 +382,7 @@ export function useUpdateIngredient() {
     onMutate: async ({ recipeId, ingredientId, amount }) => {
       // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: recipeKeys.detail(recipeId) })
+      await queryClient.cancelQueries({ queryKey: recipeKeys.lists() })
 
       // Snapshot the previous value
       const previousDetail = queryClient.getQueryData(recipeKeys.detail(recipeId))
@@ -323,7 +395,8 @@ export function useUpdateIngredient() {
           ingredients: old.ingredients.map((ing) =>
             ing.id === ingredientId ? { ...ing, amount } : ing
           ),
-          updatedAt: new Date().toISOString(),
+          // Preserve updatedAt to prevent flashing
+          updatedAt: old.updatedAt,
         }
       })
 
@@ -331,14 +404,30 @@ export function useUpdateIngredient() {
       return { previousDetail }
     },
     onError: (err, variables, context) => {
+      console.error('Failed to update ingredient:', err)
       // If the mutation fails, roll back
       if (context?.previousDetail) {
         queryClient.setQueryData(recipeKeys.detail(variables.recipeId), context.previousDetail)
       }
     },
-    onSettled: (data, error, variables) => {
-      // Always refetch after error or success
-      queryClient.invalidateQueries({ queryKey: recipeKeys.detail(variables.recipeId) })
+    onSuccess: (data, variables) => {
+      // Update the cache with the new ingredient data
+      queryClient.setQueryData(recipeKeys.detail(variables.recipeId), (old: RecipeWithRelations | undefined) => {
+        if (!old) return old
+        return {
+          ...old,
+          ingredients: old.ingredients.map((ing) =>
+            ing.id === variables.ingredientId 
+              ? { ...ing, amount: variables.amount }
+              : ing
+          ),
+          updatedAt: new Date().toISOString(),
+        }
+      })
+    },
+    onSettled: () => {
+      // Don't invalidate queries as this causes the UI to refetch and lose state
+      // The optimistic update should be sufficient
     },
   })
 }

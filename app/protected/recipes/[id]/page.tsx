@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, use } from 'react'
+import { useState, use, useRef, useEffect } from 'react'
 import './print.css'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -9,10 +9,13 @@ import { PhotoGallery } from '@/components/recipes/PhotoGallery'
 import { VersionHistory } from '@/components/recipe/version-history'
 import { RecipeScaler } from '@/components/recipe/recipe-scaler'
 import { IngredientAdjuster } from '@/components/recipe/ingredient-adjuster'
+import { RecipeBadges } from '@/components/recipe/recipe-badges'
+import { VoiceRecipeChat } from '@/components/recipe/voice-recipe-chat'
 import { 
   formatAmount, 
-  scaleIngredient
+  scaleIngredientWithRules
 } from '@/lib/utils/recipe-scaling'
+import { getScalingRule } from '@/lib/utils/ingredient-scaling-rules'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,7 +41,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { useRecipe, useToggleFavorite, useDeleteRecipe, useUpdateIngredient } from '@/lib/hooks/use-recipes'
+import { useRecipe, useToggleFavorite, useDeleteRecipe, useUpdateIngredient, useUpdateAdjustments } from '@/lib/hooks/use-recipes'
 
 interface RecipeDetailPageProps {
   params: Promise<{ id: string }>
@@ -54,6 +57,35 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
   const toggleFavorite = useToggleFavorite()
   const deleteRecipe = useDeleteRecipe()
   const updateIngredient = useUpdateIngredient()
+  const updateAdjustments = useUpdateAdjustments()
+  
+  // Local state for adjustments to show immediately in UI
+  const [localAdjustments, setLocalAdjustments] = useState<Record<string, number>>({})
+  
+  // Debounce timer refs
+  const adjustmentTimers = useRef<Map<string, NodeJS.Timeout>>(new Map())
+  
+  // Store adjustments in a ref to avoid closure issues
+  const adjustmentsRef = useRef<Record<string, number>>({})
+  
+  // Initialize local adjustments from recipe data
+  useEffect(() => {
+    if (recipe?.ingredientAdjustments) {
+      setLocalAdjustments(recipe.ingredientAdjustments)
+      adjustmentsRef.current = recipe.ingredientAdjustments
+    }
+  }, [recipe?.ingredientAdjustments])
+  
+  // Cleanup timers on unmount
+  useEffect(() => {
+    const timersRef = adjustmentTimers.current
+    return () => {
+      timersRef.forEach((timer) => {
+        clearTimeout(timer)
+      })
+      timersRef.clear()
+    }
+  }, [])
   
 
   const handleToggleFavorite = () => {
@@ -122,36 +154,52 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
         {/* Header */}
         <div className="mb-8 recipe-header">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">{recipe.title}</h1>
-            <div className="flex gap-2 print:hidden flex-wrap">
+            <div className="flex items-start gap-2">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">{recipe.title}</h1>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
-                    variant="outline"
-                    size="sm"
+                    variant="ghost"
+                    size="icon"
                     onClick={handleToggleFavorite}
                     disabled={toggleFavorite.isPending}
                     aria-label={recipe.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                    className="h-8 w-8 print:hidden"
                   >
                     <Heart
                       className={cn(
-                        'h-4 w-4 mr-1',
+                        'h-5 w-5',
                         recipe.isFavorite && 'fill-current text-red-500'
                       )}
                     />
-                    {recipe.isFavorite ? 'Favorited' : 'Favorite'}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>{recipe.isFavorite ? 'Remove from your favorites' : 'Add to your favorites for quick access'}</p>
                 </TooltipContent>
               </Tooltip>
-              <Button variant="outline" size="sm" onClick={handlePrint} aria-label="Print recipe">
+            </div>
+            <div className="grid grid-cols-3 sm:flex sm:flex-nowrap gap-2 print:hidden">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handlePrint} 
+                aria-label="Print recipe"
+                className="w-full sm:w-auto"
+              >
                 <Printer className="h-4 w-4 mr-1" />
                 Print
               </Button>
-              <Link href={`/protected/recipes/${recipe.id}/edit`}>
-                <Button variant="outline" size="sm" aria-label="Edit recipe">
+              <div className="w-full sm:w-auto">
+                <VoiceRecipeChat recipe={recipe} />
+              </div>
+              <Link href={`/protected/recipes/${recipe.id}/edit`} className="w-full sm:w-auto">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  aria-label="Edit recipe"
+                  className="w-full"
+                >
                   <Edit className="h-4 w-4 mr-1" />
                   Edit
                 </Button>
@@ -204,6 +252,12 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
               ))}
             </div>
           )}
+          
+          {recipe.badges && recipe.badges.length > 0 && (
+            <div className="mt-3">
+              <RecipeBadges badges={recipe.badges} size="md" />
+            </div>
+          )}
         </div>
 
         {/* Recipe Photos */}
@@ -246,34 +300,122 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
             <h2 className="text-2xl font-semibold mb-4">Ingredients</h2>
             <ul className="space-y-2">
               {recipe.ingredients.map((ingredient) => {
-                const scaledIngredient = scaleIngredient(ingredient, recipeScale)
-                const displayAmount = scaledIngredient.amount || 0
+                // Use local adjustments for immediate UI updates
+                const adjustmentKey = `${ingredient.id}-${recipeScale}`
+                
+                // Scale the ingredient with smart rules
+                const scaledIngredient = scaleIngredientWithRules(
+                  ingredient, 
+                  recipeScale,
+                  localAdjustments // Use local state for immediate updates
+                )
+                
+                // Check if there's a custom adjustment for this scale
+                const hasCustomAdjustment = localAdjustments[adjustmentKey] !== undefined
+                const displayAmount = hasCustomAdjustment 
+                  ? localAdjustments[adjustmentKey] 
+                  : scaledIngredient.scaledAmount || scaledIngredient.amount || 0
+                // Get scaling rule for helpful notes (only show at 2x/3x)
+                const scalingRule = recipeScale > 1 && scaledIngredient.isAdjustable 
+                  ? getScalingRule(ingredient.ingredient)
+                  : null
                 
                 return (
-                  <li key={ingredient.id} className="flex items-start group">
+                  <li key={`${ingredient.id}-${recipeScale}`} className="flex items-start group">
                     <span className="mr-2">•</span>
                     <span className="flex-1">
-                      {displayAmount > 0 && `${formatAmount(displayAmount)} `}
-                      {scaledIngredient.unit && `${scaledIngredient.unit} `}
-                      {scaledIngredient.ingredient}
-                      {scaledIngredient.notes && (
-                        <span className="text-muted-foreground"> ({scaledIngredient.notes})</span>
+                      <span className={cn(hasCustomAdjustment && "text-primary font-medium")}>
+                        {displayAmount > 0 && `${formatAmount(displayAmount)} `}
+                        {ingredient.unit && `${ingredient.unit} `}
+                        {ingredient.ingredient}
+                      </span>
+                      {ingredient.notes && (
+                        <span className="text-muted-foreground"> ({ingredient.notes})</span>
                       )}
-                      {recipeScale === 1 && ingredient.amount !== null && ingredient.amount !== undefined && (
+                      {ingredient.amount !== null && ingredient.amount !== undefined && (
                         <IngredientAdjuster
                           ingredientName={ingredient.ingredient}
                           ingredientId={ingredient.id}
-                          originalAmount={ingredient.amount}
+                          originalAmount={parseFloat(ingredient.amount.toString())}
                           unit={ingredient.unit}
-                          scale={1}
+                          scale={recipeScale}
+                          currentAdjustedAmount={hasCustomAdjustment ? displayAmount : undefined}
+                          scalingRule={scalingRule}
                           onAdjustment={(amount) => {
+                            // Update local state immediately for instant UI feedback
                             if (amount !== undefined) {
-                              updateIngredient.mutate({
-                                recipeId: id,
-                                ingredientId: ingredient.id,
-                                amount
+                              if (recipeScale === 1) {
+                                // At 1x scale, we don't use adjustments, but update base ingredient
+                                // Still update local state for immediate feedback
+                                setLocalAdjustments(prev => ({
+                                  ...prev,
+                                  [adjustmentKey]: amount
+                                }))
+                              } else {
+                                // At 2x/3x scale, update local adjustments
+                                setLocalAdjustments(prev => ({
+                                  ...prev,
+                                  [adjustmentKey]: amount
+                                }))
+                              }
+                            } else {
+                              // Reset adjustment - remove from local state
+                              setLocalAdjustments(prev => {
+                                const newState = { ...prev }
+                                delete newState[adjustmentKey]
+                                return newState
                               })
                             }
+                            
+                            // Clear existing timer for this adjustment
+                            const existingTimer = adjustmentTimers.current.get(adjustmentKey)
+                            if (existingTimer) {
+                              clearTimeout(existingTimer)
+                            }
+                            
+                            // Debounce the API call
+                            const timer = setTimeout(() => {
+                              if (amount !== undefined) {
+                                if (recipeScale === 1) {
+                                  // At 1x scale, update the base recipe
+                                  updateIngredient.mutate({
+                                    recipeId: id,
+                                    ingredientId: ingredient.id,
+                                    amount
+                                  })
+                                } else {
+                                  // At 2x/3x scale, save permanent adjustment
+                                  const newAdjustments = {
+                                    ...adjustmentsRef.current,
+                                    [adjustmentKey]: amount
+                                  }
+                                  updateAdjustments.mutate({
+                                    recipeId: id,
+                                    adjustments: newAdjustments
+                                  })
+                                  // Update ref immediately
+                                  adjustmentsRef.current = newAdjustments
+                                }
+                              } else {
+                                // Reset adjustment
+                                if (recipeScale !== 1) {
+                                  // At 2x/3x scale, remove the adjustment
+                                  const newAdjustments = { ...adjustmentsRef.current }
+                                  delete newAdjustments[adjustmentKey]
+                                  updateAdjustments.mutate({
+                                    recipeId: id,
+                                    adjustments: newAdjustments
+                                  })
+                                  // Update ref immediately
+                                  adjustmentsRef.current = newAdjustments
+                                }
+                              }
+                              
+                              // Clean up timer reference
+                              adjustmentTimers.current.delete(adjustmentKey)
+                            }, 1000) // Increased to 1s for better UX when closing widget
+                            
+                            adjustmentTimers.current.set(adjustmentKey, timer)
                           }}
                         />
                       )}

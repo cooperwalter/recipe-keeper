@@ -90,8 +90,9 @@ export function scaleIngredientWithRules(
 
   const originalAmount = parseFloat(ingredient.amount.toString())
   
-  // Check if there's a custom adjustment for this ingredient
-  const customAmount = customAdjustments?.[ingredient.id]
+  // Check if there's a custom adjustment for this ingredient at this scale
+  const adjustmentKey = `${ingredient.id}-${scale}`
+  const customAmount = customAdjustments?.[adjustmentKey]
   
   let scaledAmount: number
   let adjustmentReason: string | undefined
