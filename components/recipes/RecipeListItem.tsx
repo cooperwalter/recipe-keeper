@@ -7,6 +7,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { RecipePlaceholder } from '@/components/recipe/recipe-placeholder'
+import { LimitedRecipeBadges } from '@/components/recipe/limited-recipe-badges'
 
 interface RecipeListItemProps {
   recipe: RecipeWithRelations
@@ -62,7 +63,17 @@ export function RecipeListItem({ recipe, onToggleFavorite, className }: RecipeLi
                 <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
               </div>
 
-              <div className="flex items-center justify-between mt-4">
+              {recipe.badges && recipe.badges.length > 0 && (
+                <LimitedRecipeBadges 
+                  badges={recipe.badges} 
+                  limit={6}
+                  size="sm" 
+                  className="mt-3"
+                  inline={true}
+                />
+              )}
+
+              <div className="flex items-center justify-between mt-3">
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   {totalTime > 0 && (
                     <div className="flex items-center gap-1">

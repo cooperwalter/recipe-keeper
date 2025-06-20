@@ -8,7 +8,7 @@ import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { RecipePlaceholder } from '@/components/recipe/recipe-placeholder'
 import { usePrefetchRecipe } from '@/lib/hooks/use-recipes'
-import { RecipeBadges } from '@/components/recipe/recipe-badges'
+import { LimitedRecipeBadges } from '@/components/recipe/limited-recipe-badges'
 
 interface RecipeCardProps {
   recipe: RecipeWithRelations
@@ -76,14 +76,6 @@ export function RecipeCard({ recipe, onToggleFavorite, className }: RecipeCardPr
           )}
         </CardHeader>
         <CardContent className="pt-0 px-6 pb-4">
-          {recipe.badges && recipe.badges.length > 0 && (
-            <RecipeBadges 
-              badges={recipe.badges} 
-              size="sm" 
-              className="mb-3"
-              showTooltip={false}
-            />
-          )}
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             {totalTime > 0 && (
               <div className="flex items-center gap-1">
@@ -98,20 +90,13 @@ export function RecipeCard({ recipe, onToggleFavorite, className }: RecipeCardPr
               </div>
             )}
           </div>
-          {recipe.tags && recipe.tags.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1">
-              {recipe.tags.slice(0, 3).map((tag) => (
-                <span
-                  key={tag}
-                  className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary"
-                >
-                  {tag}
-                </span>
-              ))}
-              {recipe.tags.length > 3 && (
-                <span className="text-xs text-muted-foreground">+{recipe.tags.length - 3}</span>
-              )}
-            </div>
+          {recipe.badges && recipe.badges.length > 0 && (
+            <LimitedRecipeBadges 
+              badges={recipe.badges} 
+              limit={3}
+              size="sm" 
+              className="mt-3 mb-2"
+            />
           )}
         </CardContent>
       </Card>
