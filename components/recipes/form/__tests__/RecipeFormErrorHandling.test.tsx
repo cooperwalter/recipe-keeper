@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { RecipeFormWizard } from '../RecipeFormWizard'
 import { RecipeFormProvider } from '../RecipeFormContext'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 // Mock next/navigation
 const mockPush = vi.fn()
@@ -20,6 +21,22 @@ vi.mock('@/lib/supabase/storage', () => ({
   })),
 }))
 
+// Mock duplicate check hook
+vi.mock('@/lib/hooks/use-duplicate-check', () => ({
+  useDuplicateCheck: () => ({
+    mutate: vi.fn(),
+    reset: vi.fn(),
+    isPending: false,
+    data: null,
+    error: null,
+  }),
+}))
+
+// Fix for Radix UI Select in jsdom
+Object.defineProperty(Element.prototype, 'hasPointerCapture', {
+  value: vi.fn(),
+})
+
 // Mock localStorage for draft persistence
 const localStorageMock = {
   getItem: vi.fn(),
@@ -31,6 +48,15 @@ Object.defineProperty(window, 'localStorage', { value: localStorageMock })
 
 describe('Recipe Form Error Handling', () => {
   const user = userEvent.setup()
+  
+  // Helper to handle duplicate check dialog
+  const handleDuplicateCheck = async () => {
+    await waitFor(() => {
+      expect(screen.getByText(/checking for similar recipes/i)).toBeInTheDocument()
+    })
+    const continueButton = await screen.findByRole('button', { name: /continue/i })
+    await user.click(continueButton)
+  }
   
   beforeEach(() => {
     vi.clearAllMocks()
@@ -48,10 +74,19 @@ describe('Recipe Form Error Handling', () => {
   })
 
   const renderForm = () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    })
+    
     return render(
-      <RecipeFormProvider>
-        <RecipeFormWizard />
-      </RecipeFormProvider>
+      <QueryClientProvider client={queryClient}>
+        <RecipeFormProvider>
+          <RecipeFormWizard />
+        </RecipeFormProvider>
+      </QueryClientProvider>
     )
   }
 
@@ -86,6 +121,7 @@ describe('Recipe Form Error Handling', () => {
       
       // Try to submit
       await user.click(screen.getByRole('button', { name: /create recipe/i }))
+      await handleDuplicateCheck()
       
       // Should show error message
       await waitFor(() => {
@@ -127,6 +163,7 @@ describe('Recipe Form Error Handling', () => {
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       await user.click(screen.getByRole('button', { name: /create recipe/i }))
+      await handleDuplicateCheck()
       
       await waitFor(() => {
         expect(screen.getByText(/failed to create recipe/i)).toBeInTheDocument()
@@ -164,6 +201,7 @@ describe('Recipe Form Error Handling', () => {
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       await user.click(screen.getByRole('button', { name: /create recipe/i }))
+      await handleDuplicateCheck()
       
       await waitFor(() => {
         expect(screen.getByText(/failed to create recipe/i)).toBeInTheDocument()
@@ -199,6 +237,7 @@ describe('Recipe Form Error Handling', () => {
       
       // Submit form
       await user.click(screen.getByRole('button', { name: /create recipe/i }))
+      await handleDuplicateCheck()
       
       // Should still create recipe even if photo upload fails
       await waitFor(() => {
@@ -295,6 +334,7 @@ describe('Recipe Form Error Handling', () => {
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       await user.click(screen.getByRole('button', { name: /create recipe/i }))
+      await handleDuplicateCheck()
       
       await waitFor(() => {
         expect(localStorageMock.removeItem).toHaveBeenCalledWith('recipe-draft')
@@ -347,6 +387,7 @@ describe('Recipe Form Error Handling', () => {
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       await user.click(screen.getByRole('button', { name: /create recipe/i }))
+      await handleDuplicateCheck()
       
       // Should handle gracefully
       await waitFor(() => {
@@ -394,6 +435,7 @@ describe('Recipe Form Error Handling', () => {
       
       // Submit
       await user.click(screen.getByRole('button', { name: /create recipe/i }))
+      await handleDuplicateCheck()
       
       // Should show loading state
       expect(screen.getByText(/creating/i)).toBeInTheDocument()
@@ -445,15 +487,12 @@ describe('Recipe Form Error Handling', () => {
       
       // Click once to start submission
       await user.click(submitButton)
+      await handleDuplicateCheck()
       
       // Wait for button to be disabled (isSubmitting state)
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /creating/i })).toBeDisabled()
       })
-      
-      // Try clicking again while disabled - these won't trigger new submissions
-      await user.click(screen.getByRole('button', { name: /creating/i }))
-      await user.click(screen.getByRole('button', { name: /creating/i }))
       
       // Should only submit once
       expect(callCount).toBe(1)

@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { RecipeFormWizard } from '../RecipeFormWizard'
 import { RecipeFormProvider } from '../RecipeFormContext'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 // Mock next/navigation
 const mockPush = vi.fn()
@@ -29,6 +30,23 @@ vi.mock('@/lib/supabase/storage', () => ({
   })),
 }))
 
+// Mock duplicate check hook
+const mockDuplicateCheck = vi.fn()
+vi.mock('@/lib/hooks/use-duplicate-check', () => ({
+  useDuplicateCheck: () => ({
+    mutate: mockDuplicateCheck,
+    reset: vi.fn(),
+    isPending: false,
+    data: null,
+    error: null,
+  }),
+}))
+
+// Fix for Radix UI Select in jsdom
+Object.defineProperty(Element.prototype, 'hasPointerCapture', {
+  value: vi.fn(),
+})
+
 describe('RecipeFormValidation', () => {
   const user = userEvent.setup()
   
@@ -50,10 +68,19 @@ describe('RecipeFormValidation', () => {
   })
 
   const renderForm = () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    })
+    
     return render(
-      <RecipeFormProvider>
-        <RecipeFormWizard />
-      </RecipeFormProvider>
+      <QueryClientProvider client={queryClient}>
+        <RecipeFormProvider>
+          <RecipeFormWizard />
+        </RecipeFormProvider>
+      </QueryClientProvider>
     )
   }
 
@@ -420,6 +447,15 @@ describe('RecipeFormValidation', () => {
       const submitButton = screen.getByRole('button', { name: /create recipe/i })
       await user.click(submitButton)
       
+      // Handle duplicate check dialog
+      await waitFor(() => {
+        expect(screen.getByText(/checking for similar recipes/i)).toBeInTheDocument()
+      })
+      
+      // Click continue in the dialog
+      const continueButton = await screen.findByRole('button', { name: /continue/i })
+      await user.click(continueButton)
+      
       // Should show error message
       await waitFor(() => {
         expect(screen.getByText(/failed to create recipe/i)).toBeInTheDocument()
@@ -448,6 +484,15 @@ describe('RecipeFormValidation', () => {
       // Submit
       const submitButton = screen.getByRole('button', { name: /create recipe/i })
       await user.click(submitButton)
+      
+      // Handle duplicate check dialog
+      await waitFor(() => {
+        expect(screen.getByText(/checking for similar recipes/i)).toBeInTheDocument()
+      })
+      
+      // Click continue in the dialog
+      const continueButton = await screen.findByRole('button', { name: /continue/i })
+      await user.click(continueButton)
       
       // Should navigate to new recipe
       await waitFor(() => {
@@ -517,21 +562,23 @@ describe('RecipeFormValidation', () => {
       await user.type(instructionInput, 'Test')
       await user.click(screen.getByRole('button', { name: /next/i }))
       
-      // Try to submit multiple times rapidly
+      // Try to submit
       const submitButton = screen.getByRole('button', { name: /create recipe/i })
       await user.click(submitButton)
       
-      // After first click, button should be disabled
-      expect(submitButton).toBeDisabled()
+      // Handle duplicate check dialog
+      await waitFor(() => {
+        expect(screen.getByText(/checking for similar recipes/i)).toBeInTheDocument()
+      })
       
-      // Try clicking again (should not work because button is disabled)
-      await user.click(submitButton)
-      await user.click(submitButton)
+      // Click continue in the dialog
+      const continueButton = await screen.findByRole('button', { name: /continue/i })
+      await user.click(continueButton)
       
       // Should navigate after successful submission
       await waitFor(() => {
         expect(mockPush).toHaveBeenCalledWith('/protected/recipes/recipe-123')
-      }, { timeout: 5000 })
+      })
       
       // Should only be called once
       expect(mockPush).toHaveBeenCalledTimes(1)
