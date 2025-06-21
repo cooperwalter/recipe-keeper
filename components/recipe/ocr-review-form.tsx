@@ -36,7 +36,7 @@ interface ExtractedRecipe {
   sourceName?: string;
   sourceNotes?: string;
   categories?: string[];
-  tags?: string[];
+  // tags?: string[];  // Tags feature temporarily disabled
   confidence: {
     overall: number;
     fields?: Record<string, number>;
@@ -359,28 +359,27 @@ export function OCRReviewForm({
         </CardContent>
       </Card>
 
-      {/* Categories & Tags */}
-      {(recipe.categories?.length || recipe.tags?.length) ? (
+      {/* Categories */}
+      {recipe.categories?.length ? (
         <Card>
           <CardHeader>
-            <CardTitle>Suggested Categories & Tags</CardTitle>
+            <CardTitle>Suggested Categories</CardTitle>
             <CardDescription>These were identified from your recipe</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {recipe.categories?.length ? (
-              <div className="space-y-2">
-                <Label>Categories</Label>
-                <div className="flex flex-wrap gap-2">
-                  {recipe.categories.map((category) => (
-                    <Badge key={category} variant="secondary">
-                      {category}
-                    </Badge>
-                  ))}
-                </div>
+            <div className="space-y-2">
+              <Label>Categories</Label>
+              <div className="flex flex-wrap gap-2">
+                {recipe.categories.map((category) => (
+                  <Badge key={category} variant="secondary">
+                    {category}
+                  </Badge>
+                ))}
               </div>
-            ) : null}
-
-            {recipe.tags?.length ? (
+            </div>
+            
+            {/* Tags - Temporarily disabled */}
+            {/* {recipe.tags?.length ? (
               <div className="space-y-2">
                 <Label>Tags</Label>
                 <div className="flex flex-wrap gap-2">
@@ -391,7 +390,7 @@ export function OCRReviewForm({
                   ))}
                 </div>
               </div>
-            ) : null}
+            ) : null} */}
           </CardContent>
         </Card>
       ) : null}

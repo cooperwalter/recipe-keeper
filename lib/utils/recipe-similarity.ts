@@ -276,7 +276,7 @@ export function checkForDuplicates(
     servings: newRecipe.servings,
     ingredients: newRecipe.ingredients || [],
     instructions: newRecipe.instructions || [],
-    tags: newRecipe.tags || [],
+    // tags: newRecipe.tags || [],  // Tags feature temporarily disabled
     categories: newRecipe.categories || [],
     photos: newRecipe.photos || [],
     createdBy: '',

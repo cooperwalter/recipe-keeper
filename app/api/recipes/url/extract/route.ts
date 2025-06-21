@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       sourceName: extractedRecipe.sourceName,
       sourceUrl: url,
       imageUrl: extractedRecipe.image,
-      tags: extractedRecipe.keywords || [],
+      // tags: extractedRecipe.keywords || [],  // Tags feature temporarily disabled
       metadata: {
         category: extractedRecipe.category,
         cuisine: extractedRecipe.cuisine,

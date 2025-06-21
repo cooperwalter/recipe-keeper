@@ -85,7 +85,7 @@ export default function RecipeVersionPage({ params }: VersionPageProps) {
     servings?: number
     sourceName?: string
     sourceNotes?: string
-    tags?: string[]
+    // tags?: string[]  // Tags feature temporarily disabled
     ingredients: Array<{
       amount?: string | number
       unit?: string
@@ -184,7 +184,8 @@ export default function RecipeVersionPage({ params }: VersionPageProps) {
           )}
         </div>
 
-        {recipeData.tags && recipeData.tags.length > 0 && (
+        {/* Tags - Temporarily disabled */}
+        {/* {recipeData.tags && recipeData.tags.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {recipeData.tags.map((tag: string) => (
               <Badge key={tag} variant="secondary">
@@ -192,7 +193,7 @@ export default function RecipeVersionPage({ params }: VersionPageProps) {
               </Badge>
             ))}
           </div>
-        )}
+        )} */}
 
         {recipeData.sourceNotes && (
           <div className="p-6 bg-muted/50 rounded-lg">

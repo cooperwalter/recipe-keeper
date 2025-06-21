@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Badge } from '@/components/ui/badge'
+// import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { 
   ChevronLeft, 
@@ -34,7 +34,7 @@ interface ExtractedRecipe {
   sourceName?: string
   sourceUrl: string
   imageUrl?: string
-  tags: string[]
+  // tags: string[]  // Tags feature temporarily disabled
   metadata?: {
     category?: string
     cuisine?: string
@@ -120,7 +120,7 @@ export default function UrlRecipePage() {
           sourceNotes: `Imported from: ${editedRecipe.sourceUrl}`,
           ingredients,
           instructions,
-          tags: editedRecipe.tags,
+          // tags: editedRecipe.tags,  // Tags feature temporarily disabled
           categoryId: null
         }),
       })
@@ -438,8 +438,8 @@ export default function UrlRecipePage() {
                 </div>
               </div>
 
-              {/* Tags */}
-              {editedRecipe.tags.length > 0 && (
+              {/* Tags - Temporarily disabled */}
+              {/* {editedRecipe.tags.length > 0 && (
                 <div>
                   <Label>Tags</Label>
                   <div className="flex flex-wrap gap-2 mt-2">
@@ -459,7 +459,7 @@ export default function UrlRecipePage() {
                     ))}
                   </div>
                 </div>
-              )}
+              )} */}
 
               {/* Additional Metadata */}
               {editedRecipe.metadata && (

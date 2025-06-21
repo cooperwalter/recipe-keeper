@@ -89,23 +89,8 @@ export function RecipeListItem({ recipe, onToggleFavorite, className }: RecipeLi
                   )}
                 </div>
 
-                {/* Tags and Favorite */}
+                {/* Favorite */}
                 <div className="flex items-center gap-2">
-                  {recipe.tags && recipe.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {recipe.tags.slice(0, 2).map((tag) => (
-                        <span
-                          key={tag}
-                          className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                      {recipe.tags.length > 2 && (
-                        <span className="text-xs text-muted-foreground">+{recipe.tags.length - 2}</span>
-                      )}
-                    </div>
-                  )}
                   
                   {onToggleFavorite && (
                     <button

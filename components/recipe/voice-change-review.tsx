@@ -20,7 +20,7 @@ import { Check, X, Edit2, Plus, Minus, RefreshCw } from 'lucide-react'
 
 interface RecipeChange {
   type: 'add' | 'remove' | 'modify'
-  field: 'title' | 'description' | 'ingredients' | 'instructions' | 'prepTime' | 'cookTime' | 'servings' | 'sourceName' | 'sourceNotes' | 'tags' | 'categories' | 'isPublic' | 'badges'
+  field: 'title' | 'description' | 'ingredients' | 'instructions' | 'prepTime' | 'cookTime' | 'servings' | 'sourceName' | 'sourceNotes' | 'categories' | 'isPublic' | 'badges'  // 'tags' temporarily removed
   oldValue?: unknown
   newValue?: unknown
   details?: string
@@ -95,7 +95,7 @@ export function VoiceChangeReview({ changes: initialChanges, onApprove, onCancel
       cookTime: 'Cook Time',
       servings: 'Servings',
       notes: 'Notes',
-      tags: 'Tags'
+      // tags: 'Tags'  // Tags feature temporarily disabled
     }
     return labels[field] || field
   }
@@ -152,9 +152,9 @@ export function VoiceChangeReview({ changes: initialChanges, onApprove, onCancel
       return change.newValue == null ? 'Nothing' : String(change.newValue)
     } else if (change.field === 'prepTime' || change.field === 'cookTime') {
       return `${change.newValue} minutes`
-    } else if (change.field === 'tags' && Array.isArray(change.newValue)) {
+    } /* else if (change.field === 'tags' && Array.isArray(change.newValue)) {
       return change.newValue.join(', ')
-    }
+    } */  // Tags feature temporarily disabled
     
     return change.newValue == null ? 'Nothing' : String(change.newValue)
   }

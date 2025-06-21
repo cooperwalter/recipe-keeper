@@ -63,7 +63,7 @@ interface VoiceToRecipeProps {
 
 interface RecipeChange {
   type: 'add' | 'remove' | 'modify'
-  field: 'title' | 'description' | 'ingredients' | 'instructions' | 'prepTime' | 'cookTime' | 'servings' | 'sourceName' | 'sourceNotes' | 'tags' | 'categories' | 'isPublic' | 'badges'
+  field: 'title' | 'description' | 'ingredients' | 'instructions' | 'prepTime' | 'cookTime' | 'servings' | 'sourceName' | 'sourceNotes' | 'categories' | 'isPublic' | 'badges'
   oldValue?: unknown
   newValue?: unknown
   details?: string
@@ -387,7 +387,6 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
         badges: recipe.badges ? [...recipe.badges] : [],
         ingredients: [...recipe.ingredients],
         instructions: [...recipe.instructions],
-        tags: [...recipe.tags],
         categories: recipe.categories ? [...recipe.categories] : []
       }
 
@@ -465,17 +464,6 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
                   ...updatedData.instructions[index],
                   instruction: (change.newValue as Instruction).instruction || (change.newValue as string)
                 }
-              }
-            }
-            break
-
-          case 'tags':
-            if (change.type === 'modify') {
-              updatedData.tags = Array.isArray(change.newValue) ? change.newValue as string[] : [change.newValue as string]
-            } else if (change.type === 'add') {
-              const newTag = Array.isArray(change.newValue) ? (change.newValue as string[])[0] : change.newValue as string
-              if (!updatedData.tags.includes(newTag)) {
-                updatedData.tags.push(newTag)
               }
             }
             break

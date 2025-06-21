@@ -8,7 +8,7 @@ export interface RecipeFormData extends CreateRecipeInput {
   ingredients: Omit<CreateIngredientInput, 'recipeId'>[]
   instructions: Omit<CreateInstructionInput, 'recipeId'>[]
   categoryIds: string[]
-  tags: string[]
+  // tags: string[]  // Tags feature temporarily disabled
   photos: File[]
 }
 
@@ -57,7 +57,7 @@ export function RecipeFormProvider({ children, initialData }: RecipeFormProvider
       ingredients: [],
       instructions: [],
       categoryIds: [],
-      tags: [],
+      // tags: [],  // Tags feature temporarily disabled
       photos: [],
       ...initialData,
     }

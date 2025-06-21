@@ -60,7 +60,6 @@ export class RecipeService {
         recipe_category_mappings(
           category:recipe_categories(*)
         ),
-        recipe_tags(tag),
         favorites(user_id)
       `)
       .eq('id', id)
@@ -126,7 +125,6 @@ export class RecipeService {
         recipe_category_mappings(
           category:recipe_categories(*)
         ),
-        recipe_tags(tag),
         favorites(user_id)
       `, { count: 'exact' })
 
@@ -171,12 +169,12 @@ export class RecipeService {
       )
     }
 
-    // Filter by tags if specified
-    if (params.tags && params.tags.length > 0) {
+    // Filter by tags if specified - Temporarily disabled
+    /* if (params.tags && params.tags.length > 0) {
       filteredRecipes = filteredRecipes.filter(recipe =>
         recipe.tags.some(tag => params.tags!.includes(tag))
       )
-    }
+    } */
 
     // Filter by favorite status if specified
     if (params.isFavorite !== undefined && userId) {
@@ -301,9 +299,9 @@ export class RecipeService {
   }
 
   /**
-   * Add tags to a recipe
+   * Add tags to a recipe - Temporarily disabled
    */
-  async addTags(recipeId: string, tags: string[]): Promise<void> {
+  /* async addTags(recipeId: string, tags: string[]): Promise<void> {
     if (tags.length === 0) return
 
     const { error } = await this.supabase
@@ -316,12 +314,12 @@ export class RecipeService {
       )
 
     if (error && error.code !== '23505') throw error // Ignore duplicate key errors
-  }
+  } */
 
   /**
-   * Update tags for a recipe (replace all)
+   * Update tags for a recipe (replace all) - Temporarily disabled
    */
-  async updateTags(recipeId: string, tags: string[]): Promise<void> {
+  /* async updateTags(recipeId: string, tags: string[]): Promise<void> {
     // Delete existing tags
     await this.supabase
       .from('recipe_tags')
@@ -330,7 +328,7 @@ export class RecipeService {
 
     // Add new tags
     await this.addTags(recipeId, tags)
-  }
+  } */
 
   /**
    * Add category mappings to a recipe
@@ -461,7 +459,7 @@ export class RecipeService {
         .filter(Boolean)
         .map((cat) => cat ? this.mapCategory(cat) : null)
         .filter((cat): cat is RecipeCategory => cat !== null),
-      tags: (data.recipe_tags || []).map((t) => t.tag),
+      // tags: (data.recipe_tags || []).map((t) => t.tag),  // Tags feature temporarily disabled
       isFavorite: userId ? (data.favorites || []).some((f) => f.user_id === userId) : false,
     }
   }

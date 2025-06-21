@@ -138,11 +138,6 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       await recipeService.updateCategories(id, body.categoryIds)
     }
 
-    // Update tags if provided
-    if (body.tags !== undefined) {
-      await recipeService.updateTags(id, body.tags)
-    }
-
     // Fetch the complete updated recipe
     const completeRecipe = await recipeService.getRecipe(id)
 

@@ -34,7 +34,6 @@ export async function POST(request: NextRequest) {
       servings: body.servings,
       ingredients: body.ingredients || [],
       instructions: body.instructions || [],
-      tags: body.tags || [],
       categories: body.categories || [],
       photos: body.photos || [],
     }

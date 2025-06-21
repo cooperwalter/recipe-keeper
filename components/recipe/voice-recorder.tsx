@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Mic, MicOff, Loader2, Volume2, X } from 'lucide-react'
+import { Mic, MicOff, Volume2, X } from 'lucide-react'
 import { VoiceWaveAnimation } from '@/components/ui/voice-wave-animation'
 import { cn } from '@/lib/utils'
 import { LoadingSpinner } from '@/components/ui/loading-states'

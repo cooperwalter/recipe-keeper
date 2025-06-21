@@ -33,7 +33,7 @@ interface ExtractedRecipe {
   sourceName?: string;
   sourceNotes?: string;
   categories?: string[];
-  tags?: string[];
+  // tags?: string[];  // Tags feature temporarily disabled
   confidence: {
     overall: number;
     fields?: Record<string, number>;
@@ -128,7 +128,7 @@ export function OCRRecipeFlow() {
           instructions: recipe.instructions.map((inst) => inst.instruction),
           sourceName: recipe.sourceName,
           sourceNotes: recipe.sourceNotes,
-          tags: recipe.tags || [],
+          // tags: recipe.tags || [],  // Tags feature temporarily disabled
           isPublic: false,
           photoUrl: imageUrl, // Include the original recipe image
           photoCaption: "Original recipe",

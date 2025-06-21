@@ -83,8 +83,6 @@ ${recipe.ingredients.map((ing, i) => `${i + 1}. ${ing.amount || ''} ${ing.unit |
 Instructions:
 ${recipe.instructions.map(inst => `${inst.stepNumber}. ${inst.instruction}`).join('\n')}
 
-Tags: ${recipe.tags.join(', ') || 'None'}
-
 User's Voice Command: "${transcript}"
 
 Interpret what changes the user wants to make to the recipe. Be specific about what should be added, removed, or modified.

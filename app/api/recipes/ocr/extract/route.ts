@@ -25,7 +25,7 @@ const ExtractedRecipeSchema = z.object({
   sourceName: z.string().optional().describe("Who the recipe is from (e.g., 'Grandma Betty')"),
   sourceNotes: z.string().optional().describe("Any family notes, memories, or tips"),
   categories: z.array(z.string()).optional().describe("Suggested categories (e.g., 'dessert', 'main dish')"),
-  tags: z.array(z.string()).optional().describe("Suggested tags (e.g., 'holiday', 'family favorite')"),
+  // tags: z.array(z.string()).optional().describe("Suggested tags (e.g., 'holiday', 'family favorite')"),  // Tags feature temporarily disabled
   confidence: z.object({
     overall: z.number().min(0).max(1).describe("Overall confidence in extraction (0-1)"),
     fields: z.record(z.number().min(0).max(1)).optional().describe("Confidence for each field"),

@@ -3,7 +3,6 @@
 import { useState, use, useRef, useEffect } from 'react'
 import './print.css'
 import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { PhotoGallery } from '@/components/recipes/PhotoGallery'
 import { VersionHistory } from '@/components/recipe/version-history'

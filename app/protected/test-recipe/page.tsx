@@ -40,7 +40,6 @@ export default async function TestRecipePage() {
       cookTime: 12,
       servings: 24,
       categoryId: categories?.id || null,
-      tags: ["cookies", "dessert", "family-recipe"],
       isPublic: false,
       sourceName: "Grandma Betty",
       sourceNotes: "Best served warm with milk"

@@ -64,7 +64,6 @@ ${recipe.instructions.map((inst) =>
 ).join('\n')}
 
 ${recipe.sourceNotes ? `Family Notes: ${recipe.sourceNotes}` : ''}
-${recipe.tags.length > 0 ? `Tags: ${recipe.tags.join(', ')}` : ''}
 `
 
     // Build system prompt

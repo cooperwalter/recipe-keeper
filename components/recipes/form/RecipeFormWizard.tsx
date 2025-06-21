@@ -53,7 +53,7 @@ export function RecipeFormWizard() {
         // Extract just the instruction text from the objects
         instructions: formData.instructions.map(inst => inst.instruction),
         categoryIds: formData.categoryIds,
-        tags: formData.tags,
+        // tags: formData.tags,  // Tags feature temporarily disabled
       }
 
       // Create the recipe
