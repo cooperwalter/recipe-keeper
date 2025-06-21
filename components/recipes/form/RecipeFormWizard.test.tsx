@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { RecipeFormWizard } from './RecipeFormWizard'
 import { RecipeFormProvider } from './RecipeFormContext'
 import { useRouter } from 'next/navigation'
@@ -184,7 +184,6 @@ describe('RecipeFormWizard', () => {
           ingredients: [{ ingredient: 'Test ingredient', amount: 1, unit: 'cup' }],
           instructions: ['Test instruction'],
           categoryIds: [],
-          tags: [],
         }),
       })
     })

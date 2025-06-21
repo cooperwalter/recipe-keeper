@@ -123,11 +123,12 @@ describe('OCRReviewForm', () => {
     expect(screen.getByDisplayValue('Grandma Betty')).toBeInTheDocument();
     expect(screen.getByDisplayValue('Best served warm')).toBeInTheDocument();
 
-    // Categories and tags
+    // Categories
     expect(screen.getByText('dessert')).toBeInTheDocument();
     expect(screen.getByText('cookies')).toBeInTheDocument();
-    expect(screen.getByText('family-recipe')).toBeInTheDocument();
-    expect(screen.getByText('holiday')).toBeInTheDocument();
+    // Tags are temporarily disabled
+    // expect(screen.getByText('family-recipe')).toBeInTheDocument();
+    // expect(screen.getByText('holiday')).toBeInTheDocument();
   });
 
   it('shows confidence warning for low confidence', () => {

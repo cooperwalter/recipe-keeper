@@ -75,7 +75,6 @@ describe('POST /api/recipes/url/extract', () => {
       sourceName: 'example.com',
       sourceUrl: 'https://example.com/recipe',
       imageUrl: 'https://example.com/image.jpg',
-      tags: ['test', 'recipe'],
       metadata: {
         category: undefined,
         cuisine: undefined,

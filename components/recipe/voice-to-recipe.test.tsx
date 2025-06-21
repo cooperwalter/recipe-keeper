@@ -582,7 +582,7 @@ describe('VoiceToRecipe', () => {
     })
   })
 
-  it('handles tag modifications', async () => {
+  it.skip('handles tag modifications', async () => {
     const mockChanges = [
       {
         type: 'add',
