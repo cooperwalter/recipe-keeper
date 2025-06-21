@@ -117,12 +117,12 @@ describe('RecipeGrid', () => {
     const { container } = render(<RecipeGrid recipes={[]} isLoading={true} />)
     
     const skeletons = container.querySelectorAll('.rounded-lg.border.bg-card')
-    expect(skeletons.length).toBeGreaterThan(0)
+    expect(skeletons.length).toBe(8) // Should render 8 skeleton cards
     
     // Each skeleton should have the expected structure
     const firstSkeleton = skeletons[0]
-    expect(firstSkeleton.querySelector('.h-32')).toBeInTheDocument() // Image skeleton
-    expect(firstSkeleton.querySelector('.h-5')).toBeInTheDocument() // Title skeleton
+    expect(firstSkeleton.querySelector('.h-48')).toBeInTheDocument() // Image skeleton
+    expect(firstSkeleton.querySelector('.h-6')).toBeInTheDocument() // Title skeleton
     expect(firstSkeleton.querySelector('.h-4')).toBeInTheDocument() // Description skeleton
   })
 })
