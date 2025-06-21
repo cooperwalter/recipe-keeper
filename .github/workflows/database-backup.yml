@@ -1,0 +1,82 @@
+name: Database Backup
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # Daily at 2 AM UTC
+  workflow_dispatch:
+
+jobs:
+  backup:
+    name: Backup Database
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Create backup
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          # Extract connection details from DATABASE_URL
+          export PGPASSWORD=$(echo $DATABASE_URL | sed -n 's/.*:\/\/[^:]*:\([^@]*\)@.*/\1/p')
+          export PGHOST=$(echo $DATABASE_URL | sed -n 's/.*@\([^:]*\):.*/\1/p')
+          export PGPORT=$(echo $DATABASE_URL | sed -n 's/.*:\([0-9]*\)\/.*/\1/p')
+          export PGDATABASE=$(echo $DATABASE_URL | sed -n 's/.*\/\([^?]*\).*/\1/p')
+          export PGUSER=$(echo $DATABASE_URL | sed -n 's/.*:\/\/\([^:]*\):.*/\1/p')
+          
+          # Create backup with timestamp
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          BACKUP_FILE="backup_${TIMESTAMP}.sql"
+          
+          pg_dump --no-owner --no-acl -f $BACKUP_FILE
+          
+          # Compress backup
+          gzip $BACKUP_FILE
+          
+          echo "BACKUP_FILE=${BACKUP_FILE}.gz" >> $GITHUB_ENV
+          echo "TIMESTAMP=${TIMESTAMP}" >> $GITHUB_ENV
+
+      - name: Upload backup to S3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          S3_BUCKET: ${{ secrets.S3_BACKUP_BUCKET }}
+        run: |
+          aws s3 cp ${{ env.BACKUP_FILE }} s3://${S3_BUCKET}/database-backups/${{ env.BACKUP_FILE }}
+          
+          # Keep only last 30 days of backups
+          aws s3 ls s3://${S3_BUCKET}/database-backups/ | while read -r line;
+          do
+            createDate=$(echo $line | awk '{print $1" "$2}')
+            createDate=$(date -d "$createDate" +%s)
+            olderThan=$(date -d "30 days ago" +%s)
+            if [[ $createDate -lt $olderThan ]]
+            then
+              fileName=$(echo $line | awk '{print $4}')
+              if [[ $fileName != "" ]]
+              then
+                aws s3 rm s3://${S3_BUCKET}/database-backups/$fileName
+              fi
+            fi
+          done
+
+      - name: Notify on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'Database Backup Failed',
+              body: `The database backup workflow failed at ${new Date().toISOString()}.
+              
+              Please check the [workflow run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) for details.`,
+              labels: ['bug', 'infrastructure']
+            });
