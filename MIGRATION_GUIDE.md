@@ -1,6 +1,6 @@
 # Database Migration Guide
 
-This guide explains how to set up automatic, idempotent migrations for your Recipe Keeper app.
+This guide explains how to set up automatic, idempotent migrations for your Recipe and Me app.
 
 ## Current Setup
 

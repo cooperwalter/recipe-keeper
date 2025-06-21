@@ -41,11 +41,16 @@
 - Version history UI implementation
 - Advanced search features
 
-### 📋 Next Priority:
-- **Phase 4: Organization & Navigation (Remainder)** - Advanced search
-- **Phase 5: Recipe Tools** - Scaling calculator, measurement converter, shopping list
-- **Phase 6: Sharing & Export** - Share links, PDF export, cookbook generation
-- **Phase 9: Polish & Launch Prep** - Documentation, performance optimization
+### 📋 Next Priority (Updated from Competitive Analysis):
+- **High Priority Features** 🎯
+  - Interactive Cooking Mode with Voice Commands (Phase 5)
+  - Smart Grocery List with Store Organization (Phase 5)
+  - Advanced Substitution Engine (Phase 5)
+  - Recipe Video Creation Tools (Phase 6)
+- **Previous Priorities**
+  - Phase 4: Organization & Navigation - Advanced search
+  - Phase 6: Sharing & Export - Share links, PDF export
+  - Phase 9: Polish & Launch Prep - Documentation, performance optimization
 
 ### Key Achievements:
 - Migrated from Supabase CLI to Drizzle ORM for better type safety
@@ -361,6 +366,33 @@ This roadmap outlines the development phases for the Recipe Inheritance Keeper M
 - [ ] Batch size presets (e.g., "party size", "meal prep")
 - [ ] Handle non-scalable ingredients (e.g., "1 egg" for small batches)
 
+### Advanced Substitution Engine 🎯 HIGH PRIORITY
+- [ ] Create substitution database
+  - [ ] Common ingredient substitutions
+  - [ ] Ratio adjustments for substitutions
+  - [ ] Context awareness (baking vs cooking)
+  - [ ] Allergen-safe alternatives
+- [ ] Build substitution UI
+  - [ ] Click any ingredient to see alternatives
+  - [ ] Filter by dietary restrictions
+  - [ ] Show impact on recipe (texture, taste, etc.)
+  - [ ] Confidence ratings for substitutions
+- [ ] Smart substitution features
+  - [ ] Emergency substitutions for missing ingredients
+  - [ ] Technique modifications when needed
+  - [ ] Equipment substitutions
+  - [ ] Multi-ingredient substitutions (e.g., buttermilk = milk + vinegar)
+- [ ] User customization
+  - [ ] Save personal substitution preferences
+  - [ ] Rate substitutions after trying
+  - [ ] Add custom substitutions
+  - [ ] Share successful substitutions with family
+- [ ] Integration with other features
+  - [ ] Apply substitutions to shopping lists
+  - [ ] Note substitutions in version history
+  - [ ] Dietary badge updates based on substitutions
+- [ ] Test substitution accuracy and user experience
+
 ### Measurement Converter
 - [ ] Create conversion UI toggle
 - [ ] Implement conversion logic
@@ -369,17 +401,38 @@ This roadmap outlines the development phases for the Recipe Inheritance Keeper M
 - [ ] Add conversion preferences
 - [ ] Test conversion accuracy
 
-### Shopping List Generator
+### Smart Grocery List with Store Organization 🎯 HIGH PRIORITY
 - [ ] Create shopping list UI
-- [ ] Implement ingredient aggregation
-- [ ] Add quantity combining
-- [ ] Support multiple recipes
+  - [ ] Recipe selection interface
+  - [ ] Serving size adjustment per recipe
+  - [ ] List preview before finalizing
+- [ ] Implement intelligent ingredient aggregation
+  - [ ] Combine same ingredients across recipes
+  - [ ] Handle different units (convert where possible)
+  - [ ] Smart quantity rounding (e.g., "1.5 + 0.75 cups" → "2¼ cups")
+- [ ] Store aisle organization
+  - [ ] Default aisle categories (Produce, Dairy, Meat, etc.)
+  - [ ] Customizable aisle order
+  - [ ] User can reassign items to different aisles
+  - [ ] Remember user's aisle preferences
+- [ ] Shopping experience features
+  - [ ] Check off items while shopping
+  - [ ] Offline mode with sync
+  - [ ] Running total estimate (optional)
+  - [ ] Add custom items not from recipes
+  - [ ] Notes per item (brand preferences, etc.)
 - [ ] Create shareable lists
-- [ ] Add to calendar integration (future)
-- [ ] Test list generation accuracy
+  - [ ] Share via link or text
+  - [ ] Export to common formats
+  - [ ] Print-friendly layout
+- [ ] Integration features
+  - [ ] Save frequently bought items
+  - [ ] Quick add previous lists
+  - [ ] Pantry staples checklist
+- [ ] Test list generation accuracy and performance
 
-### Cooking Mode
-- [ ] Design distraction-free UI
+### Interactive Cooking Mode with Voice Commands 🎯 HIGH PRIORITY
+- [ ] Design distraction-free UI with larger text and buttons
 - [ ] Implement Screen Wake Lock API
   - [ ] Add "Keep Screen On" toggle in cooking mode
   - [ ] Request wake lock when entering cooking mode
@@ -387,10 +440,23 @@ This roadmap outlines the development phases for the Recipe Inheritance Keeper M
   - [ ] Add fallback for browsers without Wake Lock API
   - [ ] Show indicator when screen lock is active
   - [ ] Add user preference to remember setting
-- [ ] Add voice navigation (future)
-- [ ] Create step-by-step view
-- [ ] Add timer integration
-- [ ] Test on various screen sizes
+- [ ] Voice Command Navigation
+  - [ ] "Next step" / "Previous step" commands
+  - [ ] "Read ingredients" command
+  - [ ] "How much [ingredient]?" queries
+  - [ ] "Start timer" / "Stop timer" commands
+  - [ ] Visual feedback for voice recognition
+  - [ ] Fallback touch/keyboard controls
+- [ ] Create step-by-step view with progress indicator
+- [ ] Built-in timer integration
+  - [ ] Multiple simultaneous timers
+  - [ ] Auto-start timers from recipe steps
+  - [ ] Audio and visual alerts
+  - [ ] Timer labels (e.g., "Pasta timer", "Oven timer")
+- [ ] Ingredient checking/tracking
+  - [ ] Check off used ingredients
+  - [ ] Highlight current step ingredients
+- [ ] Test on various screen sizes and devices
 
 ### Interactive Ingredient Tracking
 - [ ] Allow marking ingredients used in each step
@@ -426,6 +492,39 @@ This roadmap outlines the development phases for the Recipe Inheritance Keeper M
 - [ ] Implement batch PDF generation
 - [ ] Add cover page customization
 - [ ] Test large cookbook generation
+
+### Recipe Video Creation Tools 🎯 HIGH PRIORITY
+- [ ] Video recording interface
+  - [ ] In-recipe video recording button
+  - [ ] Step-by-step video mode
+  - [ ] Technique demonstration mode
+  - [ ] Time-lapse cooking option
+- [ ] Video management
+  - [ ] Attach videos to specific steps
+  - [ ] Overall recipe video option
+  - [ ] Family story video section
+  - [ ] Video thumbnails and previews
+- [ ] Recording features
+  - [ ] Hands-free recording with voice commands
+  - [ ] Pause/resume functionality
+  - [ ] Basic trimming tools
+  - [ ] Auto-save to cloud storage
+  - [ ] Offline recording with sync
+- [ ] Playback experience
+  - [ ] Embedded video player in recipes
+  - [ ] Full-screen mode
+  - [ ] Playback speed controls
+  - [ ] Auto-play next video option
+- [ ] Preservation features
+  - [ ] Technique library creation
+  - [ ] Video annotations/captions
+  - [ ] Export videos with recipes
+  - [ ] Video quality settings for storage
+- [ ] Family features
+  - [ ] Multiple family members can add videos
+  - [ ] Video approval for younger members
+  - [ ] Video comments/reactions
+- [ ] Test video features across devices
 
 ### Print Styles ✅ COMPLETE
 - [x] Create print-specific CSS ✅
@@ -586,7 +685,7 @@ This roadmap outlines the development phases for the Recipe Inheritance Keeper M
 
 ### Project Rebranding
 - [ ] Choose new project name from candidates
-- [ ] Update all references to "Recipe Keeper" throughout codebase
+- [ ] Update all references to "Recipe and Me" throughout codebase
 - [ ] Design new logo and brand identity
 - [ ] Update marketing materials and documentation
 - [ ] Register new domain name
@@ -596,6 +695,11 @@ This roadmap outlines the development phases for the Recipe Inheritance Keeper M
 #### Name Candidates:
 
 **✅ AVAILABLE NAMES (No existing recipe apps found):**
+
+**My Name Ideas:**
+- **FamilyForks**
+- **ForkAndFamily**
+- **RecipeAndMe**
 
 **Family-Focused Names:**
 - **FamilyTable** ✅ - Where families gather and share
@@ -1097,7 +1201,7 @@ Table: usage_history {
 #### Billing Simplicity
 
 **Clear Invoices:**
-- Simple description: "Recipe Keeper - Family Plan"
+- Simple description: "Recipe and Me - Family Plan"
 - No confusing line items
 - Clear next billing date
 - Easy-to-find cancel button

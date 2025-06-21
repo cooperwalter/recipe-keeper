@@ -1,6 +1,6 @@
-# Setup Order for Recipe Keeper
+# Setup Order for Recipe and Me
 
-Follow these steps in order to set up your Recipe Keeper database and demo account:
+Follow these steps in order to set up your Recipe and Me database and demo account:
 
 ## 1. Run Database Migrations FIRST
 

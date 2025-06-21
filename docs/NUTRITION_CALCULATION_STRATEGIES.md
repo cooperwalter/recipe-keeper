@@ -1,7 +1,7 @@
 # Nutrition Calculation Strategies Comparison
 
 ## Overview
-This document compares different approaches for implementing real-time nutrition calculations in Recipe Keeper, evaluating accuracy, cost, performance, and user experience.
+This document compares different approaches for implementing real-time nutrition calculations in Recipe and Me, evaluating accuracy, cost, performance, and user experience.
 
 ## Strategy Comparison
 
