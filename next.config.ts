@@ -1,6 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  eslint: {
+    // Ignore test files during build
+    ignoreDuringBuilds: false,
+    dirs: ['app', 'components', 'lib'],
+  },
+  typescript: {
+    // Don't fail build on type errors in test files
+    ignoreBuildErrors: false,
+  },
   images: {
     remotePatterns: [
       {

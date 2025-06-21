@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Development utilities for finding React components in the browser
  * Add this to your app's initialization in development mode

@@ -423,7 +423,7 @@ process.on('uncaughtException', (error) => {
 });
 
 // Initial start
-log('🏗️  Recipe Keeper Development Server (Enhanced)', 'green');
+log('🏗️  Recipe and Me Development Server (Enhanced)', 'green');
 log('================================================', 'green');
 log('⚡ Auto-restart on critical errors', 'magenta');
 log('💓 Health monitoring enabled', 'cyan');

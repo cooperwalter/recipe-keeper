@@ -231,7 +231,7 @@ process.on('SIGTERM', () => {
 });
 
 // Initial start
-log('🏗️  Recipe Keeper Development Server (with auto-recovery)', 'green');
+log('🏗️  Recipe and Me Development Server (with auto-recovery)', 'green');
 log('================================================', 'green');
 log('⚡ Auto-restart on critical errors enabled', 'magenta');
 log('📁 File system monitoring active', 'magenta');

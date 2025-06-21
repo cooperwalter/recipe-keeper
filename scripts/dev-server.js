@@ -99,7 +99,7 @@ function startDevServer() {
 }
 
 // Initial start
-log('🏗️  Recipe Keeper Development Server', 'green');
+log('🏗️  Recipe and Me Development Server', 'green');
 log('================================', 'green');
 
 // Check if we should clean first (if there's a --clean flag)
