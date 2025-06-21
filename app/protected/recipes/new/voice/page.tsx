@@ -5,7 +5,7 @@ import { VoiceRecipeFlow } from '@/components/recipe/voice-recipe-flow'
 import { Button } from '@/components/ui/button'
 
 export const metadata: Metadata = {
-  title: 'Speak a Recipe | Recipe Keeper',
+  title: 'Speak a Recipe | Recipe and Me',
   description: 'Create a new recipe by speaking',
 }
 

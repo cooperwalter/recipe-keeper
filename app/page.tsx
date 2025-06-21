@@ -30,7 +30,7 @@ export default async function Home() {
           <div className="flex gap-2 items-center">
             <ChefHat className="h-6 w-6 text-primary" />
             <Link href="/" className="font-bold text-xl">
-              Recipe Keeper
+              Recipe and Me
             </Link>
           </div>
           <div className="flex items-center gap-2 sm:gap-4">
@@ -145,7 +145,7 @@ export default async function Home() {
         <div className="max-w-7xl mx-auto px-5 flex flex-col md:flex-row justify-between items-center gap-6 md:gap-4">
           <div className="flex items-center gap-2">
             <ChefHat className="h-5 w-5 text-primary" />
-            <span className="font-semibold">Recipe Keeper</span>
+            <span className="font-semibold">Recipe and Me</span>
             <span className="text-muted-foreground">© 2024</span>
           </div>
           <div className="flex flex-wrap justify-center gap-4 sm:gap-6 text-sm text-muted-foreground">

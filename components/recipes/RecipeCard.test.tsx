@@ -42,6 +42,7 @@ const mockRecipe: RecipeWithRelations = {
   ],
   categories: [],
   tags: ['quick', 'easy', 'dinner', 'pasta'],
+  badges: ['vegetarian', 'gluten-free', 'dairy-free', 'vegan'],
   isFavorite: false,
 }
 
@@ -67,13 +68,13 @@ describe('RecipeCard', () => {
     expect(img.src).toBe('https://example.com/photo.jpg')
   })
 
-  it('displays up to 3 tags with overflow indicator', () => {
+  it('displays up to 3 badges with overflow indicator', () => {
     renderWithProviders(<RecipeCard recipe={mockRecipe} />)
     
-    expect(screen.getByText('quick')).toBeInTheDocument()
-    expect(screen.getByText('easy')).toBeInTheDocument()
-    expect(screen.getByText('dinner')).toBeInTheDocument()
-    expect(screen.getByText('+1')).toBeInTheDocument() // 4 tags total, showing 3
+    expect(screen.getByText('Vegetarian')).toBeInTheDocument()
+    expect(screen.getByText('Gluten-Free')).toBeInTheDocument()
+    expect(screen.getByText('Dairy-Free')).toBeInTheDocument()
+    expect(screen.getByText('+1 more')).toBeInTheDocument() // 4 badges total, showing 3
   })
 
   it('handles favorite toggle when callback provided', async () => {

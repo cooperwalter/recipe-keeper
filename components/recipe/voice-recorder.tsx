@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card'
 import { Mic, MicOff, Loader2, Volume2, X } from 'lucide-react'
 import { VoiceWaveAnimation } from '@/components/ui/voice-wave-animation'
 import { cn } from '@/lib/utils'
+import { LoadingSpinner } from '@/components/ui/loading-states'
 
 interface VoiceRecorderProps {
   onTranscription: (text: string) => void
@@ -360,10 +361,11 @@ export const VoiceRecorder = forwardRef<VoiceRecorderRef, VoiceRecorderProps>((
               </div>
 
               {isTranscribing && (
-                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Transcribing...
-                </div>
+                <LoadingSpinner 
+                  size="sm" 
+                  label="Transcribing your voice"
+                  className="justify-center"
+                />
               )}
 
               {transcription && (

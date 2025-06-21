@@ -11,6 +11,7 @@ import { RecipeScaler } from '@/components/recipe/recipe-scaler'
 import { IngredientAdjuster } from '@/components/recipe/ingredient-adjuster'
 import { RecipeBadges } from '@/components/recipe/recipe-badges'
 import { VoiceRecipeChat } from '@/components/recipe/voice-recipe-chat'
+import { RecipeDetailSkeleton } from '@/components/ui/recipe-skeletons'
 import { 
   formatAmount, 
   scaleIngredientWithRules
@@ -444,7 +445,7 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
 
         {/* Print-only source attribution */}
         <div className="hidden recipe-source">
-          Recipe from {recipe.sourceName || 'Recipe Keeper'} • {new Date(recipe.createdAt).toLocaleDateString()}
+          Recipe from {recipe.sourceName || 'Recipe and Me'} • {new Date(recipe.createdAt).toLocaleDateString()}
         </div>
         
         {/* Version History */}
@@ -492,36 +493,3 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
   )
 }
 
-function RecipeDetailSkeleton() {
-  return (
-    <div className="container mx-auto pt-0 pb-8 px-4">
-      <Skeleton className="h-10 w-3/4 mb-4" />
-      <Skeleton className="h-6 w-full max-w-2xl mb-4" />
-      <div className="flex gap-4 mb-8">
-        <Skeleton className="h-5 w-32" />
-        <Skeleton className="h-5 w-32" />
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div>
-          <Skeleton className="h-8 w-32 mb-4" />
-          <div className="space-y-2">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} className="h-4 w-full" />
-            ))}
-          </div>
-        </div>
-        <div className="lg:col-span-2">
-          <Skeleton className="h-8 w-32 mb-4" />
-          <div className="space-y-4">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex gap-4">
-                <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />
-                <Skeleton className="h-16 w-full" />
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}

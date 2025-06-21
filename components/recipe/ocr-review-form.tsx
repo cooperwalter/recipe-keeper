@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, AlertCircle, Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DuplicateCheckDialog } from "@/components/recipe/duplicate-check-dialog";
 
 interface ExtractedIngredient {
   amount?: string;
@@ -57,6 +58,7 @@ export function OCRReviewForm({
   const [recipe, setRecipe] = useState<ExtractedRecipe>(extractedRecipe);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showDuplicateCheck, setShowDuplicateCheck] = useState(false);
 
   const updateField = (field: keyof ExtractedRecipe, value: unknown) => {
     setRecipe((prev) => ({ ...prev, [field]: value }));
@@ -105,7 +107,6 @@ export function OCRReviewForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setIsSubmitting(true);
 
     try {
       // Validate required fields
@@ -119,11 +120,27 @@ export function OCRReviewForm({
         throw new Error("At least one instruction is required");
       }
 
+      // Show duplicate check dialog
+      setShowDuplicateCheck(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save recipe");
+    }
+  };
+
+  const handleDuplicateCheckContinue = async () => {
+    setShowDuplicateCheck(false);
+    setIsSubmitting(true);
+
+    try {
       await onSubmit(recipe);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save recipe");
       setIsSubmitting(false);
     }
+  };
+
+  const handleDuplicateCheckCancel = () => {
+    setShowDuplicateCheck(false);
   };
 
   const getConfidenceColor = (confidence: number) => {
@@ -416,6 +433,27 @@ export function OCRReviewForm({
           Cancel
         </Button>
       </div>
+
+      {/* Duplicate Check Dialog */}
+      <DuplicateCheckDialog
+        open={showDuplicateCheck}
+        onOpenChange={setShowDuplicateCheck}
+        recipeData={{
+          title: recipe.title,
+          description: recipe.description,
+          ingredients: recipe.ingredients.map(ing => ({
+            ingredient: ing.ingredient,
+            amount: ing.amount,
+            unit: ing.unit,
+          })),
+          instructions: recipe.instructions.map(inst => inst.instruction),
+          prepTime: recipe.prepTime,
+          cookTime: recipe.cookTime,
+          servings: recipe.servings,
+        }}
+        onContinue={handleDuplicateCheckContinue}
+        onCancel={handleDuplicateCheckCancel}
+      />
     </form>
   );
 }

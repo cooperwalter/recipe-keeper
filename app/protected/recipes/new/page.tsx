@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export const metadata: Metadata = {
-  title: 'New Recipe | Recipe Keeper',
+  title: 'New Recipe | Recipe and Me',
   description: 'Add a new recipe to your collection',
 }
 
@@ -55,38 +55,6 @@ export default function NewRecipePage() {
                 <li className="flex items-start gap-2">
                   <span className="text-primary">✓</span>
                   <span>Review and edit before saving</span>
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/protected/recipes/new/manual">
-          <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-primary/50">
-            <CardHeader>
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-lg bg-primary/10">
-                  <PenTool className="h-8 w-8 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <CardTitle>Type Manually</CardTitle>
-                  <CardDescription>Enter your recipe details step by step</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <ul className="text-sm text-muted-foreground space-y-2">
-                <li className="flex items-start gap-2">
-                  <span className="text-primary">✓</span>
-                  <span>Perfect for recipes you know by heart</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary">✓</span>
-                  <span>Full control over formatting</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary">✓</span>
-                  <span>Save drafts as you go</span>
                 </li>
               </ul>
             </CardContent>
@@ -151,6 +119,38 @@ export default function NewRecipePage() {
                 <li className="flex items-start gap-2">
                   <span className="text-primary">✓</span>
                   <span>Preserves original source attribution</span>
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/protected/recipes/new/manual">
+          <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-primary/50">
+            <CardHeader>
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-lg bg-primary/10">
+                  <PenTool className="h-8 w-8 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <CardTitle>Type Manually</CardTitle>
+                  <CardDescription>Enter your recipe details step by step</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ul className="text-sm text-muted-foreground space-y-2">
+                <li className="flex items-start gap-2">
+                  <span className="text-primary">✓</span>
+                  <span>Perfect for recipes you know by heart</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary">✓</span>
+                  <span>Full control over formatting</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary">✓</span>
+                  <span>Save drafts as you go</span>
                 </li>
               </ul>
             </CardContent>

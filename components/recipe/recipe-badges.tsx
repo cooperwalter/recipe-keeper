@@ -18,6 +18,7 @@ import {
   Square,
   Droplet,
   Badge,
+  Nut,
   LucideIcon
 } from 'lucide-react'
 
@@ -40,7 +41,8 @@ const iconMap: Record<string, LucideIcon> = {
   'alert-triangle': AlertTriangle,
   'egg-off': Egg,      // Using Egg icon with strikethrough styling
   'candy-off': Square,  // Using Square icon (sugar cube) with strikethrough styling
-  'droplet': Droplet
+  'droplet': Droplet,
+  'nut-off': Nut      // Using Nut icon with strikethrough styling for nut-free
 }
 
 export function RecipeBadges({ 

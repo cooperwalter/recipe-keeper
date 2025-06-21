@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import RecipesServer from './recipes-server'
+import { RecipesPageSkeleton } from './recipes-loading'
 
 interface RecipesPageProps {
   searchParams: Promise<{
@@ -12,7 +13,7 @@ interface RecipesPageProps {
 
 export default function RecipesPage({ searchParams }: RecipesPageProps) {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<RecipesPageSkeleton />}>
       <RecipesServer searchParams={searchParams} />
     </Suspense>
   )

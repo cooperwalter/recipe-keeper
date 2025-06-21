@@ -3,11 +3,31 @@ import userEvent from '@testing-library/user-event';
 import { OCRReviewForm } from '@/components/recipe/ocr-review-form';
 import { useRouter } from 'next/navigation';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
   useRouter: vi.fn(),
 }));
+
+// Helper function to render with providers
+function renderWithProviders(component: React.ReactElement) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
+  return render(
+    <QueryClientProvider client={queryClient}>
+      {component}
+    </QueryClientProvider>
+  );
+}
+
+// Mock fetch for duplicate check API
+global.fetch = vi.fn();
 
 describe('OCRReviewForm', () => {
   const mockPush = vi.fn();
@@ -62,10 +82,19 @@ describe('OCRReviewForm', () => {
     (useRouter as any).mockReturnValue({
       push: mockPush,
     });
+    
+    // Mock successful duplicate check response
+    (global.fetch as any).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        duplicates: [],
+        totalChecked: 0,
+      }),
+    });
   });
 
   it('renders all form fields with extracted data', () => {
-    render(
+    renderWithProviders(
       <OCRReviewForm
         extractedRecipe={mockExtractedRecipe}
         imageUrl="test.jpg"
@@ -109,7 +138,7 @@ describe('OCRReviewForm', () => {
       },
     };
 
-    render(
+    renderWithProviders(
       <OCRReviewForm
         extractedRecipe={lowConfidenceRecipe}
         imageUrl="test.jpg"
@@ -128,7 +157,7 @@ describe('OCRReviewForm', () => {
   it('allows editing form fields', async () => {
     const user = userEvent.setup();
     
-    render(
+    renderWithProviders(
       <OCRReviewForm
         extractedRecipe={mockExtractedRecipe}
         imageUrl="test.jpg"
@@ -147,7 +176,7 @@ describe('OCRReviewForm', () => {
   it('adds new ingredient', async () => {
     const user = userEvent.setup();
     
-    render(
+    renderWithProviders(
       <OCRReviewForm
         extractedRecipe={mockExtractedRecipe}
         imageUrl="test.jpg"
@@ -166,7 +195,7 @@ describe('OCRReviewForm', () => {
   it('removes ingredient', async () => {
     const user = userEvent.setup();
     
-    render(
+    renderWithProviders(
       <OCRReviewForm
         extractedRecipe={mockExtractedRecipe}
         imageUrl="test.jpg"
@@ -188,7 +217,7 @@ describe('OCRReviewForm', () => {
   it('adds new instruction', async () => {
     const user = userEvent.setup();
     
-    render(
+    renderWithProviders(
       <OCRReviewForm
         extractedRecipe={mockExtractedRecipe}
         imageUrl="test.jpg"
@@ -213,7 +242,7 @@ describe('OCRReviewForm', () => {
       instructions: [],
     };
     
-    render(
+    renderWithProviders(
       <OCRReviewForm
         extractedRecipe={emptyRecipe}
         imageUrl="test.jpg"
@@ -232,7 +261,7 @@ describe('OCRReviewForm', () => {
     const user = userEvent.setup();
     mockOnSubmit.mockResolvedValueOnce(undefined);
     
-    render(
+    renderWithProviders(
       <OCRReviewForm
         extractedRecipe={mockExtractedRecipe}
         imageUrl="test.jpg"
@@ -243,6 +272,15 @@ describe('OCRReviewForm', () => {
 
     const submitButton = screen.getByRole('button', { name: /create recipe/i });
     await user.click(submitButton);
+
+    // Wait for the duplicate check dialog to appear and click Continue
+    await waitFor(() => {
+      const continueButton = screen.getByRole('button', { name: /continue|create anyway/i });
+      expect(continueButton).toBeInTheDocument();
+    });
+    
+    const continueButton = screen.getByRole('button', { name: /continue|create anyway/i });
+    await user.click(continueButton);
 
     await waitFor(() => {
       expect(mockOnSubmit).toHaveBeenCalledWith(expect.objectContaining({
@@ -261,7 +299,7 @@ describe('OCRReviewForm', () => {
     const errorMessage = 'Failed to save recipe';
     mockOnSubmit.mockRejectedValueOnce(new Error(errorMessage));
     
-    render(
+    renderWithProviders(
       <OCRReviewForm
         extractedRecipe={mockExtractedRecipe}
         imageUrl="test.jpg"
@@ -273,6 +311,15 @@ describe('OCRReviewForm', () => {
     const submitButton = screen.getByRole('button', { name: /create recipe/i });
     await user.click(submitButton);
 
+    // Wait for and click the continue button in duplicate check dialog
+    await waitFor(() => {
+      const continueButton = screen.getByRole('button', { name: /continue|create anyway/i });
+      expect(continueButton).toBeInTheDocument();
+    });
+    
+    const continueButton = screen.getByRole('button', { name: /continue|create anyway/i });
+    await user.click(continueButton);
+
     await waitFor(() => {
       expect(screen.getByText(errorMessage)).toBeInTheDocument();
     });
@@ -281,7 +328,7 @@ describe('OCRReviewForm', () => {
   it('calls onCancel when cancel button is clicked', async () => {
     const user = userEvent.setup();
     
-    render(
+    renderWithProviders(
       <OCRReviewForm
         extractedRecipe={mockExtractedRecipe}
         imageUrl="test.jpg"
@@ -300,7 +347,7 @@ describe('OCRReviewForm', () => {
     const user = userEvent.setup();
     mockOnSubmit.mockImplementation(() => new Promise(() => {})); // Never resolves
     
-    render(
+    renderWithProviders(
       <OCRReviewForm
         extractedRecipe={mockExtractedRecipe}
         imageUrl="test.jpg"
@@ -314,7 +361,19 @@ describe('OCRReviewForm', () => {
     
     await user.click(submitButton);
 
-    expect(submitButton).toBeDisabled();
-    expect(cancelButton).toBeDisabled();
+    // Wait for and click the continue button in duplicate check dialog
+    await waitFor(() => {
+      const continueButton = screen.getByRole('button', { name: /continue|create anyway/i });
+      expect(continueButton).toBeInTheDocument();
+    });
+    
+    const continueButton = screen.getByRole('button', { name: /continue|create anyway/i });
+    await user.click(continueButton);
+
+    // Now check if the buttons are disabled during submission
+    await waitFor(() => {
+      expect(submitButton).toBeDisabled();
+      expect(cancelButton).toBeDisabled();
+    });
   });
 });

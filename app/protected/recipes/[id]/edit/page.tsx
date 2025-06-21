@@ -29,6 +29,7 @@ import Link from 'next/link'
 import { VoiceToRecipe } from '@/components/recipe/voice-to-recipe'
 import { useQueryClient } from '@tanstack/react-query'
 import { recipeKeys } from '@/lib/hooks/use-recipes'
+import { RecipeEditSkeleton } from '@/components/ui/recipe-skeletons'
 
 interface EditRecipePageProps {
   params: Promise<{ id: string }>
@@ -250,11 +251,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
 
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto py-8 px-4 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    )
+    return <RecipeEditSkeleton />
   }
 
   if (!recipe) {

@@ -205,43 +205,57 @@ export function VersionDiffViewer({
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Skeleton className="h-8 w-32" />
-              <Skeleton className="h-6 w-16" />
-              <ArrowRight className="h-4 w-4 text-muted-foreground" />
-              <Skeleton className="h-6 w-16" />
-            </div>
-            <Skeleton className="h-4 w-96" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4 mb-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-4 w-48" />
+      <div className="space-y-6 animate-fade-in">
+        <Card>
+          <CardHeader>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-8 w-32" />
+                <Skeleton className="h-6 w-16" />
+                <ArrowRight className="h-4 w-4 text-muted-foreground animate-pulse" />
+                <Skeleton className="h-6 w-16" />
               </div>
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-4 w-48" />
-              </div>
+              <Skeleton className="h-4 w-96 max-w-full" />
             </div>
-          </div>
-          <Separator className="my-6" />
-          <div className="space-y-4">
-            <Skeleton className="h-10 w-full" />
-            <div className="grid grid-cols-2 gap-4">
-              <Skeleton className="h-32 w-full" />
-              <Skeleton className="h-32 w-full" />
+          </CardHeader>
+        </Card>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {[1, 2].map((i) => (
+            <Card key={i} className="overflow-hidden">
+              <CardHeader>
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-4 w-48 mt-1" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-5/6" />
+                  <Skeleton className="h-4 w-4/6" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-40" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex gap-4 items-center">
+                  <Skeleton className="h-4 w-32 flex-shrink-0" />
+                  <Skeleton className="h-4 flex-1" />
+                  <ArrowRight className="h-4 w-4 text-muted-foreground/40 flex-shrink-0" />
+                  <Skeleton className="h-4 flex-1" />
+                </div>
+              ))}
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     )
   }
 

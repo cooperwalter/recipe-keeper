@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
-import { Clock, RotateCcw, Eye, GitBranch } from 'lucide-react'
+import { Clock, RotateCcw, Eye, History } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -106,7 +106,7 @@ export function VersionHistory({ recipeId, currentVersion = 1 }: VersionHistoryP
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <GitBranch className="h-5 w-5" />
+            <History className="h-5 w-5" />
             Version History
           </CardTitle>
           <CardDescription>
@@ -144,7 +144,7 @@ export function VersionHistory({ recipeId, currentVersion = 1 }: VersionHistoryP
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <GitBranch className="h-5 w-5" />
+            <History className="h-5 w-5" />
             Version History
           </CardTitle>
           <CardDescription>
@@ -229,7 +229,7 @@ export function VersionHistory({ recipeId, currentVersion = 1 }: VersionHistoryP
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <GitBranch className="h-5 w-5" />
+            <History className="h-5 w-5" />
             Version History
           </CardTitle>
           <CardDescription>

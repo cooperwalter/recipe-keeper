@@ -72,7 +72,7 @@ export function LoginForm({
                 <div className="bg-accent/20 border border-accent rounded-lg p-4">
                   <p className="text-sm font-medium mb-2">🎉 Demo Account Available!</p>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Try Recipe Keeper with our demo account:
+                    Try Recipe and Me with our demo account:
                   </p>
                   <div className="bg-background/60 rounded p-3 space-y-1 text-sm font-mono">
                     <p>Email: demo@recipekeeper.com</p>

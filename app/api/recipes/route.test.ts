@@ -79,7 +79,7 @@ describe('/api/recipes', () => {
     })
 
     it('should handle query parameters', async () => {
-      const url = 'http://localhost:3000/api/recipes?query=pasta&categoryId=main-dish&tags=quick,easy&limit=10'
+      const url = 'http://localhost:3000/api/recipes?query=pasta&categoryId=main-dish&limit=10&offset=20&orderBy=title&orderDirection=asc'
       const request = new NextRequest(url)
 
       await GET(request)
@@ -87,14 +87,13 @@ describe('/api/recipes', () => {
       expect(mockRecipeService.listRecipes).toHaveBeenCalledWith({
         query: 'pasta',
         categoryId: 'main-dish',
-        tags: ['quick', 'easy'],
         limit: 10,
+        offset: 20,
+        orderBy: 'title',
+        orderDirection: 'asc',
         createdBy: 'test-user-id',  // Now defaults to current user
         isPublic: undefined,
         isFavorite: undefined,
-        offset: undefined,
-        orderBy: undefined,
-        orderDirection: undefined,
       })
     })
 
@@ -162,7 +161,6 @@ describe('/api/recipes', () => {
         categoryId: undefined,
         sourceName: undefined,
         sourceNotes: undefined,
-        tags: [],
         isPublic: false,
       })
       expect(data.id).toBe('recipe-id')
@@ -176,7 +174,6 @@ describe('/api/recipes', () => {
         ],
         instructions: ['Mix ingredients'],
         categoryId: 'cat-1',
-        tags: ['easy', 'quick'],
       }
 
       const request = new NextRequest('http://localhost:3000/api/recipes', {
@@ -200,7 +197,6 @@ describe('/api/recipes', () => {
         categoryId: 'cat-1',
         sourceName: undefined,
         sourceNotes: undefined,
-        tags: ['easy', 'quick'],
         isPublic: false,
       })
     })

@@ -20,7 +20,7 @@ import { Check, X, Edit2, Plus, Minus, RefreshCw } from 'lucide-react'
 
 interface RecipeChange {
   type: 'add' | 'remove' | 'modify'
-  field: 'title' | 'description' | 'ingredients' | 'instructions' | 'prepTime' | 'cookTime' | 'servings' | 'notes' | 'tags'
+  field: 'title' | 'description' | 'ingredients' | 'instructions' | 'prepTime' | 'cookTime' | 'servings' | 'sourceName' | 'sourceNotes' | 'tags' | 'categories' | 'isPublic' | 'badges'
   oldValue?: unknown
   newValue?: unknown
   details?: string

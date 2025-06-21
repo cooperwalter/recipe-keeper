@@ -18,7 +18,7 @@ export default function ProtectedLayout({
         <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
           <div className="w-full max-w-5xl flex justify-between items-center p-3 px-4 sm:px-5 text-sm">
             <div className="flex gap-3 sm:gap-5 items-center">
-              <Link href={"/"} className="font-bold text-lg sm:text-base">Recipe Keeper</Link>
+              <Link href={"/"} className="font-bold text-lg sm:text-base">Recipe and Me</Link>
               <div className="h-5 w-px bg-border" />
               <Link 
                 href={"/protected/recipes"} 

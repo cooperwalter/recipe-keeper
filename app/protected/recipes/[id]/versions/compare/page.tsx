@@ -1,8 +1,9 @@
 'use client'
 
-import { use } from 'react'
+import { use, Suspense } from 'react'
 import { VersionDiffViewer } from '@/components/recipe/version-diff-viewer'
 import { Button } from '@/components/ui/button'
+import { VersionComparisonSkeleton } from '@/components/ui/recipe-skeletons'
 import { 
   ChevronLeft
 } from 'lucide-react'
@@ -13,7 +14,7 @@ interface ComparePageProps {
   params: Promise<{ id: string }>
 }
 
-export default function RecipeVersionComparePage({ params }: ComparePageProps) {
+function ComparePageContent({ params }: ComparePageProps) {
   const { id } = use(params)
   const searchParams = useSearchParams()
   const v1 = searchParams.get('v1')
@@ -21,7 +22,7 @@ export default function RecipeVersionComparePage({ params }: ComparePageProps) {
 
   if (!v1 || !v2) {
     return (
-      <div className="container mx-auto py-8 px-4 text-center">
+      <div className="container mx-auto py-8 px-4 text-center animate-fade-in">
         <h1 className="text-2xl font-bold mb-4">Invalid comparison parameters</h1>
         <p className="text-muted-foreground mb-4">
           Please specify two version numbers to compare.
@@ -42,7 +43,7 @@ export default function RecipeVersionComparePage({ params }: ComparePageProps) {
   const version2 = v2 === 'current' ? -1 : parseInt(v2)
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="container mx-auto py-8 px-4 animate-fade-in">
       <div className="mb-8">
         <Link href={`/protected/recipes/${id}`}>
           <Button variant="ghost" size="sm">
@@ -58,5 +59,13 @@ export default function RecipeVersionComparePage({ params }: ComparePageProps) {
         version2Number={version2}
       />
     </div>
+  )
+}
+
+export default function RecipeVersionComparePage({ params }: ComparePageProps) {
+  return (
+    <Suspense fallback={<VersionComparisonSkeleton />}>
+      <ComparePageContent params={params} />
+    </Suspense>
   )
 }

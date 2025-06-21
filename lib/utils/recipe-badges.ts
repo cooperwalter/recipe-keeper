@@ -84,7 +84,7 @@ export const BADGE_DEFINITIONS: Record<RecipeBadge, BadgeInfo> = {
     label: 'Nut-Free',
     description: 'Contains no tree nuts or peanuts',
     color: 'red',
-    icon: 'alert-triangle'
+    icon: 'nut-off'
   },
   'egg-free': {
     id: 'egg-free',

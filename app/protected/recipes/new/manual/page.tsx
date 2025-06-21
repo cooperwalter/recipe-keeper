@@ -6,7 +6,7 @@ import { RecipeFormWizard } from '@/components/recipes/form/RecipeFormWizard'
 import { Button } from '@/components/ui/button'
 
 export const metadata: Metadata = {
-  title: 'New Recipe | Recipe Keeper',
+  title: 'New Recipe | Recipe and Me',
   description: 'Add a new recipe to your collection',
 }
 

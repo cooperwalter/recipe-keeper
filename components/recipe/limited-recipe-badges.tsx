@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { RecipeBadges } from './recipe-badges'
 import {
@@ -8,7 +7,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { MoreHorizontal } from 'lucide-react'
 
 interface LimitedRecipeBadgesProps {
   badges: string[]
@@ -25,8 +23,6 @@ export function LimitedRecipeBadges({
   className,
   inline = false 
 }: LimitedRecipeBadgesProps) {
-  const [showAll, setShowAll] = useState(false)
-  
   if (!badges || badges.length === 0) return null
   
   const visibleBadges = badges.slice(0, limit)

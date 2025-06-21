@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { User, Pencil, Check, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { LoadingDots } from "@/components/ui/loading-states";
 
 interface ProfileFormProps {
   userEmail: string;
@@ -135,8 +136,13 @@ export function ProfileForm({ userEmail }: ProfileFormProps) {
             </div>
           ) : (
             <div className="flex items-center justify-between">
-              <p className="font-medium">
-                {isFetching ? 'Loading...' : (name || 'Not set')}
+              <p className="font-medium flex items-center gap-2">
+                {isFetching ? (
+                  <>
+                    <LoadingDots className="h-4" />
+                    <span className="text-muted-foreground">Loading profile</span>
+                  </>
+                ) : (name || 'Not set')}
               </p>
               <Button
                 size="icon"
