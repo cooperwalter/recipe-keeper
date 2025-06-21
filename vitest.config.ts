@@ -7,7 +7,7 @@ export default defineConfig({
   test: {
     environment: 'happy-dom',
     globals: true,
-    setupFiles: ['./test/setup.tsx'],
+    setupFiles: ['./test/vitest.setup.ts', './test/setup.tsx'],
     exclude: ['**/node_modules/**', '**/dist/**', '.idea', '.git', '.cache', '**/e2e/**'],
     env: {
       NEXT_PUBLIC_SUPABASE_URL: 'https://test.supabase.co',
