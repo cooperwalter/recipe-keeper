@@ -1,10 +1,10 @@
--- Storage RLS Policies for Recipe Keeper
+-- Storage RLS Policies for Recipe and Me
 -- Run this script in your Supabase SQL Editor
 
 -- First, let's check which policies already exist
 DO $$
 BEGIN
-    RAISE NOTICE 'Creating storage policies for Recipe Keeper buckets...';
+    RAISE NOTICE 'Creating storage policies for Recipe and Me buckets...';
 END $$;
 
 -- Policies for ocr-uploads bucket

@@ -1,4 +1,4 @@
--- Recipe Keeper Database Setup
+-- Recipe and Me Database Setup
 -- Run this file in Supabase SQL Editor to set up your database
 -- All operations are idempotent (safe to run multiple times)
 
@@ -222,5 +222,5 @@ ON CONFLICT (version) DO NOTHING;
 -- ================================================
 -- DONE!
 -- ================================================
--- Your database is now set up for Recipe Keeper
+-- Your database is now set up for Recipe and Me
 -- This script is idempotent and can be run multiple times safely

@@ -1,5 +1,5 @@
 import { eq, and, or, ilike, desc, asc, sql, inArray } from 'drizzle-orm';
-import { db, recipes, recipePhotos, favorites, recipeCategories, recipeCategoryMappings, ingredients, instructions, recipeVersions, recipeTags } from '@/lib/db';
+import { db, recipes, recipePhotos, favorites, recipeCategories, recipeCategoryMappings, ingredients, instructions, recipeVersions } from '@/lib/db';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { fractionToDecimal } from '@/lib/utils/fractions';
 import { detectRecipeBadges } from '@/lib/utils/recipe-badges';
@@ -33,13 +33,12 @@ export class RecipeService {
     ingredients?: (string | { ingredient: string; amount?: string; unit?: string; notes?: string })[];
     instructions?: string[];
     categoryId?: string | null;
-    tags?: string[];
   }): Promise<Recipe> {
     const userId = await this.getCurrentUserId();
     if (!userId) throw new Error('User not authenticated');
 
     // Start a transaction
-    const { ingredients: ingredientsList, instructions: instructionsList, categoryId, tags, ...recipeData } = input;
+    const { ingredients: ingredientsList, instructions: instructionsList, categoryId, ...recipeData } = input;
     
     // Create the recipe (without badges initially)
     const [recipe] = await db
@@ -265,7 +264,6 @@ export class RecipeService {
         instruction: inst.instruction,
         createdAt: inst.createdAt.toISOString(),
       })),
-      tags: [],
       photos: photos.map(p => ({
         id: p.id,
         recipeId: p.recipeId,
@@ -313,7 +311,6 @@ export class RecipeService {
       sourceNotes: currentRecipe.sourceNotes,
       ingredients: currentRecipe.ingredients,
       instructions: currentRecipe.instructions,
-      tags: currentRecipe.tags,
       categories: currentRecipe.categories,
       photos: currentRecipe.photos.map(p => ({
         photoUrl: p.photoUrl,
@@ -493,8 +490,6 @@ export class RecipeService {
       conditions.push(eq(recipes.createdBy, params.createdBy));
     }
 
-    // Filter by tags - will need to join with recipe_tags table
-    // TODO: Implement tag filtering with the new schema
 
     // Build the query
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
@@ -574,16 +569,6 @@ export class RecipeService {
           .where(inArray(recipeCategoryMappings.recipeId, recipeIds))
       : [];
 
-    // Get tags for all recipes
-    const allTags = recipeIds.length > 0
-      ? await db
-          .select({
-            recipeId: recipeTags.recipeId,
-            tag: recipeTags.tag,
-          })
-          .from(recipeTags)
-          .where(inArray(recipeTags.recipeId, recipeIds))
-      : [];
 
     // Map recipes with relations
     const recipesWithRelations: RecipeWithRelations[] = recipesList.map((item) => {
@@ -624,9 +609,6 @@ export class RecipeService {
           uploadedAt: p.uploadedAt.toISOString(),
         })),
         isFavorite: userFavorites.includes(recipe.id),
-        tags: allTags
-          .filter(t => t.recipeId === recipe.id)
-          .map(t => t.tag),
         ingredients: [],
         instructions: [],
       };
@@ -895,6 +877,7 @@ export class RecipeService {
   }
 
 
+
   /**
    * Get version history for a recipe
    */
@@ -1000,8 +983,7 @@ export class RecipeService {
         stepNumber: number;
         instruction: string;
       }>;
-      tags?: string[];
-    };
+      };
 
     // Create a snapshot of current state before restoring
     await this.createVersionSnapshot(recipeId, `Restored to version ${versionNumber}`);
@@ -1067,7 +1049,6 @@ export class RecipeService {
         sourceNotes: recipe.sourceNotes,
         ingredients: recipe.ingredients,
         instructions: recipe.instructions,
-        tags: recipe.tags,
         photos: recipe.photos,
       },
       changeSummary: 'Current version',
@@ -1131,13 +1112,6 @@ export class RecipeService {
         });
       }
 
-      if (JSON.stringify(data1.tags) !== JSON.stringify(data2.tags)) {
-        differences.push({
-          field: 'tags',
-          oldValue: data1.tags,
-          newValue: data2.tags
-        });
-      }
     }
 
     return {

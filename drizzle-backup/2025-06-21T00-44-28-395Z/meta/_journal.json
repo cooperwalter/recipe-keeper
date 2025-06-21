@@ -36,13 +36,6 @@
       "when": 1749853688197,
       "tag": "0004_add_badges_if_missing",
       "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1734745468395,
-      "tag": "0005_drop_recipe_tags",
-      "breakpoints": true
     }
   ]
 }

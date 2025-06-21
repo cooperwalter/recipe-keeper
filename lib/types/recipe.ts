@@ -60,13 +60,6 @@ export interface RecipeCategoryMapping {
   createdAt: string
 }
 
-export interface RecipeTag {
-  id: string
-  recipeId: string
-  tag: string
-  createdAt: string
-}
-
 export interface RecipeVersion {
   id: string
   recipeId: string
@@ -129,7 +122,6 @@ export interface RecipeWithRelations extends Recipe {
   instructions: Instruction[]
   photos: RecipePhoto[]
   categories: RecipeCategory[]
-  tags: string[]
   isFavorite?: boolean
 }
 
@@ -137,7 +129,6 @@ export interface RecipeWithRelations extends Recipe {
 export interface RecipeSearchParams {
   query?: string
   categories?: string[]
-  tags?: string[]
   createdBy?: string
   isPublic?: boolean
   isFavorite?: boolean

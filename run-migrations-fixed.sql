@@ -1,4 +1,4 @@
--- Recipe Keeper Database Setup (Fixed Version)
+-- Recipe and Me Database Setup (Fixed Version)
 -- Run this file in Supabase SQL Editor to set up your database
 -- All operations are idempotent (safe to run multiple times)
 
@@ -298,5 +298,5 @@ END $$;
 -- ================================================
 -- DONE!
 -- ================================================
--- Your database is now set up for Recipe Keeper
+-- Your database is now set up for Recipe and Me
 -- This script handles both new installations and fixes existing ones

@@ -101,20 +101,6 @@ export const recipeCategoryMappings = pgTable('recipe_category_mappings', {
   };
 });
 
-// Recipe tags table
-export const recipeTags = pgTable('recipe_tags', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  recipeId: uuid('recipe_id').references(() => recipes.id, { onDelete: 'cascade' }).notNull(),
-  tag: text('tag').notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-}, (table) => {
-  return {
-    recipeIdIdx: index('idx_recipe_tags_recipe_id').on(table.recipeId),
-    tagIdx: index('idx_recipe_tags_tag').on(table.tag),
-    uniqueRecipeTag: uniqueIndex('unique_recipe_tag').on(table.recipeId, table.tag),
-  };
-});
-
 // Recipe versions table
 export const recipeVersions = pgTable('recipe_versions', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -179,7 +165,6 @@ export const recipesRelations = relations(recipes, ({ one, many }) => ({
   instructions: many(instructions),
   photos: many(recipePhotos),
   categoryMappings: many(recipeCategoryMappings),
-  tags: many(recipeTags),
   versions: many(recipeVersions),
   favorites: many(favorites),
 }));
@@ -216,13 +201,6 @@ export const recipeCategoryMappingsRelations = relations(recipeCategoryMappings,
   }),
 }));
 
-export const recipeTagsRelations = relations(recipeTags, ({ one }) => ({
-  recipe: one(recipes, {
-    fields: [recipeTags.recipeId],
-    references: [recipes.id],
-  }),
-}));
-
 export const recipeVersionsRelations = relations(recipeVersions, ({ one }) => ({
   recipe: one(recipes, {
     fields: [recipeVersions.recipeId],
@@ -255,9 +233,6 @@ export type NewRecipePhoto = typeof recipePhotos.$inferInsert;
 
 export type RecipeCategoryMapping = typeof recipeCategoryMappings.$inferSelect;
 export type NewRecipeCategoryMapping = typeof recipeCategoryMappings.$inferInsert;
-
-export type RecipeTag = typeof recipeTags.$inferSelect;
-export type NewRecipeTag = typeof recipeTags.$inferInsert;
 
 export type RecipeVersion = typeof recipeVersions.$inferSelect;
 export type NewRecipeVersion = typeof recipeVersions.$inferInsert;

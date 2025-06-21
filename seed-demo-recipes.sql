@@ -1,4 +1,4 @@
--- Seed Demo Recipes for Recipe Keeper
+-- Seed Demo Recipes for Recipe and Me
 -- 
 -- IMPORTANT: Before running this:
 -- 1. Create the demo account at http://localhost:3002/auth/sign-up
