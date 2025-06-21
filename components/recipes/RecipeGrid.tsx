@@ -2,7 +2,7 @@
 
 import { RecipeWithRelations } from '@/lib/types/recipe'
 import { RecipeCard } from './RecipeCard'
-import { Skeleton } from '@/components/ui/skeleton'
+import { RecipeCardSkeleton } from '@/components/ui/recipe-skeletons'
 import { FileX } from 'lucide-react'
 
 interface RecipeGridProps {
@@ -20,9 +20,12 @@ export function RecipeGrid({
 }: RecipeGridProps) {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in">
         {Array.from({ length: 8 }).map((_, i) => (
-          <RecipeCardSkeleton key={i} />
+          <RecipeCardSkeleton 
+            key={i} 
+            className={i < 4 ? '' : 'animation-delay-200'}
+          />
         ))}
       </div>
     )
@@ -30,9 +33,9 @@ export function RecipeGrid({
 
   if (recipes.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-[200px]">
+      <div className="flex items-center justify-center min-h-[400px] animate-fade-in">
         <div className="text-center">
-          <FileX className="mx-auto h-12 w-12 text-muted-foreground" />
+          <FileX className="mx-auto h-12 w-12 text-muted-foreground animate-pulse" />
           <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">
             {emptyMessage}
           </h3>
@@ -45,7 +48,7 @@ export function RecipeGrid({
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in">
       {recipes.map((recipe) => (
         <RecipeCard
           key={recipe.id}
@@ -53,22 +56,6 @@ export function RecipeGrid({
           onToggleFavorite={onToggleFavorite}
         />
       ))}
-    </div>
-  )
-}
-
-function RecipeCardSkeleton() {
-  return (
-    <div className="rounded-lg border bg-card">
-      <Skeleton className="h-32 w-full rounded-t-lg" />
-      <div className="p-4">
-        <Skeleton className="h-5 w-3/4 mb-2" />
-        <Skeleton className="h-4 w-full mb-3" />
-        <div className="flex gap-4">
-          <Skeleton className="h-4 w-16" />
-          <Skeleton className="h-4 w-20" />
-        </div>
-      </div>
     </div>
   )
 }

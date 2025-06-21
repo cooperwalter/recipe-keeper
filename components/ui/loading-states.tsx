@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils"
 import { Skeleton } from "./skeleton"
-import { Loader2 } from "lucide-react"
+import { Loader2, Clock, ChefHat, BookOpen, Search, Upload } from "lucide-react"
+import { useEffect, useState } from "react"
 
 interface LoadingSpinnerProps {
   className?: string
@@ -136,6 +137,187 @@ export function TableRowSkeleton({
           className="h-4 flex-1" 
         />
       ))}
+    </div>
+  )
+}
+
+// Enhanced shimmer effect skeleton
+export function ShimmerSkeleton({ 
+  className,
+  children
+}: { 
+  className?: string
+  children?: React.ReactNode
+}) {
+  return (
+    <div className={cn("relative overflow-hidden", className)}>
+      <Skeleton className="w-full h-full" />
+      <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+      {children}
+    </div>
+  )
+}
+
+// Progress loading with estimated time
+interface ProgressLoadingProps {
+  progress: number
+  estimatedTime?: number
+  label?: string
+  className?: string
+}
+
+export function ProgressLoading({ 
+  progress, 
+  estimatedTime,
+  label = "Loading",
+  className 
+}: ProgressLoadingProps) {
+  const [elapsedTime, setElapsedTime] = useState(0)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setElapsedTime((prev) => prev + 1)
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  return (
+    <div className={cn("space-y-3", className)}>
+      <div className="flex justify-between text-sm text-muted-foreground">
+        <span>{label}</span>
+        <span>{Math.round(progress)}%</span>
+      </div>
+      <div className="h-2 bg-secondary rounded-full overflow-hidden">
+        <div 
+          className="h-full bg-primary transition-all duration-300 ease-out"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+      {estimatedTime && (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Clock className="h-3 w-3" />
+          <span>
+            {estimatedTime - elapsedTime > 0 
+              ? `About ${estimatedTime - elapsedTime}s remaining`
+              : "Almost done..."
+            }
+          </span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Contextual loading messages
+const loadingMessages = {
+  recipes: [
+    "Gathering your delicious recipes",
+    "Loading your culinary collection",
+    "Fetching your favorite dishes",
+    "Preparing your recipe book"
+  ],
+  search: [
+    "Searching through recipes",
+    "Finding matching dishes",
+    "Looking for culinary inspiration"
+  ],
+  save: [
+    "Saving your recipe",
+    "Preserving your culinary creation",
+    "Adding to your collection"
+  ],
+  upload: [
+    "Processing your image",
+    "Analyzing recipe details",
+    "Extracting ingredients"
+  ]
+}
+
+interface ContextualLoadingProps {
+  context: keyof typeof loadingMessages
+  className?: string
+  showIcon?: boolean
+}
+
+export function ContextualLoading({ 
+  context, 
+  className,
+  showIcon = true
+}: ContextualLoadingProps) {
+  const [messageIndex, setMessageIndex] = useState(0)
+  const messages = loadingMessages[context]
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMessageIndex((prev) => (prev + 1) % messages.length)
+    }, 2000)
+    return () => clearInterval(interval)
+  }, [messages.length])
+
+  const icons = {
+    recipes: <ChefHat className="h-5 w-5" />,
+    search: <Search className="h-5 w-5" />,
+    save: <BookOpen className="h-5 w-5" />,
+    upload: <Upload className="h-5 w-5" />
+  }
+
+  return (
+    <div className={cn("flex items-center gap-3", className)}>
+      {showIcon && (
+        <div className="text-primary animate-pulse">
+          {icons[context]}
+        </div>
+      )}
+      <div className="flex items-center gap-2">
+        <span className="text-muted-foreground animate-fade-in">
+          {messages[messageIndex]}
+        </span>
+        <LoadingDots />
+      </div>
+    </div>
+  )
+}
+
+// Loading state variations
+interface LoadingStateProps {
+  variant?: "initial" | "refresh" | "pagination" | "search"
+  className?: string
+}
+
+export function LoadingState({ 
+  variant = "initial", 
+  className 
+}: LoadingStateProps) {
+  const variants = {
+    initial: {
+      icon: <Loader2 className="h-8 w-8 animate-spin" />,
+      text: "Loading content",
+      subtext: "This won't take long"
+    },
+    refresh: {
+      icon: <Loader2 className="h-6 w-6 animate-spin" />,
+      text: "Refreshing",
+      subtext: null
+    },
+    pagination: {
+      icon: <Loader2 className="h-5 w-5 animate-spin" />,
+      text: "Loading more",
+      subtext: null
+    },
+    search: {
+      icon: <Search className="h-6 w-6 animate-pulse" />,
+      text: "Searching",
+      subtext: null
+    }
+  }
+
+  const { icon, text, subtext } = variants[variant]
+
+  return (
+    <div className={cn("flex flex-col items-center justify-center py-8", className)}>
+      <div className="text-muted-foreground mb-3">{icon}</div>
+      <p className="text-sm font-medium">{text}</p>
+      {subtext && <p className="text-xs text-muted-foreground mt-1">{subtext}</p>}
     </div>
   )
 }

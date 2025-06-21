@@ -2,7 +2,7 @@
 
 import { RecipeWithRelations } from '@/lib/types/recipe'
 import { RecipeListItem } from './RecipeListItem'
-import { Skeleton } from '@/components/ui/skeleton'
+import { RecipeListItemSkeleton } from '@/components/ui/recipe-skeletons'
 import { FileX } from 'lucide-react'
 
 interface RecipeListProps {
@@ -20,9 +20,12 @@ export function RecipeList({
 }: RecipeListProps) {
   if (isLoading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 animate-fade-in">
         {Array.from({ length: 8 }).map((_, i) => (
-          <RecipeListItemSkeleton key={i} />
+          <RecipeListItemSkeleton 
+            key={i} 
+            className={i < 4 ? '' : 'animation-delay-200'}
+          />
         ))}
       </div>
     )
@@ -30,9 +33,9 @@ export function RecipeList({
 
   if (recipes.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-[200px]">
+      <div className="flex items-center justify-center min-h-[400px] animate-fade-in">
         <div className="text-center">
-          <FileX className="mx-auto h-12 w-12 text-muted-foreground" />
+          <FileX className="mx-auto h-12 w-12 text-muted-foreground animate-pulse" />
           <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">
             {emptyMessage}
           </h3>
@@ -45,7 +48,7 @@ export function RecipeList({
   }
 
   return (
-    <div className="flex flex-col space-y-4">
+    <div className="flex flex-col space-y-4 animate-fade-in">
       {recipes.map((recipe) => (
         <RecipeListItem
           key={recipe.id}
@@ -53,24 +56,6 @@ export function RecipeList({
           onToggleFavorite={onToggleFavorite}
         />
       ))}
-    </div>
-  )
-}
-
-function RecipeListItemSkeleton() {
-  return (
-    <div className="rounded-lg border bg-card p-4">
-      <div className="flex gap-4">
-        <Skeleton className="h-24 w-24 rounded-lg flex-shrink-0" />
-        <div className="flex-1 space-y-2">
-          <Skeleton className="h-5 w-1/3" />
-          <Skeleton className="h-4 w-full" />
-          <div className="flex gap-4 pt-2">
-            <Skeleton className="h-4 w-20" />
-            <Skeleton className="h-4 w-24" />
-          </div>
-        </div>
-      </div>
     </div>
   )
 }
