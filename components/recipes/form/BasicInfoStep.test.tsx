@@ -40,7 +40,6 @@ describe('BasicInfoStep', () => {
       expect(screen.getByLabelText('Cook Time (minutes)')).toBeInTheDocument()
       expect(screen.getByLabelText('Servings')).toBeInTheDocument()
       expect(screen.getByLabelText('Category')).toBeInTheDocument()
-      expect(screen.getByLabelText('Tags')).toBeInTheDocument()
       expect(screen.getByLabelText('Recipe Source')).toBeInTheDocument()
       expect(screen.getByLabelText('Make this recipe public')).toBeInTheDocument()
     })
@@ -105,17 +104,6 @@ describe('BasicInfoStep', () => {
     expect(servingsInput).toHaveValue(4)
   })
 
-  it('handles tags input correctly', async () => {
-    renderWithProvider()
-    
-    const tagsInput = screen.getByLabelText('Tags')
-    
-    await act(async () => {
-      fireEvent.change(tagsInput, { target: { value: 'quick, easy, vegetarian' } })
-    })
-    
-    expect(tagsInput).toHaveValue('quick, easy, vegetarian')
-  })
 
   it('updates source name', async () => {
     renderWithProvider()

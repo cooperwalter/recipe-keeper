@@ -12,6 +12,7 @@ import { Progress } from '@/components/ui/progress'
 import { ChevronLeft, ChevronRight, Loader2, Save, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { StorageService } from '@/lib/supabase/storage'
+import { DuplicateCheckDialog } from '@/components/recipe/duplicate-check-dialog'
 
 const steps = [
   { title: 'Basic Info', description: 'Title, times, and categories' },
@@ -25,8 +26,15 @@ export function RecipeFormWizard() {
   const { formData, currentStep, nextStep, previousStep, isValid, clearDraft, draftSavedAt } = useRecipeForm()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showDuplicateCheck, setShowDuplicateCheck] = useState(false)
 
   const handleSubmit = async () => {
+    // First show duplicate check
+    setShowDuplicateCheck(true)
+  }
+
+  const handleDuplicateCheckContinue = async () => {
+    setShowDuplicateCheck(false)
     setIsSubmitting(true)
     setError(null)
 
@@ -187,6 +195,27 @@ export function RecipeFormWizard() {
           )}
         </div>
       </div>
+
+      {/* Duplicate Check Dialog */}
+      <DuplicateCheckDialog
+        open={showDuplicateCheck}
+        onOpenChange={setShowDuplicateCheck}
+        recipeData={{
+          title: formData.title,
+          description: formData.description,
+          ingredients: formData.ingredients.map(ing => ({
+            ingredient: ing.ingredient,
+            amount: ing.amount,
+            unit: ing.unit,
+          })),
+          instructions: formData.instructions.map(inst => inst.instruction),
+          prepTime: formData.prepTime,
+          cookTime: formData.cookTime,
+          servings: formData.servings,
+        }}
+        onContinue={handleDuplicateCheckContinue}
+        onCancel={() => setShowDuplicateCheck(false)}
+      />
     </div>
   )
 }
