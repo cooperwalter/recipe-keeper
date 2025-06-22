@@ -30,7 +30,7 @@ export function formatAmount(amount: number): string {
     0.375: '⅜',
     0.5: '½',
     0.625: '⅝',
-    0.666: '⅔',
+    0.667: '⅔',
     0.75: '¾',
     0.875: '⅞',
   }
