@@ -3,7 +3,9 @@
 import { RecipeWithRelations } from '@/lib/types/recipe'
 import { RecipeCard } from './RecipeCard'
 import { RecipeCardSkeleton } from '@/components/ui/recipe-skeletons'
-import { FileX } from 'lucide-react'
+import { FileX, Plus } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 interface RecipeGridProps {
   recipes: RecipeWithRelations[]
@@ -42,6 +44,12 @@ export function RecipeGrid({
           <p className="mt-2 text-sm text-muted-foreground">
             Get started by creating your first recipe.
           </p>
+          <Button asChild className="mt-4">
+            <Link href="/protected/recipes/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Create Recipe
+            </Link>
+          </Button>
         </div>
       </div>
     )

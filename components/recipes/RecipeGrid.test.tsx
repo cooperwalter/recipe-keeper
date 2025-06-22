@@ -80,6 +80,8 @@ describe('RecipeGrid', () => {
     
     expect(screen.getByText('No recipes found')).toBeInTheDocument()
     expect(screen.getByText('Get started by creating your first recipe.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /create recipe/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /create recipe/i })).toHaveAttribute('href', '/protected/recipes/new')
   })
 
   it('displays custom empty message', () => {
