@@ -40,8 +40,8 @@ export function fractionToDecimal(value: string | number | undefined | null): nu
     return sign * (numerator / denominator)
   }
   
-  // Handle ranges by taking the first value (e.g., "1-2" → 1)
-  const rangeMatch = unsigned.match(/^(\d*\.?\d+)-\d*\.?\d+$/)
+  // Handle ranges by taking the first value (e.g., "1-2" or "1 - 2" → 1)
+  const rangeMatch = unsigned.match(/^(\d*\.?\d+)\s*-\s*\d*\.?\d+$/)
   if (rangeMatch) {
     return sign * parseFloat(rangeMatch[1])
   }
