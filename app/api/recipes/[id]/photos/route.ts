@@ -4,7 +4,7 @@ import { RecipeService } from '@/lib/db/recipes'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     const supabase = await createClient()
@@ -15,8 +15,8 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const recipeService = new RecipeService(supabase)
-    const { id } = await params
+  const recipeService = new RecipeService(supabase)
+  const { id } = params
     
     // Verify recipe ownership
     const recipe = await recipeService.getRecipe(id)
@@ -49,7 +49,7 @@ export async function POST(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     const supabase = await createClient()
@@ -60,8 +60,8 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const recipeService = new RecipeService(supabase)
-    const { id } = await params
+  const recipeService = new RecipeService(supabase)
+  const { id } = params
     
     // Get recipe with photos
     const recipe = await recipeService.getRecipe(id)
@@ -96,8 +96,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Photo ID is required' }, { status: 400 })
     }
 
-    const recipeService = new RecipeService(supabase)
-    // const { id } = await params // id param not needed for delete
+  const recipeService = new RecipeService(supabase)
+  // const { id } = params // id param not needed for delete
     
     // Verify ownership and delete photo
     try {
