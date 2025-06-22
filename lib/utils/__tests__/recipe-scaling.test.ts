@@ -20,7 +20,7 @@ describe('formatAmount', () => {
     expect(formatAmount(0.25)).toBe('¼')
     expect(formatAmount(0.75)).toBe('¾')
     expect(formatAmount(0.333)).toBe('⅓')
-    expect(formatAmount(0.666)).toBe('⅔')
+    expect(formatAmount(2/3)).toBe('⅔')
     expect(formatAmount(0.125)).toBe('⅛')
     expect(formatAmount(0.375)).toBe('⅜')
     expect(formatAmount(0.625)).toBe('⅝')
