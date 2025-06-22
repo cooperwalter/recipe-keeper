@@ -63,7 +63,23 @@ export function setupOpenAIMock() {
   return mockClient
 }
 
-export function createMockOCRResponse(overrides?: any) {
+export function createMockOCRResponse(overrides?: Partial<{
+  title: string
+  description: string
+  ingredients: Array<{ ingredient: string; amount: number; unit: string }>
+  instructions: string[]
+  prepTime: number
+  cookTime: number
+  servings: number
+}>): {
+  title: string
+  description: string
+  ingredients: Array<{ ingredient: string; amount: number; unit: string }>
+  instructions: string[]
+  prepTime: number
+  cookTime: number
+  servings: number
+} {
   return {
     title: 'OCR Recipe',
     description: 'Recipe extracted from image',
@@ -85,7 +101,27 @@ export function createMockTranscriptionResponse(text = 'This is a test transcrip
   }
 }
 
-export function createMockRecipeModification(overrides?: any) {
+export function createMockRecipeModification(overrides?: Partial<{
+  original: {
+    ingredients: Array<{ ingredient: string; amount: number; unit: string }>
+    instructions: string[]
+  }
+  modified: {
+    ingredients: Array<{ ingredient: string; amount: number; unit: string }>
+    instructions: string[]
+  }
+  changes: string[]
+}>): {
+  original: {
+    ingredients: Array<{ ingredient: string; amount: number; unit: string }>
+    instructions: string[]
+  }
+  modified: {
+    ingredients: Array<{ ingredient: string; amount: number; unit: string }>
+    instructions: string[]
+  }
+  changes: string[]
+} {
   return {
     original: {
       ingredients: [

@@ -1,5 +1,4 @@
 import { NextRequest } from 'next/server'
-import { createMockUser } from './factories'
 
 /**
  * API testing utilities
@@ -23,7 +22,7 @@ export function createUnauthenticatedRequest(url: string, options?: RequestInit)
   return new NextRequest(url, options)
 }
 
-export function createMockApiContext(params?: any) {
+export function createMockApiContext(params?: Record<string, string>) {
   return {
     params: params || {},
   }
@@ -68,7 +67,7 @@ export async function expectError(response: Response, status: number, errorMessa
   return data
 }
 
-export function createFormDataRequest(url: string, data: Record<string, any>) {
+export function createFormDataRequest(url: string, data: Record<string, string | number | boolean | File | Blob | object>) {
   const formData = new FormData()
   
   Object.entries(data).forEach(([key, value]) => {
@@ -87,7 +86,7 @@ export function createFormDataRequest(url: string, data: Record<string, any>) {
   })
 }
 
-export function createJsonRequest(url: string, data: any, method = 'POST') {
+export function createJsonRequest(url: string, data: unknown, method = 'POST') {
   return new NextRequest(url, {
     method,
     headers: {
@@ -97,7 +96,7 @@ export function createJsonRequest(url: string, data: any, method = 'POST') {
   })
 }
 
-export function parseJsonResponse<T = any>(response: Response): Promise<T> {
+export function parseJsonResponse<T = unknown>(response: Response): Promise<T> {
   return response.json()
 }
 

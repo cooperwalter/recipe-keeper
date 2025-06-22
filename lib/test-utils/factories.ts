@@ -1,4 +1,4 @@
-import { RecipeWithRelations, Ingredient, Instruction } from '@/lib/types/recipe'
+import { RecipeWithRelations, Ingredient, Instruction, RecipePhoto, Category } from '@/lib/types/recipe'
 import { User } from '@supabase/supabase-js'
 
 /**
@@ -76,7 +76,7 @@ export function createMockInstruction(overrides?: Partial<Instruction>): Instruc
   }
 }
 
-export function createMockRecipePhoto(overrides?: any) {
+export function createMockRecipePhoto(overrides?: Partial<RecipePhoto>): RecipePhoto {
   return {
     id: 'photo-id',
     recipeId: 'recipe-id',
@@ -89,7 +89,7 @@ export function createMockRecipePhoto(overrides?: any) {
   }
 }
 
-export function createMockCategory(overrides?: any) {
+export function createMockCategory(overrides?: Partial<Category>): Category {
   return {
     id: 'category-id',
     name: 'Test Category',
@@ -100,7 +100,15 @@ export function createMockCategory(overrides?: any) {
   }
 }
 
-export function createMockRecipeListResponse(overrides?: any) {
+export function createMockRecipeListResponse(overrides?: Partial<{
+  recipes: RecipeWithRelations[]
+  total: number
+  hasMore: boolean
+}>): {
+  recipes: RecipeWithRelations[]
+  total: number
+  hasMore: boolean
+} {
   return {
     recipes: [],
     total: 0,
@@ -109,7 +117,33 @@ export function createMockRecipeListResponse(overrides?: any) {
   }
 }
 
-export function createMockRecipeFormData(overrides?: any) {
+export function createMockRecipeFormData(overrides?: Partial<{
+  title: string
+  description: string
+  ingredients: Array<{ ingredient: string; amount: number; unit: string }>
+  instructions: string[]
+  prepTime: number
+  cookTime: number
+  servings: number
+  categoryId?: string
+  tags: string[]
+  sourceName: string
+  sourceNotes: string
+  isPublic: boolean
+}>): {
+  title: string
+  description: string
+  ingredients: Array<{ ingredient: string; amount: number; unit: string }>
+  instructions: string[]
+  prepTime: number
+  cookTime: number
+  servings: number
+  categoryId?: string
+  tags: string[]
+  sourceName: string
+  sourceNotes: string
+  isPublic: boolean
+} {
   return {
     title: 'New Recipe',
     description: 'A new test recipe',

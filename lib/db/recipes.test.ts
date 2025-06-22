@@ -1,10 +1,31 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { RecipeService } from './recipes'
-import { createMockRecipe, createMockIngredient, createMockInstruction, createMockUser, createMockSupabaseClient } from '@/lib/test-utils'
+import { createMockRecipe, createMockIngredient, createMockInstruction, createMockSupabaseClient } from '@/lib/test-utils'
+import { and, eq } from 'drizzle-orm'
+import { recipes, ingredients, instructions, recipePhotos, recipeTags, recipeCategories, recipeCategoryMappings, favorites, recipeVersions } from './schema'
+
+type MockChain = {
+  select: ReturnType<typeof vi.fn>
+  from: ReturnType<typeof vi.fn>
+  where: ReturnType<typeof vi.fn>
+  orderBy: ReturnType<typeof vi.fn>
+  limit: ReturnType<typeof vi.fn>
+  offset: ReturnType<typeof vi.fn>
+  leftJoin: ReturnType<typeof vi.fn>
+  groupBy: ReturnType<typeof vi.fn>
+  insert: ReturnType<typeof vi.fn>
+  values: ReturnType<typeof vi.fn>
+  returning: ReturnType<typeof vi.fn>
+  update: ReturnType<typeof vi.fn>
+  set: ReturnType<typeof vi.fn>
+  delete: ReturnType<typeof vi.fn>
+  execute: ReturnType<typeof vi.fn>
+  then: ReturnType<typeof vi.fn>
+}
 
 // Mock the db module
 vi.mock('./index', () => {
-  const createMockChain = () => {
+  const createMockChain = (): MockChain => {
     const chain = {
       select: vi.fn().mockReturnThis(),
       from: vi.fn().mockReturnThis(),
@@ -21,7 +42,7 @@ vi.mock('./index', () => {
       set: vi.fn().mockReturnThis(),
       delete: vi.fn().mockReturnThis(),
       execute: vi.fn().mockResolvedValue([]),
-      then: vi.fn((onFulfilled: any) => {
+      then: vi.fn((onFulfilled: (value: any[]) => any) => {
         // Mock the promise behavior
         return Promise.resolve([{ count: 0 }]).then(onFulfilled)
       }),
@@ -30,7 +51,7 @@ vi.mock('./index', () => {
   }
   
   const mockDb = Object.assign(createMockChain(), {
-    transaction: vi.fn((callback: any) => callback(mockDb)),
+    transaction: vi.fn((callback: (tx: any) => any) => callback(mockDb)),
     $count: vi.fn().mockResolvedValue(0),
   })
   
@@ -51,18 +72,21 @@ vi.mock('./index', () => {
 describe.skip('RecipeService', () => {
   let service: RecipeService
   let mockSupabase: ReturnType<typeof createMockSupabaseClient>
-  let mockDb: any
+  let mockDb: MockChain & {
+    transaction: ReturnType<typeof vi.fn>
+    $count: ReturnType<typeof vi.fn>
+  }
   
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks()
     
     // Get the mocked db
-    const dbModule = vi.mocked(require('./index'))
-    mockDb = dbModule.db
+    const dbModule = await vi.importMock('./index')
+    mockDb = (dbModule as { db: typeof mockDb }).db
     
     // Reset mock implementations
     mockDb.execute.mockResolvedValue([])
-    mockDb.then = vi.fn((onFulfilled: any) => {
+    mockDb.then = vi.fn((onFulfilled: (value: any[]) => any) => {
       return Promise.resolve([{ count: 0 }]).then(onFulfilled)
     })
     
@@ -70,7 +94,7 @@ describe.skip('RecipeService', () => {
     mockSupabase = createMockSupabaseClient()
     
     // Create service with mocked Supabase
-    service = new RecipeService(mockSupabase as any)
+    service = new RecipeService(mockSupabase as unknown as Parameters<typeof RecipeService>[0])
   })
 
   describe('listRecipes', () => {

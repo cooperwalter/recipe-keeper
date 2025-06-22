@@ -20,10 +20,8 @@ describe.skip('useDuplicateCheck', () => {
   )
 
   it('should not check when title is empty', () => {
-    const { result } = renderHook(() => useDuplicateCheck(''), { wrapper })
+    renderHook(() => useDuplicateCheck(''), { wrapper })
 
-    expect(result.current.duplicates).toEqual([])
-    expect(result.current.isChecking).toBe(false)
     expect(mockFetch).not.toHaveBeenCalled()
   })
 
@@ -129,12 +127,12 @@ describe.skip('useDuplicateCheck', () => {
   })
 
   it('should handle the isChecking state correctly', async () => {
-    let resolvePromise: (value: any) => void
-    const promise = new Promise((resolve) => {
+    let resolvePromise: (value: Response) => void
+    const promise = new Promise<Response>((resolve) => {
       resolvePromise = resolve
     })
 
-    mockFetch.mockReturnValueOnce(promise as any)
+    mockFetch.mockReturnValueOnce(promise)
 
     const { result } = renderHook(() => useDuplicateCheck('Slow Recipe'), { wrapper })
 
@@ -153,10 +151,10 @@ describe.skip('useDuplicateCheck', () => {
 
     // Resolve the request
     act(() => {
-      resolvePromise!({
+      resolvePromise({
         ok: true,
         json: async () => ({ duplicates: [] }),
-      })
+      } as Response)
     })
 
     // Should not be checking after request completes

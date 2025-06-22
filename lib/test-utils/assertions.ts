@@ -79,13 +79,23 @@ export function expectInstructionsToMatch(
   })
 }
 
-export function expectRecipeFormDataToBeValid(formData: any) {
+export function expectRecipeFormDataToBeValid(formData: {
+  title?: unknown
+  ingredients?: unknown
+  instructions?: unknown
+  prepTime?: unknown
+  cookTime?: unknown
+  servings?: unknown
+}) {
   expect(formData.title).toBeTruthy()
   expect(typeof formData.title).toBe('string')
   
   if (formData.ingredients) {
     expect(Array.isArray(formData.ingredients)).toBe(true)
-    formData.ingredients.forEach((ing: any) => {
+    formData.ingredients.forEach((ing: {
+      ingredient?: unknown
+      amount?: unknown
+    }) => {
       expect(ing.ingredient).toBeTruthy()
       expect(typeof ing.ingredient).toBe('string')
       if (ing.amount !== undefined) {
@@ -96,7 +106,7 @@ export function expectRecipeFormDataToBeValid(formData: any) {
   
   if (formData.instructions) {
     expect(Array.isArray(formData.instructions)).toBe(true)
-    formData.instructions.forEach((inst: any) => {
+    formData.instructions.forEach((inst: unknown) => {
       expect(inst).toBeTruthy()
       expect(typeof inst).toBe('string')
     })
@@ -134,7 +144,14 @@ export function expectToContainRecipe(
   }
 }
 
-export function expectRecipePhotoToBeValid(photo: any) {
+export function expectRecipePhotoToBeValid(photo: {
+  id?: unknown
+  recipeId?: unknown
+  photoUrl?: unknown
+  isOriginal?: unknown
+  uploadedBy?: unknown
+  uploadedAt?: unknown
+}) {
   expect(photo.id).toBeTruthy()
   expect(photo.recipeId).toBeTruthy()
   expect(photo.photoUrl).toBeTruthy()
