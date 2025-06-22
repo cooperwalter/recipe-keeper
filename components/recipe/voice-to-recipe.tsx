@@ -332,7 +332,7 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
       console.log('Voice update response:', data)
       
       if (!data.changes || data.changes.length === 0) {
-        setError('I couldn\'t understand what changes you want to make. Please try speaking more clearly.')
+        setError("I couldn't understand what changes you want to make. Please try speaking more clearly.")
         return
       }
       
