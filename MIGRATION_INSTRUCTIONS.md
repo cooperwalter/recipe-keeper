@@ -7,7 +7,7 @@ Since Vercel deployment doesn't have access to Supabase service role keys, you n
 1. Go to your Supabase project dashboard
 2. Navigate to SQL Editor
 3. Create a new query
-4. Copy and paste the contents of `all-migrations.sql`
+4. Copy and paste the contents of `run-all-migrations.sql`
 5. Click "Run" to execute all migrations
 
 ## Option 2: Using Supabase CLI (Local)
