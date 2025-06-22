@@ -7,6 +7,7 @@ describe('fractionToDecimal', () => {
     expect(fractionToDecimal('3/4')).toBe(0.75);
     expect(fractionToDecimal('1/3')).toBeCloseTo(0.333, 3);
     expect(fractionToDecimal('2/3')).toBeCloseTo(0.667, 3);
+    expect(fractionToDecimal('-1/2')).toBe(-0.5);
   });
 
   it('converts mixed numbers', () => {
@@ -47,6 +48,7 @@ describe('decimalToFraction', () => {
     expect(decimalToFraction(0.5)).toBe('1/2');
     expect(decimalToFraction(0.75)).toBe('3/4');
     expect(decimalToFraction(0.25)).toBe('1/4');
+    expect(decimalToFraction(-0.5)).toBe('-1/2');
   });
 
   it('converts to mixed numbers', () => {
