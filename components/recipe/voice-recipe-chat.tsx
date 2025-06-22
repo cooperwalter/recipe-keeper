@@ -2,13 +2,11 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { VoiceWaveAnimation } from '@/components/ui/voice-wave-animation'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { Mic, MicOff, Loader2, Send, MessageCircle } from 'lucide-react'
 import { RecipeWithRelations } from '@/lib/types/recipe'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
 
 // Type for Web Speech API's SpeechRecognition
@@ -78,6 +76,7 @@ export function VoiceRecipeChat({ recipe }: VoiceRecipeChatProps) {
   const [audioLevel, setAudioLevel] = useState(0)
   const [recordingTime, setRecordingTime] = useState(0)
   const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [useMediaRecorder, setUseMediaRecorder] = useState(false)
   
   const abortControllerRef = useRef<AbortController | null>(null)
   const recognitionRef = useRef<SpeechRecognition | null>(null)
@@ -88,6 +87,8 @@ export function VoiceRecipeChat({ recipe }: VoiceRecipeChatProps) {
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const isRecordingRef = useRef<boolean>(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const chunksRef = useRef<Blob[]>([])
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -138,7 +139,17 @@ export function VoiceRecipeChat({ recipe }: VoiceRecipeChatProps) {
           }
           
           if (finalTranscript) {
-            setTranscript(prev => prev + finalTranscript)
+            setTranscript(prev => {
+              const newTranscript = prev + finalTranscript
+              // Auto-focus on the input when we get text
+              setTimeout(() => {
+                const textarea = document.querySelector('textarea[placeholder*="Type your question"]') as HTMLTextAreaElement
+                if (textarea) {
+                  textarea.focus()
+                }
+              }, 50)
+              return newTranscript
+            })
           }
           setLiveTranscript(interimTranscript)
         }
@@ -168,6 +179,64 @@ export function VoiceRecipeChat({ recipe }: VoiceRecipeChatProps) {
         
         recognition.start()
         recognitionRef.current = recognition
+      } else {
+        console.warn('Speech recognition not supported, using MediaRecorder fallback')
+        setUseMediaRecorder(true)
+      }
+      
+      // Set up MediaRecorder as fallback
+      if (!SpeechRecognition || useMediaRecorder) {
+        try {
+          const mediaRecorder = new MediaRecorder(stream, {
+            mimeType: 'audio/webm;codecs=opus'
+          })
+          
+          mediaRecorderRef.current = mediaRecorder
+          chunksRef.current = []
+          
+          mediaRecorder.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+              chunksRef.current.push(event.data)
+            }
+          }
+          
+          mediaRecorder.onstop = async () => {
+            const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
+            
+            // Send to transcription API
+            try {
+              const formData = new FormData()
+              formData.append('audio', blob, 'recording.webm')
+              
+              const response = await fetch('/api/transcribe', {
+                method: 'POST',
+                body: formData
+              })
+              
+              if (response.ok) {
+                const { text } = await response.json()
+                // If we're still in recording mode (continuous), append to existing transcript
+                if (isRecordingRef.current) {
+                  setTranscript(prev => prev + (prev ? ' ' : '') + text)
+                } else {
+                  setTranscript(text)
+                }
+              } else {
+                const error = await response.json()
+                setError(error.error || 'Failed to transcribe audio')
+              }
+            } catch (err) {
+              console.error('Transcription error:', err)
+              setError('Failed to transcribe audio. Please try again.')
+            }
+          }
+          
+          mediaRecorder.start(100) // Collect data every 100ms
+          console.log('MediaRecorder started as fallback')
+        } catch (err) {
+          console.error('Failed to set up MediaRecorder:', err)
+          setError('Failed to initialize audio recording')
+        }
       }
       
       // Start audio level monitoring
@@ -203,13 +272,19 @@ export function VoiceRecipeChat({ recipe }: VoiceRecipeChatProps) {
       console.error('Error starting recording:', err)
       setError('Failed to access microphone')
     }
-  }, [])
+  }, [useMediaRecorder])
 
   const stopRecording = useCallback(() => {
     // Stop speech recognition
     if (recognitionRef.current) {
       recognitionRef.current.stop()
       recognitionRef.current = null
+    }
+    
+    // Stop MediaRecorder if using fallback
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop()
+      // Don't null it here, let onstop handle cleanup
     }
     
     // Stop timer
@@ -240,13 +315,17 @@ export function VoiceRecipeChat({ recipe }: VoiceRecipeChatProps) {
     isRecordingRef.current = false
     setAudioLevel(0)
     
-    // Combine live transcript with main transcript
-    const finalTranscript = transcript + (liveTranscript ? ' ' + liveTranscript : '')
-    const trimmedTranscript = finalTranscript.trim()
-    
-    setTranscript(trimmedTranscript)
-    setLiveTranscript('')
-  }, [transcript, liveTranscript])
+    // Only process transcript for Web Speech API
+    if (!useMediaRecorder) {
+      // Combine live transcript with main transcript
+      const finalTranscript = transcript + (liveTranscript ? ' ' + liveTranscript : '')
+      const trimmedTranscript = finalTranscript.trim()
+      
+      setTranscript(trimmedTranscript)
+      setLiveTranscript('')
+    }
+    // For MediaRecorder, transcript will be set in the onstop handler
+  }, [transcript, liveTranscript, useMediaRecorder])
 
   const submitQuestion = useCallback(async (questionText: string) => {
     if (!questionText.trim()) return
@@ -263,7 +342,12 @@ export function VoiceRecipeChat({ recipe }: VoiceRecipeChatProps) {
     }
     setMessages(prev => [...prev, userMessage])
     
-    // Clear transcript for next question
+    // Stop recording when sending
+    if (isRecording) {
+      stopRecording()
+    }
+    
+    // Clear transcript
     setTranscript('')
 
     // Cancel any existing request
@@ -313,7 +397,7 @@ export function VoiceRecipeChat({ recipe }: VoiceRecipeChatProps) {
       setIsProcessing(false)
       abortControllerRef.current = null
     }
-  }, [recipe, messages])
+  }, [recipe, messages, isRecording, stopRecording])
 
   const handleSendClick = () => {
     if (transcript.trim()) {
@@ -355,6 +439,7 @@ export function VoiceRecipeChat({ recipe }: VoiceRecipeChatProps) {
       setIsProcessing(false)
       setError(null)
       setRecordingTime(0)
+      setUseMediaRecorder(false)
     }
     setIsOpen(open)
   }, [isRecording, stopRecording])
@@ -411,7 +496,7 @@ export function VoiceRecipeChat({ recipe }: VoiceRecipeChatProps) {
 
           <div className="flex-1 flex flex-col min-h-0">
             {/* Chat Messages */}
-            <ScrollArea className="flex-1 pr-4 mb-4" ref={scrollAreaRef}>
+            <div className="flex-1 overflow-y-auto pr-4 mb-4" ref={scrollAreaRef}>
               <div className="space-y-4">
                 {messages.length === 0 && (
                   <div className="text-center text-muted-foreground py-8">
@@ -463,7 +548,7 @@ export function VoiceRecipeChat({ recipe }: VoiceRecipeChatProps) {
                   </div>
                 )}
               </div>
-            </ScrollArea>
+            </div>
 
             {/* Input Area */}
             <div className="border-t pt-4 space-y-4">
@@ -473,19 +558,24 @@ export function VoiceRecipeChat({ recipe }: VoiceRecipeChatProps) {
                   <p className="text-sm font-medium text-destructive">Recording...</p>
                   <p className="text-sm font-mono">{formatTime(recordingTime)}</p>
                   <VoiceWaveAnimation isActive={isRecording} audioLevel={audioLevel} className="text-destructive" />
+                  {useMediaRecorder && (
+                    <p className="text-xs text-muted-foreground">
+                      Transcription will appear after you stop recording
+                    </p>
+                  )}
+                  {!useMediaRecorder && transcript && (
+                    <p className="text-xs text-muted-foreground animate-pulse">
+                      Press Enter or Send to send message
+                    </p>
+                  )}
                 </div>
               )}
 
-              {/* Live Transcription */}
-              {(transcript || liveTranscript) && (
-                <Card className="p-3">
-                  <p className="text-sm">
-                    {transcript}
-                    {liveTranscript && (
-                      <span className="text-muted-foreground italic">{liveTranscript}</span>
-                    )}
-                  </p>
-                </Card>
+              {/* Live Transcription indicator when recording */}
+              {isRecording && liveTranscript && (
+                <div className="text-xs text-muted-foreground italic px-3">
+                  Hearing: {liveTranscript}
+                </div>
               )}
 
               {/* Input Controls */}
@@ -495,10 +585,10 @@ export function VoiceRecipeChat({ recipe }: VoiceRecipeChatProps) {
                     value={transcript}
                     onChange={(e) => setTranscript(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder="Type your question or use voice..."
+                    placeholder={isRecording ? "Speaking... (press Enter to send)" : "Type your question or use voice..."}
                     className="w-full px-3 py-2 text-sm border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-primary"
                     rows={2}
-                    disabled={isRecording || isProcessing}
+                    disabled={isProcessing}
                   />
                 </div>
                 
@@ -520,7 +610,7 @@ export function VoiceRecipeChat({ recipe }: VoiceRecipeChatProps) {
                   <Button
                     size="icon"
                     onClick={handleSendClick}
-                    disabled={!transcript.trim() || isProcessing || isRecording}
+                    disabled={!transcript.trim() || isProcessing}
                     aria-label="Send message"
                   >
                     {isProcessing ? (
