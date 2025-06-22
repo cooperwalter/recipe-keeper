@@ -31,7 +31,6 @@ describe('draftPersistence', () => {
       { instruction: 'Mix ingredients', stepNumber: 1 }
     ],
     categoryIds: ['breakfast'],
-    tags: ['easy'],
     photos: []
   }
 
@@ -61,7 +60,6 @@ describe('draftPersistence', () => {
         ingredients: [],
         instructions: [],
         categoryIds: [],
-        tags: [],
         photos: []
       }
 

@@ -53,7 +53,7 @@ const mockMediaStream = {
 Object.defineProperty(global.navigator, 'mediaDevices', {
   writable: true,
   value: {
-    getUserMedia: vi.fn(() => Promise.resolve(mockMediaStream as MediaStream))
+    getUserMedia: vi.fn(() => Promise.resolve(mockMediaStream as unknown as MediaStream))
   }
 })
 

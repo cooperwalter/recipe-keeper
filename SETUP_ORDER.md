@@ -29,7 +29,7 @@ You should see: "✅ Database connection verified!"
 ## 3. Create Demo Account
 
 Go to http://localhost:3002/auth/sign-up and create account with:
-- Email: `demo@recipekeeper.com`
+- Email: `demo@recipeandme.app`
 - Password: `DemoRecipes2024!`
 
 ## 4. Seed Demo Recipes
@@ -44,7 +44,7 @@ node scripts/seed-demo-recipes.js
 ### Option B: SQL with manual ID
 1. Get the demo user ID:
    ```sql
-   SELECT id FROM auth.users WHERE email = 'demo@recipekeeper.com';
+   SELECT id FROM auth.users WHERE email = 'demo@recipeandme.app';
    ```
 2. Edit `seed-demo-recipes.sql` and replace `YOUR_DEMO_USER_ID`
 3. Run the SQL in Supabase Dashboard

@@ -37,11 +37,12 @@ This document outlines the infrastructure, services, and technical stack used by
 ## External Services
 
 ### Email
-- **Provider**: MailerSend
+- **Provider**: Google Workspace
 - **Usage**: 
   - User authentication emails
   - Password reset emails
   - Account verification
+- **Integration**: Via SMTP or Google Workspace APIs
 
 ### AI/ML Services
 - **Anthropic Claude API**
@@ -95,10 +96,8 @@ SUPABASE_SERVICE_ROLE_KEY=
 ANTHROPIC_API_KEY=
 OPENAI_API_KEY=
 
-# Email Service
-MAILERSEND_API_KEY=
-MAILERSEND_FROM_EMAIL=
-MAILERSEND_FROM_NAME=
+# Email Service (Google Workspace)
+# Configure via Supabase Auth SMTP settings or Google API credentials
 
 # Application
 NEXT_PUBLIC_APP_URL=
@@ -183,7 +182,7 @@ NEXT_PUBLIC_MOCK_AI=true  # Use AI mocks in development
 - Supabase (database, auth, storage)
 - Vercel hosting (bandwidth, compute)
 - AI API usage (Anthropic, OpenAI)
-- Email sending (MailerSend)
+- Email sending (Google Workspace)
 
 ## Disaster Recovery
 

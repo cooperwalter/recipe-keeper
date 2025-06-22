@@ -82,8 +82,8 @@ describe.skip('RecipeService', () => {
     vi.clearAllMocks()
     
     // Get the mocked db
-    const dbModule = await vi.importMock('./index')
-    mockDb = (dbModule as { db: typeof mockDb }).db
+    const dbModule = await vi.importMock<{ db: typeof mockDb }>('./index')
+    mockDb = dbModule.db
     
     // Reset mock implementations
     mockDb.execute.mockResolvedValue([])

@@ -4,9 +4,9 @@ import { RecipeService } from '@/lib/db/recipes'
 import Anthropic from '@anthropic-ai/sdk'
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 interface RecipeChange {
@@ -19,7 +19,7 @@ interface RecipeChange {
 
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = params
+    const { id } = await params
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 

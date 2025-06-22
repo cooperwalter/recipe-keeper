@@ -36,7 +36,7 @@ export class RecipeUrlParser {
       // Fetch the page content
       const response = await fetch(validUrl.toString(), {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (compatible; RecipeKeeper/1.0; +https://recipekeeper.com/bot)'
+          'User-Agent': 'Mozilla/5.0 (compatible; RecipeAndMe/1.0; +https://recipeandme.app/bot)'
         }
       })
 

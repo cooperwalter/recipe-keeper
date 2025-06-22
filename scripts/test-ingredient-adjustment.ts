@@ -29,10 +29,10 @@ async function testIngredientAdjustment() {
     console.log('2. Logging in...')
     // Try multiple selectors
     try {
-      await page.fill('input#email', 'demo@recipekeeper.com')
+      await page.fill('input#email', 'demo@recipeandme.app')
     } catch (e) {
       console.log('   Trying alternative email selector...')
-      await page.fill('input[type="email"]', 'demo@recipekeeper.com')
+      await page.fill('input[type="email"]', 'demo@recipeandme.app')
     }
     
     try {

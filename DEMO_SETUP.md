@@ -1,7 +1,7 @@
 # Demo Account Setup (Development Only)
 
 ## Demo Credentials
-- **Email:** demo@recipekeeper.com
+- **Email:** demo@recipeandme.app
 - **Password:** DemoRecipes2024!
 
 ## Important: Supabase Configuration
@@ -17,7 +17,7 @@ To allow the demo account to work without email confirmation, you need to:
 ### Option 2: Use Supabase Inbucket (Local Development)
 If running Supabase locally:
 1. Access Inbucket at http://localhost:54324
-2. Find the confirmation email for demo@recipekeeper.com
+2. Find the confirmation email for demo@recipeandme.app
 3. Click the confirmation link
 
 ### Option 3: Manual Confirmation via SQL
@@ -25,7 +25,7 @@ Run this SQL in Supabase SQL Editor after creating the account:
 ```sql
 UPDATE auth.users 
 SET email_confirmed_at = now() 
-WHERE email = 'demo@recipekeeper.com';
+WHERE email = 'demo@recipeandme.app';
 ```
 
 ## Features

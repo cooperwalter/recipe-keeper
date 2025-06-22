@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server'
+import { expect } from 'vitest'
 
 /**
  * API testing utilities

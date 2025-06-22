@@ -1,6 +1,6 @@
 -- Automated Demo Recipe Seeder
 -- This version attempts to find the demo user automatically
--- Run this after creating demo@recipekeeper.com account
+-- Run this after creating demo@recipeandme.app account
 
 DO $$
 DECLARE
@@ -10,7 +10,7 @@ DECLARE
     breakfast_id UUID;
     soups_id UUID;
     recipe_id UUID;
-    demo_email TEXT := 'demo@recipekeeper.com';
+    demo_email TEXT := 'demo@recipeandme.app';
 BEGIN
     -- Try to find demo user in auth.users
     -- Note: This might fail due to RLS policies
@@ -107,5 +107,5 @@ BEGIN
 EXCEPTION
     WHEN OTHERS THEN
         RAISE NOTICE 'Error: %', SQLERRM;
-        RAISE NOTICE 'Please ensure demo@recipekeeper.com account exists';
+        RAISE NOTICE 'Please ensure demo@recipeandme.app account exists';
 END $$;

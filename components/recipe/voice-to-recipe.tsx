@@ -81,6 +81,7 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
   const [showReview, setShowReview] = useState(false)
   const [audioLevel, setAudioLevel] = useState(0)
   const [recordingTime, setRecordingTime] = useState(0)
+  const [useMediaRecorder, setUseMediaRecorder] = useState(false)
   
   const abortControllerRef = useRef<AbortController | null>(null)
   const recognitionRef = useRef<SpeechRecognition | null>(null)
@@ -91,6 +92,8 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const isRecordingRef = useRef<boolean>(false)
   const processTranscriptRef = useRef<((text: string) => void) | null>(null)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const chunksRef = useRef<Blob[]>([])
 
   const startRecording = useCallback(async () => {
     try {
@@ -115,60 +118,149 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
       const SpeechRecognition = ((window as Window & typeof globalThis & { SpeechRecognition?: new() => SpeechRecognition }).SpeechRecognition || 
                                   (window as Window & typeof globalThis & { webkitSpeechRecognition?: new() => SpeechRecognition }).webkitSpeechRecognition)
       if (SpeechRecognition) {
-        const recognition = new SpeechRecognition()
-        recognition.continuous = true
-        recognition.interimResults = true
-        recognition.lang = 'en-US'
-        
-        recognition.onresult = (event: SpeechRecognitionEvent) => {
-          console.log('Speech recognition result:', event)
-          let finalTranscript = ''
-          let interimTranscript = ''
+        try {
+          const recognition = new SpeechRecognition()
+          recognition.continuous = true
+          recognition.interimResults = true
+          recognition.lang = 'en-US'
+          recognition.maxAlternatives = 1
           
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            const transcript = event.results[i][0].transcript
-            if (event.results[i].isFinal) {
-              finalTranscript += transcript + ' '
+          // Add additional event handlers for debugging
+          recognition.onaudiostart = () => {
+            console.log('Audio capture started')
+          }
+          
+          recognition.onsoundstart = () => {
+            console.log('Sound detected')
+          }
+          
+          recognition.onspeechstart = () => {
+            console.log('Speech detected')
+          }
+          
+          recognition.onstart = () => {
+            console.log('Speech recognition started successfully')
+          }
+          
+          recognition.onresult = (event: SpeechRecognitionEvent) => {
+            console.log('Speech recognition result:', event)
+            let finalTranscript = ''
+            let interimTranscript = ''
+            
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+              const transcript = event.results[i][0].transcript
+              if (event.results[i].isFinal) {
+                finalTranscript += transcript + ' '
+              } else {
+                interimTranscript += transcript
+              }
+            }
+            
+            console.log('Final transcript:', finalTranscript, 'Interim:', interimTranscript)
+            
+            if (finalTranscript) {
+              setTranscript(prev => prev + finalTranscript)
+            }
+            setLiveTranscript(interimTranscript)
+          }
+          
+          recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+            console.error('Speech recognition error:', event.error)
+            if (event.error === 'no-speech') {
+              // Don't show error for no-speech, it's common
+              console.log('No speech detected yet, continuing...')
+            } else if (event.error === 'not-allowed') {
+              setError('Microphone access denied. Please allow microphone access and try again.')
+            } else if (event.error === 'network') {
+              setError('Network error. Please check your internet connection.')
+            } else if (event.error === 'audio-capture') {
+              setError('Failed to capture audio. Please check your microphone.')
             } else {
-              interimTranscript += transcript
+              setError(`Speech recognition error: ${event.error}`)
             }
           }
           
-          console.log('Final transcript:', finalTranscript, 'Interim:', interimTranscript)
+          recognition.onend = () => {
+            console.log('Speech recognition ended')
+            // If recognition ends unexpectedly while recording, restart it
+            if (isRecordingRef.current && recognitionRef.current) {
+              console.log('Restarting speech recognition...')
+              setTimeout(() => {
+                try {
+                  recognition.start()
+                } catch (err) {
+                  console.error('Error restarting recognition:', err)
+                }
+              }, 100)
+            }
+          }
           
-          if (finalTranscript) {
-            setTranscript(prev => prev + finalTranscript)
-          }
-          setLiveTranscript(interimTranscript)
+          recognition.start()
+          recognitionRef.current = recognition
+        } catch (err) {
+          console.error('Failed to initialize speech recognition:', err)
+          console.log('Falling back to MediaRecorder API')
+          setUseMediaRecorder(true)
         }
-        
-        recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-          console.error('Speech recognition error:', event.error)
-          if (event.error === 'no-speech') {
-            setError('No speech detected. Please try speaking again.')
-          } else if (event.error === 'not-allowed') {
-            setError('Microphone access denied. Please allow microphone access.')
-          } else if (event.error === 'network') {
-            setError('Network error. Please check your internet connection.')
-          } else {
-            setError(`Speech recognition error: ${event.error}`)
+      } else {
+        console.warn('Speech recognition not supported, using MediaRecorder fallback')
+        setUseMediaRecorder(true)
+      }
+      
+      // Set up MediaRecorder as fallback
+      if (useMediaRecorder || !SpeechRecognition) {
+        try {
+          const mediaRecorder = new MediaRecorder(stream, {
+            mimeType: 'audio/webm;codecs=opus'
+          })
+          
+          mediaRecorderRef.current = mediaRecorder
+          chunksRef.current = []
+          
+          mediaRecorder.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+              chunksRef.current.push(event.data)
+            }
           }
-        }
-        
-        recognition.onend = () => {
-          console.log('Speech recognition ended')
-          // If recognition ends unexpectedly while recording, restart it
-          if (isRecordingRef.current && recognitionRef.current) {
+          
+          mediaRecorder.onstop = async () => {
+            const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
+            
+            // Send to transcription API
             try {
-              recognition.start()
+              const formData = new FormData()
+              formData.append('audio', blob, 'recording.webm')
+              
+              const response = await fetch('/api/transcribe', {
+                method: 'POST',
+                body: formData
+              })
+              
+              if (response.ok) {
+                const { text } = await response.json()
+                setTranscript(text)
+                // Auto-process after transcription
+                if (text) {
+                  setTimeout(() => {
+                    processTranscriptRef.current?.(text)
+                  }, 500)
+                }
+              } else {
+                const error = await response.json()
+                setError(error.error || 'Failed to transcribe audio')
+              }
             } catch (err) {
-              console.error('Error restarting recognition:', err)
+              console.error('Transcription error:', err)
+              setError('Failed to transcribe audio. Please try again.')
             }
           }
+          
+          mediaRecorder.start(100) // Collect data every 100ms
+          console.log('MediaRecorder started as fallback')
+        } catch (err) {
+          console.error('Failed to set up MediaRecorder:', err)
+          setError('Failed to initialize audio recording')
         }
-        
-        recognition.start()
-        recognitionRef.current = recognition
       }
       
       // Start audio level monitoring
@@ -204,7 +296,7 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
       console.error('Error starting recording:', err)
       setError('Failed to access microphone')
     }
-  }, [])
+  }, [useMediaRecorder])
 
   // Cleanup effect
   useEffect(() => {
@@ -235,6 +327,12 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
       recognitionRef.current = null
     }
     
+    // Stop MediaRecorder if using fallback
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop()
+      // Don't null it here, let onstop handle cleanup
+    }
+    
     // Stop timer
     if (timerRef.current) {
       clearInterval(timerRef.current)
@@ -263,26 +361,30 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
     isRecordingRef.current = false
     setAudioLevel(0)
     
-    // Combine live transcript with main transcript
-    const finalTranscript = transcript + (liveTranscript ? ' ' + liveTranscript : '')
-    const trimmedTranscript = finalTranscript.trim()
-    
-    console.log('Final transcript:', trimmedTranscript)
-    setTranscript(trimmedTranscript)
-    setLiveTranscript('')
-    
-    // Automatically process the transcript if we have one
-    if (trimmedTranscript) {
-      console.log('Processing transcript:', trimmedTranscript)
-      setTimeout(() => {
-        processTranscriptRef.current?.(trimmedTranscript)
-      }, 500)
-    } else if (recordingTime > 0) {
-      // If we recorded something but got no transcript
-      console.log('No transcript detected after recording for', recordingTime, 'seconds')
-      setError('No speech was detected. Please try speaking more clearly.')
+    // Only process transcript for Web Speech API
+    if (!useMediaRecorder) {
+      // Combine live transcript with main transcript
+      const finalTranscript = transcript + (liveTranscript ? ' ' + liveTranscript : '')
+      const trimmedTranscript = finalTranscript.trim()
+      
+      console.log('Final transcript:', trimmedTranscript)
+      setTranscript(trimmedTranscript)
+      setLiveTranscript('')
+      
+      // Automatically process the transcript if we have one
+      if (trimmedTranscript) {
+        console.log('Processing transcript:', trimmedTranscript)
+        setTimeout(() => {
+          processTranscriptRef.current?.(trimmedTranscript)
+        }, 500)
+      } else if (recordingTime > 0) {
+        // If we recorded something but got no transcript
+        console.log('No transcript detected after recording for', recordingTime, 'seconds')
+        setError('No speech was detected. Please try speaking more clearly.')
+      }
     }
-  }, [transcript, liveTranscript, recordingTime])
+    // For MediaRecorder, processing happens in the onstop handler
+  }, [transcript, liveTranscript, recordingTime, useMediaRecorder])
 
   const processTranscript = useCallback(async (text: string) => {
     setError(null)
@@ -552,6 +654,7 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
       setError(null)
       setShowReview(false)
       setRecordingTime(0)
+      setUseMediaRecorder(false)
     }
     setIsOpen(open)
   }, [isRecording, stopRecording])
@@ -575,15 +678,15 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
       </Tooltip>
 
       <Dialog open={isOpen} onOpenChange={handleDialogClose}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>Talk to Your Recipe</DialogTitle>
             <DialogDescription>
               Use voice commands to modify your recipe
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-4 overflow-y-auto flex-1 pr-2">
             {!showReview ? (
               <>
                 <p className="text-sm text-muted-foreground">
@@ -621,6 +724,11 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
                       <p className="text-lg font-medium text-destructive">Recording...</p>
                       <p className="text-2xl font-mono">{formatTime(recordingTime)}</p>
                       <VoiceWaveAnimation isActive={isRecording} audioLevel={audioLevel} className="text-destructive" />
+                      {useMediaRecorder && (
+                        <p className="text-xs text-muted-foreground">
+                          Using audio recording (transcription after stop)
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>

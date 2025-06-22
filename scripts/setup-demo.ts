@@ -6,7 +6,7 @@ const API_URL = 'http://localhost:3002';
 async function createDemoAccount() {
   console.log('Setting up demo account...\n');
 
-  const demoEmail = 'demo@recipekeeper.com';
+  const demoEmail = 'demo@recipeandme.app';
   const demoPassword = 'DemoRecipes2024!';
 
   // First, try to sign up the demo user
