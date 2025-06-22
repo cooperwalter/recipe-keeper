@@ -8,7 +8,7 @@ A family recipe preservation platform that captures, digitizes, and shares cheri
 - **Voice-to-Recipe**: Speak changes to recipes and have them interpreted by AI
 - **Recipe Management**: Create, edit, and organize recipes with ingredients and instructions
 - **Photo Gallery**: Attach multiple photos to recipes including the original recipe card
-- **Categories & Tags**: Organize recipes by category and add custom tags
+- **Categories**: Organize recipes by category (tags feature currently disabled)
 - **Favorites**: Mark your favorite family recipes
 - **Version History**: Track changes to recipes over time
 - **Authentication**: Secure user accounts with Supabase Auth
