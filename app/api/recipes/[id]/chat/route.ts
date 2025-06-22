@@ -75,6 +75,7 @@ Your responses should be:
 - Based on the recipe details provided
 - Practical and actionable
 - Friendly and encouraging
+- Brief and concise unless more detail is requested
 
 You can help with:
 - Ingredient substitutions
@@ -105,8 +106,8 @@ ${recipeContext}`
 
     // Get response from Claude
     const completion = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 1000,
+      model: 'claude-3-haiku-20240307',
+      max_tokens: 300,
       system: systemPrompt,
       messages: messages,
       temperature: 0.7
