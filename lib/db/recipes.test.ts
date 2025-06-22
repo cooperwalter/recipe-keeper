@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { RecipeService } from './recipes'
 import { createMockRecipe, createMockIngredient, createMockInstruction, createMockSupabaseClient } from '@/lib/test-utils'
 import { and, eq } from 'drizzle-orm'
-import { recipes, ingredients, instructions, recipePhotos, recipeTags, recipeCategories, recipeCategoryMappings, favorites, recipeVersions } from './schema'
+import { recipes, favorites } from './schema'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 type MockChain = {
   select: ReturnType<typeof vi.fn>
@@ -42,7 +43,7 @@ vi.mock('./index', () => {
       set: vi.fn().mockReturnThis(),
       delete: vi.fn().mockReturnThis(),
       execute: vi.fn().mockResolvedValue([]),
-      then: vi.fn((onFulfilled: (value: any[]) => any) => {
+      then: vi.fn((onFulfilled: (value: unknown[]) => unknown) => {
         // Mock the promise behavior
         return Promise.resolve([{ count: 0 }]).then(onFulfilled)
       }),
@@ -51,7 +52,7 @@ vi.mock('./index', () => {
   }
   
   const mockDb = Object.assign(createMockChain(), {
-    transaction: vi.fn((callback: (tx: any) => any) => callback(mockDb)),
+    transaction: vi.fn((callback: (tx: unknown) => unknown) => callback(mockDb)),
     $count: vi.fn().mockResolvedValue(0),
   })
   
@@ -86,7 +87,7 @@ describe.skip('RecipeService', () => {
     
     // Reset mock implementations
     mockDb.execute.mockResolvedValue([])
-    mockDb.then = vi.fn((onFulfilled: (value: any[]) => any) => {
+    mockDb.then = vi.fn((onFulfilled: (value: unknown[]) => unknown) => {
       return Promise.resolve([{ count: 0 }]).then(onFulfilled)
     })
     
@@ -94,7 +95,7 @@ describe.skip('RecipeService', () => {
     mockSupabase = createMockSupabaseClient()
     
     // Create service with mocked Supabase
-    service = new RecipeService(mockSupabase as unknown as Parameters<typeof RecipeService>[0])
+    service = new RecipeService(mockSupabase as unknown as SupabaseClient)
   })
 
   describe('listRecipes', () => {

@@ -1,5 +1,4 @@
 import { vi } from 'vitest'
-import { SupabaseClient } from '@supabase/supabase-js'
 import { createMockUser } from '../factories'
 
 /**
@@ -43,9 +42,9 @@ export function createMockSupabaseClient(overrides?: Partial<MockSupabaseClient>
       }),
       resetPasswordForEmail: vi.fn().mockResolvedValue({ error: null }),
     },
-    from: vi.fn((table: string) => createMockSupabaseTable()),
+    from: vi.fn(() => createMockSupabaseTable()),
     storage: {
-      from: vi.fn((bucket: string) => createMockStorageBucket()),
+      from: vi.fn(() => createMockStorageBucket()),
     },
     ...overrides,
   }
@@ -83,7 +82,8 @@ export function createMockSupabaseTable() {
   // Make methods return the table object for chaining
   Object.keys(table).forEach((key) => {
     if (key !== 'single' && key !== 'maybeSingle' && typeof table[key as keyof typeof table] === 'function') {
-      ;(table[key as keyof typeof table] as any).mockReturnValue(table)
+      const method = table[key as keyof typeof table] as ReturnType<typeof vi.fn>
+      method.mockReturnValue(table)
     }
   })
 

@@ -1,6 +1,6 @@
 import { vi, beforeEach, afterEach } from 'vitest'
 import { cleanup } from '@testing-library/react'
-import { setupSupabaseMocks, createMockSupabaseClient } from './mocks/supabase'
+import { setupSupabaseMocks } from './mocks/supabase'
 import { setupRecipeServiceMock } from './mocks/services'
 import { setupAnthropicMock, setupOpenAIMock } from './mocks/ai'
 
@@ -17,7 +17,7 @@ export function setupTestEnvironment() {
   })
 }
 
-export function setupAuthenticatedTests(userOverrides?: any) {
+export function setupAuthenticatedTests() {
   const mockSupabase = setupSupabaseMocks()
   const mockRecipeService = setupRecipeServiceMock()
   
@@ -84,8 +84,8 @@ export function mockConsoleError() {
     expectConsoleError: (message?: string | RegExp) => {
       expect(console.error).toHaveBeenCalled()
       if (message) {
-        const calls = (console.error as any).mock.calls
-        const found = calls.some((call: any[]) => {
+        const calls = (console.error as ReturnType<typeof vi.fn>).mock.calls
+        const found = calls.some((call: unknown[]) => {
           const arg = call[0]
           if (typeof message === 'string') {
             return arg.includes(message)

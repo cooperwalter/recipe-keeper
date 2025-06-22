@@ -103,7 +103,7 @@ describe.skip('useDuplicateCheck', () => {
   })
 
   it('should update when title changes', async () => {
-    const { result, rerender } = renderHook(
+    const { rerender } = renderHook(
       ({ title }) => useDuplicateCheck(title),
       {
         wrapper,
