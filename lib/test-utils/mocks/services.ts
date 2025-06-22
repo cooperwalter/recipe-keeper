@@ -5,7 +5,7 @@ import { createMockRecipe, createMockRecipeListResponse } from '../factories'
  * Mock implementations for common services
  */
 
-export function createMockRecipeService(overrides?: any) {
+export function createMockRecipeService(overrides?: Partial<ReturnType<typeof createMockRecipeService>>) {
   return {
     listRecipes: vi.fn().mockResolvedValue(createMockRecipeListResponse()),
     getRecipe: vi.fn().mockResolvedValue(createMockRecipe()),
@@ -33,7 +33,7 @@ export function createMockRecipeService(overrides?: any) {
   }
 }
 
-export function setupRecipeServiceMock(overrides?: any) {
+export function setupRecipeServiceMock(overrides?: Partial<ReturnType<typeof createMockRecipeService>>) {
   const mockService = createMockRecipeService(overrides)
   
   vi.mock('@/lib/db/recipes', () => ({
