@@ -3,15 +3,15 @@ import { createClient } from '@/lib/supabase/server'
 import { RecipeService } from '@/lib/db/recipes'
 
 interface RouteParams {
-  params: Promise<{
+  params: {
     id: string
     versionNumber: string
-  }>
+  }
 }
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id, versionNumber } = await params
+    const { id, versionNumber } = params
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 

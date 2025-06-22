@@ -4,12 +4,12 @@ import { createClient } from '@/lib/supabase/server'
 import { fractionToDecimal } from '@/lib/utils/fractions'
 
 interface RouteParams {
-  params: Promise<{ id: string }>
+  params: { id: string }
 }
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = await params
+    const { id } = params
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = await params
+    const { id } = params
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -153,7 +153,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = await params
+    const { id } = params
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 

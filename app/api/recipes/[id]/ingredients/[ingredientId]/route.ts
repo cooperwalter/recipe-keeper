@@ -5,12 +5,12 @@ import { ingredients, recipes } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 
 interface RouteParams {
-  params: Promise<{ id: string; ingredientId: string }>
+  params: { id: string; ingredientId: string }
 }
 
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id: recipeId, ingredientId } = await params
+    const { id: recipeId, ingredientId } = params
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
