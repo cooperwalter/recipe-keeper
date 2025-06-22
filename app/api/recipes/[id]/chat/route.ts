@@ -107,7 +107,7 @@ ${recipeContext}`
     // Get response from Claude
     const completion = await anthropic.messages.create({
       model: 'claude-3-haiku-20240307',
-      max_tokens: 300,
+      max_tokens: 1000,
       system: systemPrompt,
       messages: messages,
       temperature: 0.7
