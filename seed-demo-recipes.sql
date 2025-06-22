@@ -2,7 +2,7 @@
 -- 
 -- IMPORTANT: Before running this:
 -- 1. Create the demo account at http://localhost:3002/auth/sign-up
---    Email: demo@recipekeeper.com
+--    Email: demo@recipeandme.app
 --    Password: DemoRecipes2024!
 -- 2. Get the user ID from auth.users table
 -- 3. Replace 'YOUR_DEMO_USER_ID' below with the actual user ID
@@ -19,11 +19,11 @@ DECLARE
     recipe_id UUID;
 BEGIN
     -- IMPORTANT: Replace this with your actual demo user ID from auth.users
-    -- You can find it by running: SELECT id FROM auth.users WHERE email = 'demo@recipekeeper.com';
+    -- You can find it by running: SELECT id FROM auth.users WHERE email = 'demo@recipeandme.app';
     -- demo_user_id := 'YOUR_DEMO_USER_ID'::UUID;
     
     -- Alternatively, try to find the demo user (this might not work due to RLS)
-    SELECT id INTO demo_user_id FROM auth.users WHERE email = 'demo@recipekeeper.com';
+    SELECT id INTO demo_user_id FROM auth.users WHERE email = 'demo@recipeandme.app';
     
     IF demo_user_id IS NULL OR demo_user_id::TEXT = 'YOUR_DEMO_USER_ID' THEN
         RAISE EXCEPTION 'Please replace YOUR_DEMO_USER_ID with the actual user ID from auth.users table';

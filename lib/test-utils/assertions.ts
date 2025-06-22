@@ -1,4 +1,5 @@
 import { RecipeWithRelations, Ingredient, Instruction } from '@/lib/types/recipe'
+import { expect } from 'vitest'
 
 /**
  * Common test assertions for recipe-related data
@@ -27,9 +28,7 @@ export function expectRecipeToMatch(
     expectInstructionsToMatch(actual.instructions || [], expected.instructions)
   }
   
-  if (expected.tags) {
-    expect(actual.tags).toEqual(expect.arrayContaining(expected.tags))
-  }
+  // Tags feature is disabled - removed tags comparison
   
   if (expected.badges) {
     expect(actual.badges).toEqual(expect.arrayContaining(expected.badges))

@@ -18,7 +18,7 @@ export default function ContactPage() {
           <h1 className="text-4xl font-bold">Contact Us</h1>
           <p className="text-lg text-muted-foreground">
             Have questions or feedback about Recipe and Me? We&apos;d love to hear from you. 
-            Reach out to us at support@recipekeeper.com
+            Reach out to us at contact@recipeandme.app
           </p>
           <Link href="/" className="text-primary hover:underline">
             Back to Home

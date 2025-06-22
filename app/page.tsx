@@ -146,12 +146,9 @@ export default async function Home() {
           <div className="flex items-center gap-2">
             <ChefHat className="h-5 w-5 text-primary" />
             <span className="font-semibold">Recipe and Me</span>
-            <span className="text-muted-foreground">© 2024</span>
+            <span className="text-muted-foreground">© {new Date().getFullYear()}</span>
           </div>
           <div className="flex flex-wrap justify-center gap-4 sm:gap-6 text-sm text-muted-foreground">
-            <Link href="/about" className="hover:text-primary transition-colors">
-              About
-            </Link>
             <Link href="/privacy" className="hover:text-primary transition-colors">
               Privacy
             </Link>

@@ -73,7 +73,7 @@ export function SignUpForm({
       }
       
       // For demo account in development, auto-login after signup
-      if (process.env.NODE_ENV === 'development' && email === "demo@recipekeeper.com" && data.user) {
+      if (process.env.NODE_ENV === 'development' && email === "demo@recipeandme.app" && data.user) {
         // Sign in immediately for demo account
         const { error: signInError, data: signInData } = await supabase.auth.signInWithPassword({
           email,
@@ -113,7 +113,7 @@ export function SignUpForm({
                     For testing, you can use these credentials:
                   </p>
                   <div className="bg-background/60 rounded p-3 space-y-1 text-sm font-mono">
-                    <p>Email: demo@recipekeeper.com</p>
+                    <p>Email: demo@recipeandme.app</p>
                     <p>Password: DemoRecipes2024!</p>
                   </div>
                   <Button 
@@ -122,7 +122,7 @@ export function SignUpForm({
                     size="sm" 
                     className="mt-3 w-full"
                     onClick={() => {
-                      setEmail("demo@recipekeeper.com");
+                      setEmail("demo@recipeandme.app");
                       setPassword("DemoRecipes2024!");
                       setRepeatPassword("DemoRecipes2024!");
                       setName("Demo User");

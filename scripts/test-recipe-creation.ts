@@ -9,7 +9,7 @@ async function testRecipeCreation() {
   // Sign in as demo user
   console.log('1. Signing in as demo user...');
   const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-    email: 'demo@recipekeeper.com',
+    email: 'demo@recipeandme.app',
     password: 'DemoRecipes2024!'
   });
   

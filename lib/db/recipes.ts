@@ -362,7 +362,7 @@ export class RecipeService {
     if (existing.createdBy !== userId) {
       // Special case for demo environment: allow demo users to update demo recipes
       const { data: { user } } = await this.supabase!.auth.getUser();
-      const isDemoUser = user?.email === 'demo@recipekeeper.com';
+      const isDemoUser = user?.email === 'demo@recipeandme.app';
       const isDemoRecipe = existing.sourceName?.includes('Demo') || 
                           existing.sourceName?.includes('Grandma') ||
                           existing.title.includes('Pancake') ||
@@ -438,7 +438,7 @@ export class RecipeService {
     if (existing.createdBy !== userId) {
       // Special case for demo environment: allow demo users to delete demo recipes
       const { data: { user } } = await this.supabase!.auth.getUser();
-      const isDemoUser = user?.email === 'demo@recipekeeper.com';
+      const isDemoUser = user?.email === 'demo@recipeandme.app';
       const isDemoRecipe = existing.sourceName?.includes('Demo') || 
                           existing.sourceName?.includes('Grandma') ||
                           existing.title.includes('Pancake') ||

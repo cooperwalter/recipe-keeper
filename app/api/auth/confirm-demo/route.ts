@@ -16,7 +16,7 @@ export async function POST() {
     }
     
     // Check if this is the demo account
-    if (user.email !== "demo@recipekeeper.com") {
+    if (user.email !== "demo@recipeandme.app") {
       return NextResponse.json(
         { error: "This endpoint is only for the demo account" },
         { status: 403 }

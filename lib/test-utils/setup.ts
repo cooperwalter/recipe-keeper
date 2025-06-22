@@ -1,4 +1,4 @@
-import { vi, beforeEach, afterEach } from 'vitest'
+import { vi, beforeEach, afterEach, expect } from 'vitest'
 import { cleanup } from '@testing-library/react'
 import { setupSupabaseMocks } from './mocks/supabase'
 import { setupRecipeServiceMock } from './mocks/services'

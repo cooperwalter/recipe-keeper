@@ -36,7 +36,6 @@ function createTestRecipe(overrides: Partial<RecipeWithRelations> = {}): RecipeW
       { id: '5', recipeId: 'test-1', stepNumber: 5, instruction: 'Fold in chocolate chips', createdAt: '2024-01-01' },
       { id: '6', recipeId: 'test-1', stepNumber: 6, instruction: 'Drop by spoonfuls and bake 10-12 minutes', createdAt: '2024-01-01' },
     ],
-    tags: ['dessert', 'cookies'],
     categories: [],
     photos: [],
     createdBy: 'user-1',

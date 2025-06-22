@@ -1,4 +1,4 @@
-import { RecipeWithRelations, Ingredient, Instruction, RecipePhoto, Category } from '@/lib/types/recipe'
+import { RecipeWithRelations, Ingredient, Instruction, RecipePhoto } from '@/lib/types/recipe'
 import { User } from '@supabase/supabase-js'
 
 /**
@@ -45,7 +45,7 @@ export function createMockRecipe(overrides?: Partial<RecipeWithRelations>): Reci
     instructions: [],
     photos: [],
     categories: [],
-    tags: [],
+    // tags: [], // Tags feature is disabled
     badges: [],
     isFavorite: false,
     ...overrides,
@@ -89,16 +89,7 @@ export function createMockRecipePhoto(overrides?: Partial<RecipePhoto>): RecipeP
   }
 }
 
-export function createMockCategory(overrides?: Partial<Category>): Category {
-  return {
-    id: 'category-id',
-    name: 'Test Category',
-    slug: 'test-category',
-    parentId: null,
-    orderIndex: 0,
-    ...overrides,
-  }
-}
+// Category type removed - tags feature is disabled
 
 export function createMockRecipeListResponse(overrides?: Partial<{
   recipes: RecipeWithRelations[]

@@ -75,7 +75,7 @@ export function LoginForm({
                     Try Recipe and Me with our demo account:
                   </p>
                   <div className="bg-background/60 rounded p-3 space-y-1 text-sm font-mono">
-                    <p>Email: demo@recipekeeper.com</p>
+                    <p>Email: demo@recipeandme.app</p>
                     <p>Password: DemoRecipes2024!</p>
                   </div>
                   <Button 
@@ -84,7 +84,7 @@ export function LoginForm({
                     size="sm" 
                     className="mt-3 w-full"
                     onClick={() => {
-                      setEmail("demo@recipekeeper.com");
+                      setEmail("demo@recipeandme.app");
                       setPassword("DemoRecipes2024!");
                     }}
                   >

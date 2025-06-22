@@ -373,5 +373,5 @@ This project is licensed under the MIT License.
 ## Demo Account
 
 For testing purposes:
-- Email: demo@recipekeeper.com
+- Email: demo@recipeandme.app
 - Password: DemoRecipes2024!
