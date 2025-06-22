@@ -153,6 +153,44 @@ describe('Recipe Similarity Algorithm', () => {
       expect(score.instructionSimilarity).toBe(0)
       expect(score.timeSimilarity).toBe(0.5) // Default for missing data
     })
+
+    it('should correctly handle empty ingredients lists', () => {
+      const recipe1 = createTestRecipe({ ingredients: [] })
+      const recipe2 = createTestRecipe({ id: 'test-2', ingredients: [] })
+      
+      const score = calculateRecipeSimilarity(recipe1, recipe2)
+      
+      expect(score.ingredientSimilarity).toBe(1) // Both empty = identical
+    })
+
+    it('should correctly handle empty instruction lists', () => {
+      const recipe1 = createTestRecipe({ instructions: [] })
+      const recipe2 = createTestRecipe({ id: 'test-2', instructions: [] })
+      
+      const score = calculateRecipeSimilarity(recipe1, recipe2)
+      
+      expect(score.instructionSimilarity).toBe(1) // Both empty = identical
+    })
+
+    it('should handle ingredients with empty names', () => {
+      const recipe1 = createTestRecipe({
+        ingredients: [
+          { id: '1', recipeId: 'test-1', ingredient: '', amount: 1, unit: 'cup', orderIndex: 0, createdAt: '2024-01-01' },
+          { id: '2', recipeId: 'test-1', ingredient: 'sugar', amount: 1, unit: 'cup', orderIndex: 1, createdAt: '2024-01-01' },
+        ] as Ingredient[]
+      })
+      const recipe2 = createTestRecipe({
+        id: 'test-2',
+        ingredients: [
+          { id: '1', recipeId: 'test-2', ingredient: 'sugar', amount: 1, unit: 'cup', orderIndex: 0, createdAt: '2024-01-01' },
+        ] as Ingredient[]
+      })
+      
+      const score = calculateRecipeSimilarity(recipe1, recipe2)
+      
+      // Should handle empty ingredient names gracefully
+      expect(score.ingredientSimilarity).toBe(1) // Only 'sugar' counts, and it matches
+    })
   })
 
   describe('findSimilarRecipes', () => {

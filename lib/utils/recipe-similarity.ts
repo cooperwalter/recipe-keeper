@@ -95,24 +95,34 @@ function normalizeIngredient(ingredient: string): string {
  * Uses Jaccard similarity with fuzzy matching
  */
 function calculateIngredientSimilarity(ingredients1: Ingredient[], ingredients2: Ingredient[]): number {
-  if (!ingredients1.length || !ingredients2.length) return 0
+  // Handle empty lists
+  if (!ingredients1.length && !ingredients2.length) return 1 // Both empty = identical
+  if (!ingredients1.length || !ingredients2.length) return 0 // One empty = no similarity
   
   // Normalize and extract ingredient names
   const set1 = ingredients1.map(ing => normalizeIngredient(ing.ingredient))
   const set2 = ingredients2.map(ing => normalizeIngredient(ing.ingredient))
   
+  // Remove empty strings after normalization
+  const cleanSet1 = set1.filter(ing => ing.length > 0)
+  const cleanSet2 = set2.filter(ing => ing.length > 0)
+  
+  // If both are empty after cleaning, they're identical
+  if (cleanSet1.length === 0 && cleanSet2.length === 0) return 1
+  if (cleanSet1.length === 0 || cleanSet2.length === 0) return 0
+  
   // Count fuzzy matches
   let matches = 0
   const matched2 = new Set<number>()
   
-  for (const ing1 of set1) {
+  for (const ing1 of cleanSet1) {
     let bestMatch = 0
     let bestMatchIndex = -1
     
-    for (let i = 0; i < set2.length; i++) {
+    for (let i = 0; i < cleanSet2.length; i++) {
       if (matched2.has(i)) continue
       
-      const similarity = stringSimilarity(ing1, set2[i])
+      const similarity = stringSimilarity(ing1, cleanSet2[i])
       if (similarity > bestMatch && similarity > 0.8) { // 80% threshold for ingredient match
         bestMatch = similarity
         bestMatchIndex = i
@@ -126,8 +136,10 @@ function calculateIngredientSimilarity(ingredients1: Ingredient[], ingredients2:
   }
   
   // Jaccard similarity: intersection / union
-  const union = set1.length + set2.length - matches
-  return matches / union
+  // Note: matches represents the size of the intersection
+  // Union = |A| + |B| - |A ∩ B|
+  const union = cleanSet1.length + cleanSet2.length - matches
+  return union > 0 ? matches / union : 0
 }
 
 /**
@@ -138,17 +150,25 @@ function calculateInstructionSimilarity(
   instructions1: Array<{ instruction: string }>,
   instructions2: Array<{ instruction: string }>
 ): number {
-  if (!instructions1.length || !instructions2.length) return 0
+  // Handle empty instruction lists
+  if (!instructions1.length && !instructions2.length) return 1 // Both empty = identical
+  if (!instructions1.length || !instructions2.length) return 0 // One empty = no similarity
   
   // Concatenate all instructions
   const text1 = instructions1.map(i => i.instruction).join(' ').toLowerCase()
   const text2 = instructions2.map(i => i.instruction).join(' ').toLowerCase()
   
+  // Handle empty instruction text
+  if (!text1.trim() && !text2.trim()) return 1
+  if (!text1.trim() || !text2.trim()) return 0
+  
   // Use word-based similarity for longer texts
   const words1 = text1.split(/\s+/).filter(w => w.length > 2) // Ignore short words
   const words2 = text2.split(/\s+/).filter(w => w.length > 2)
   
-  if (!words1.length || !words2.length) return 0
+  // If no significant words, fall back to basic string similarity
+  if (!words1.length && !words2.length) return 1
+  if (!words1.length || !words2.length) return stringSimilarity(text1, text2) * 0.5 // Reduced weight for short text
   
   // Count common words
   const wordSet1 = new Set(words1)
@@ -157,7 +177,7 @@ function calculateInstructionSimilarity(
   
   // Jaccard similarity
   const union = wordSet1.size + wordSet2.size - intersection.size
-  return intersection.size / union
+  return union > 0 ? intersection.size / union : 0
 }
 
 /**
