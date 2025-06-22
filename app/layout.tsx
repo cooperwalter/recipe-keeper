@@ -1,4 +1,4 @@
-import "./lib/init"; // Validate environment variables on startup
+// Environment validation moved to middleware and API routes
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";

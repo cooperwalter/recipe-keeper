@@ -39,7 +39,7 @@ const nextConfig: NextConfig = {
     staticPageGenerationTimeout: 120,
   }),
   // Only configure webpack if not using Turbopack
-  webpack: process.env.TURBOPACK ? undefined : (config, { dev }) => {
+  webpack: process.env.TURBOPACK ? undefined : (config, { dev, isServer }) => {
     if (dev) {
       // Reduce filesystem pressure in development
       config.cache = {
@@ -58,6 +58,38 @@ const nextConfig: NextConfig = {
         ...config.optimization,
         minimize: false,
         splitChunks: false,
+      };
+    } else {
+      // Production optimizations to prevent webpack errors
+      if (!isServer) {
+        config.resolve.fallback = {
+          ...config.resolve.fallback,
+          fs: false,
+          net: false,
+          tls: false,
+        };
+      }
+      
+      // Ensure proper chunk splitting in production
+      config.optimization = {
+        ...config.optimization,
+        moduleIds: 'deterministic',
+        runtimeChunk: 'single',
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            default: {
+              minChunks: 2,
+              priority: -20,
+              reuseExistingChunk: true,
+            },
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              priority: -10,
+              reuseExistingChunk: true,
+            },
+          },
+        },
       };
     }
     return config;
