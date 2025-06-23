@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useDropzone } from "react-dropzone";
 import { Upload, X, Image as ImageIcon, Loader2, Camera, FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,8 @@ export function ImageUpload({
   className,
 }: ImageUploadProps) {
   const [localPreview, setLocalPreview] = useState<string | null>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
@@ -68,6 +70,23 @@ export function ImageUpload({
     onRemove?.();
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      onDrop([file]);
+    }
+  };
+
+  const handleCameraClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    cameraInputRef.current?.click();
+  };
+
+  const handleGalleryClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    galleryInputRef.current?.click();
+  };
+
   const displayPreview = preview || localPreview;
   const rejectionError = fileRejections[0]?.errors[0]?.message;
   const displayError = error || rejectionError;
@@ -87,10 +106,24 @@ export function ImageUpload({
       >
         <input 
           {...getInputProps()} 
-          // Add capture attribute for mobile camera access
-          capture="environment"
-          // Accept attribute for better mobile support
+          style={{ display: 'none' }}
+        />
+        
+        {/* Hidden file inputs for camera and gallery */}
+        <input
+          ref={cameraInputRef}
+          type="file"
           accept="image/*"
+          capture="environment"
+          onChange={handleFileChange}
+          style={{ display: 'none' }}
+        />
+        <input
+          ref={galleryInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          style={{ display: 'none' }}
         />
         
         {displayPreview ? (
@@ -139,17 +172,29 @@ export function ImageUpload({
                 </p>
               )}
               <p className="text-xs text-muted-foreground">
-                Tap to take a photo or choose from gallery
+                Drop a file here or use the buttons below
               </p>
-              <div className="flex items-center justify-center gap-6 mt-4">
-                <div className="flex flex-col items-center gap-1">
-                  <Camera className="h-5 w-5 text-muted-foreground" />
-                  <span className="text-xs">Camera</span>
-                </div>
-                <div className="flex flex-col items-center gap-1">
-                  <FolderOpen className="h-5 w-5 text-muted-foreground" />
-                  <span className="text-xs">Gallery</span>
-                </div>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-4 w-full px-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="default"
+                  onClick={handleCameraClick}
+                  className="flex items-center gap-2 w-full sm:w-auto min-w-[140px]"
+                >
+                  <Camera className="h-5 w-5" />
+                  Camera
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="default"
+                  onClick={handleGalleryClick}
+                  className="flex items-center gap-2 w-full sm:w-auto min-w-[140px]"
+                >
+                  <FolderOpen className="h-5 w-5" />
+                  Gallery
+                </Button>
               </div>
               <p className="text-xs text-muted-foreground mt-2">
                 Max 10MB • JPG, PNG, WebP
