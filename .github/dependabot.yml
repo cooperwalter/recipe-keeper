@@ -8,8 +8,6 @@ updates:
       day: "monday"
       time: "04:00"
     open-pull-requests-limit: 10
-    reviewers:
-      - "cooperwalter"
     labels:
       - "dependencies"
       - "javascript"
@@ -34,8 +32,6 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "04:00"
-    reviewers:
-      - "cooperwalter"
     labels:
       - "dependencies"
       - "github-actions"

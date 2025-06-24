@@ -1,0 +1,12 @@
+# This file defines code ownership for automatic PR assignment
+# It replaces the deprecated reviewers configuration in dependabot.yml
+# Learn more: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything in the repo
+* @cooperwalter
+
+# Dependencies are owned by the repository owner
+package.json @cooperwalter
+package-lock.json @cooperwalter
+pnpm-lock.yaml @cooperwalter
+.github/workflows/ @cooperwalter
