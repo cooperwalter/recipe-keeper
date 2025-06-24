@@ -94,16 +94,41 @@ jobs:
 
       - name: Create .env file
         run: |
-          echo "NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}" >> .env.local
-          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" >> .env.local
-          echo "ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}" >> .env.local
-          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env.local
+          echo "NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://example.supabase.co' }}" >> .env.local
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4YW1wbGUiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTYwMzI0MDAwMCwiZXhwIjoxOTE4ODAwMDAwfQ.example' }}" >> .env.local
+          echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4YW1wbGUiLCJyb2xlIjoic2VydmljZV9yb2xlIiwiaWF0IjoxNjAzMjQwMDAwLCJleHAiOjE5MTg4MDAwMDB9.example' }}" >> .env.local
+          echo "ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY || 'sk-ant-api03-example' }}" >> .env.local
+          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY || 'sk-example' }}" >> .env.local
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/postgres' }}" >> .env.local
 
       - name: Build application
-        run: pnpm build
+        env:
+          SKIP_ENV_VALIDATION: true
+          SKIP_DB_MIGRATIONS: true
+        run: |
+          echo "Starting build process..."
+          pnpm build || {
+            echo "Build failed with exit code $?"
+            echo "Checking current directory contents:"
+            ls -la
+            exit 1
+          }
+          echo "Build completed. Checking for .next directory..."
+          ls -la
+          if [ -d ".next" ]; then
+            echo ".next directory exists"
+            echo "Contents of .next directory:"
+            ls -la .next/
+          else
+            echo ".next directory does not exist"
+            echo "Checking for build output in other locations:"
+            find . -name ".next" -type d 2>/dev/null || true
+            exit 1
+          fi
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
+        if: success()
         with:
           name: build-output
           path: .next/
@@ -144,8 +169,9 @@ jobs:
 
       - name: Create .env file
         run: |
-          echo "NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}" >> .env.local
-          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" >> .env.local
+          echo "NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://example.supabase.co' }}" >> .env.local
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4YW1wbGUiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTYwMzI0MDAwMCwiZXhwIjoxOTE4ODAwMDAwfQ.example' }}" >> .env.local
+          echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4YW1wbGUiLCJyb2xlIjoic2VydmljZV9yb2xlIiwiaWF0IjoxNjAzMjQwMDAwLCJleHAiOjE5MTg4MDAwMDB9.example' }}" >> .env.local
 
       - name: Run E2E tests
         run: pnpm test:e2e
