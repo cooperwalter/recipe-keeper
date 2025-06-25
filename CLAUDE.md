@@ -118,3 +118,4 @@ Required in production:
 
 ## Memories
 - Whenever the "project roadmap", "roadmap", or similar, is referred to, this means the PROJECT_ROADMAP.md document in the project root.
+- When creating pull requests, use the github cli (gh)
