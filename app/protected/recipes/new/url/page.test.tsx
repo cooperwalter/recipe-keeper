@@ -111,10 +111,33 @@ describe('UrlRecipePage', () => {
     expect(screen.getByDisplayValue('30')).toBeInTheDocument() // cook time
     expect(screen.getByDisplayValue('8')).toBeInTheDocument() // servings
     
-    // Check ingredients
-    expect(screen.getByDisplayValue('2 cups flour')).toBeInTheDocument()
-    expect(screen.getByDisplayValue('1 cup sugar')).toBeInTheDocument()
-    expect(screen.getByDisplayValue('1/2 cup cocoa')).toBeInTheDocument()
+    // Check ingredients - now split into amount, unit, and ingredient fields
+    // Since we have duplicate inputs for mobile/desktop, we need to be more specific
+    // Check for visible amount inputs (mobile and desktop show different ones)
+    const visibleAmountInputs = screen.getAllByPlaceholderText('Amount').filter(input => {
+      return !input.closest('.hidden')
+    })
+    const visibleUnitInputs = screen.getAllByPlaceholderText('Unit').filter(input => {
+      return !input.closest('.hidden')
+    })
+    const visibleIngredientInputs = screen.getAllByPlaceholderText('Ingredient').filter(input => {
+      return !input.closest('.hidden')
+    })
+    
+    // First ingredient: 2 cups flour
+    expect(visibleAmountInputs[0]).toHaveValue(2)
+    expect(visibleUnitInputs[0]).toHaveValue('cups')
+    expect(visibleIngredientInputs[0]).toHaveValue('flour')
+    
+    // Second ingredient: 1 cup sugar
+    expect(visibleAmountInputs[1]).toHaveValue(1)
+    expect(visibleUnitInputs[1]).toHaveValue('cup')
+    expect(visibleIngredientInputs[1]).toHaveValue('sugar')
+    
+    // Third ingredient: 1/2 cup cocoa
+    expect(visibleAmountInputs[2]).toHaveValue(0.5) // 1/2 converted to decimal
+    expect(visibleUnitInputs[2]).toHaveValue('cup')
+    expect(visibleIngredientInputs[2]).toHaveValue('cocoa')
     
     // Check instructions
     expect(screen.getByDisplayValue('Mix dry ingredients')).toBeInTheDocument()
@@ -183,14 +206,16 @@ describe('UrlRecipePage', () => {
     
     // Add ingredient
     await userEvent.click(screen.getByRole('button', { name: 'Add Ingredient' }))
-    const newIngredientInput = screen.getAllByRole('textbox').find(input => input.getAttribute('value') === '')
-    if (newIngredientInput) {
-      await userEvent.type(newIngredientInput, 'New ingredient')
-    }
+    // Find the new ingredient input (the last one with placeholder "Ingredient")
+    const ingredientInputs = screen.getAllByPlaceholderText('Ingredient')
+    const newIngredientInput = ingredientInputs[ingredientInputs.length - 1]
+    await userEvent.type(newIngredientInput, 'New ingredient')
     
     // Verify changes
     expect(screen.getByDisplayValue('Edited Title')).toBeInTheDocument()
-    expect(screen.getByDisplayValue('New ingredient')).toBeInTheDocument()
+    // Use getAllByDisplayValue since there might be duplicate inputs
+    const newIngredientInputs = screen.getAllByDisplayValue('New ingredient')
+    expect(newIngredientInputs.length).toBeGreaterThan(0)
   })
 
   it('saves recipe successfully', async () => {

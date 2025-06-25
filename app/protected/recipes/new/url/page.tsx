@@ -23,10 +23,16 @@ import {
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
+interface ExtractedIngredient {
+  amount?: number
+  unit?: string
+  ingredient: string
+}
+
 interface ExtractedRecipe {
   title: string
   description: string
-  ingredients: string[]
+  ingredients: ExtractedIngredient[]
   instructions: string[]
   prepTime?: number
   cookTime?: number
@@ -83,8 +89,35 @@ export default function UrlRecipePage() {
         throw new Error(data.message || data.error || 'Failed to extract recipe')
       }
 
-      setExtractedRecipe(data.recipe)
-      setEditedRecipe(data.recipe)
+      // Parse ingredients from strings to structured objects
+      const parsedRecipe = {
+        ...data.recipe,
+        ingredients: data.recipe.ingredients?.map((ing: string | ExtractedIngredient) => {
+          if (typeof ing === 'string') {
+            // Simple parsing of ingredient strings
+            // Match patterns like "1 cup flour", "1/2 tsp salt", "2 tablespoons sugar"
+            const match = ing.match(/^(\d+(?:\/\d+)?(?:\.\d+)?)\s*([a-zA-Z]+\.?)?\s+(.+)$/)
+            if (match) {
+              // Handle fractions like 1/2
+              let amount = match[1]
+              if (amount.includes('/')) {
+                const [num, den] = amount.split('/')
+                amount = (parseFloat(num) / parseFloat(den)).toString()
+              }
+              return {
+                amount: parseFloat(amount),
+                unit: match[2] || '',
+                ingredient: match[3]
+              }
+            }
+            return { ingredient: ing }
+          }
+          return ing
+        }) || []
+      }
+
+      setExtractedRecipe(parsedRecipe)
+      setEditedRecipe(parsedRecipe)
     } catch (err) {
       console.error('Error extracting recipe:', err)
       setError(err instanceof Error ? err.message : 'Failed to extract recipe from URL')
@@ -101,7 +134,11 @@ export default function UrlRecipePage() {
 
     try {
       // Transform ingredients and instructions to the expected format
-      const ingredients = editedRecipe.ingredients.map((ing) => ing.trim()).filter(Boolean)
+      const ingredients = editedRecipe.ingredients.map((ing) => ({
+        amount: ing.amount,
+        unit: ing.unit,
+        ingredient: ing.ingredient.trim()
+      })).filter(ing => ing.ingredient)
       const instructions = editedRecipe.instructions.map((inst) => inst.trim()).filter(Boolean)
 
       // Create the recipe via API
@@ -307,7 +344,7 @@ export default function UrlRecipePage() {
               </div>
 
               {/* Time and Servings */}
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="prepTime">Prep Time (minutes)</Label>
                   <Input
@@ -361,18 +398,112 @@ export default function UrlRecipePage() {
               {/* Ingredients */}
               <div>
                 <Label>Ingredients</Label>
-                <div className="mt-2 space-y-2">
+                <div className="mt-2 space-y-3">
                   {editedRecipe.ingredients.map((ingredient, index) => (
-                    <div key={index} className="flex gap-2">
-                      <Input
-                        value={ingredient}
-                        onChange={(e) => {
-                          const newIngredients = [...editedRecipe.ingredients]
-                          newIngredients[index] = e.target.value
-                          updateRecipeField('ingredients', newIngredients)
-                        }}
-                        className="flex-1"
-                      />
+                    <div key={index} className="flex gap-2 p-3 bg-muted/30 rounded-lg border border-muted">
+                      <div className="flex-1">
+                        {/* Mobile: Two rows layout */}
+                        <div className="sm:hidden space-y-2">
+                          {/* First row: Amount and Unit */}
+                          <div className="grid grid-cols-2 gap-2">
+                            <Input
+                              type="number"
+                              placeholder="Amount"
+                              value={ingredient.amount || ''}
+                              onChange={(e) => {
+                                const newIngredients = [...editedRecipe.ingredients]
+                                newIngredients[index] = {
+                                  ...ingredient,
+                                  amount: e.target.value ? parseFloat(e.target.value) : undefined
+                                }
+                                updateRecipeField('ingredients', newIngredients)
+                              }}
+                              step="0.25"
+                              className="h-9"
+                            />
+                            <Input
+                              placeholder="Unit"
+                              value={ingredient.unit || ''}
+                              onChange={(e) => {
+                                const newIngredients = [...editedRecipe.ingredients]
+                                newIngredients[index] = {
+                                  ...ingredient,
+                                  unit: e.target.value
+                                }
+                                updateRecipeField('ingredients', newIngredients)
+                              }}
+                              className="h-9"
+                            />
+                          </div>
+                          {/* Second row: Ingredient */}
+                          <Input
+                            placeholder="Ingredient"
+                            value={ingredient.ingredient}
+                            onChange={(e) => {
+                              const newIngredients = [...editedRecipe.ingredients]
+                              newIngredients[index] = {
+                                ...ingredient,
+                                ingredient: e.target.value
+                              }
+                              updateRecipeField('ingredients', newIngredients)
+                            }}
+                            required
+                            className="h-9 w-full"
+                          />
+                        </div>
+                        
+                        {/* Desktop: Single row layout */}
+                        <div className="hidden sm:grid sm:grid-cols-12 sm:gap-2">
+                          <div className="col-span-2">
+                            <Input
+                              type="number"
+                              placeholder="Amount"
+                              value={ingredient.amount || ''}
+                              onChange={(e) => {
+                                const newIngredients = [...editedRecipe.ingredients]
+                                newIngredients[index] = {
+                                  ...ingredient,
+                                  amount: e.target.value ? parseFloat(e.target.value) : undefined
+                                }
+                                updateRecipeField('ingredients', newIngredients)
+                              }}
+                              step="0.25"
+                              className="h-9"
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <Input
+                              placeholder="Unit"
+                              value={ingredient.unit || ''}
+                              onChange={(e) => {
+                                const newIngredients = [...editedRecipe.ingredients]
+                                newIngredients[index] = {
+                                  ...ingredient,
+                                  unit: e.target.value
+                                }
+                                updateRecipeField('ingredients', newIngredients)
+                              }}
+                              className="h-9"
+                            />
+                          </div>
+                          <div className="col-span-8">
+                            <Input
+                              placeholder="Ingredient"
+                              value={ingredient.ingredient}
+                              onChange={(e) => {
+                                const newIngredients = [...editedRecipe.ingredients]
+                                newIngredients[index] = {
+                                  ...ingredient,
+                                  ingredient: e.target.value
+                                }
+                                updateRecipeField('ingredients', newIngredients)
+                              }}
+                              required
+                              className="h-9"
+                            />
+                          </div>
+                        </div>
+                      </div>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -380,6 +511,7 @@ export default function UrlRecipePage() {
                           const newIngredients = editedRecipe.ingredients.filter((_, i) => i !== index)
                           updateRecipeField('ingredients', newIngredients)
                         }}
+                        className="mt-0"
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -388,7 +520,7 @@ export default function UrlRecipePage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => updateRecipeField('ingredients', [...editedRecipe.ingredients, ''])}
+                    onClick={() => updateRecipeField('ingredients', [...editedRecipe.ingredients, { ingredient: '' }])}
                     className="w-full"
                   >
                     Add Ingredient
