@@ -104,10 +104,9 @@ jobs:
       - name: Build application
         env:
           SKIP_ENV_VALIDATION: true
-          SKIP_DB_MIGRATIONS: true
         run: |
           echo "Starting build process..."
-          pnpm build || {
+          pnpm build:ci || {
             echo "Build failed with exit code $?"
             echo "Checking current directory contents:"
             ls -la

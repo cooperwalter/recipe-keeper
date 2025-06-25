@@ -9,6 +9,7 @@
     "kill-port": "node scripts/kill-port.js",
     "build": "pnpm db:migrate && next build",
     "build:skip-checks": "next build",
+    "build:ci": "next build",
     "db:generate": "tsx scripts/generate-migrations.ts",
     "db:generate:raw": "drizzle-kit generate",
     "db:migrate": "tsx scripts/run-drizzle-migrations.ts",
