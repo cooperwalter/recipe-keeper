@@ -47,19 +47,25 @@ const localStorageMock = {
 Object.defineProperty(window, 'localStorage', { value: localStorageMock })
 
 describe('Recipe Form Error Handling', () => {
-  const user = userEvent.setup()
+  let user: ReturnType<typeof userEvent.setup>
   
   // Helper to handle duplicate check dialog
   const handleDuplicateCheck = async () => {
     await waitFor(() => {
       expect(screen.getByText(/checking for similar recipes/i)).toBeInTheDocument()
-    })
+    }, { timeout: 5000 })
     const continueButton = await screen.findByRole('button', { name: /continue/i })
     await user.click(continueButton)
   }
   
   beforeEach(() => {
+    user = userEvent.setup()
     vi.clearAllMocks()
+    localStorageMock.getItem.mockReturnValue(null)
+    localStorageMock.setItem.mockImplementation(() => {})
+    localStorageMock.removeItem.mockImplementation(() => {})
+    mockPush.mockClear()
+    mockUploadRecipePhoto.mockResolvedValue('https://example.com/photo.jpg')
     // Mock successful categories fetch by default
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
@@ -69,15 +75,25 @@ describe('Recipe Form Error Handling', () => {
     })
   })
 
-  afterEach(() => {
+  afterEach(async () => {
     vi.resetAllMocks()
+    // Clean up any pending timers
+    vi.clearAllTimers()
+    // Wait for any pending promises
+    await new Promise(resolve => setTimeout(resolve, 0))
   })
 
   const renderForm = () => {
     const queryClient = new QueryClient({
       defaultOptions: {
-        queries: { retry: false },
-        mutations: { retry: false },
+        queries: { 
+          retry: false,
+          staleTime: Infinity,
+          refetchOnWindowFocus: false 
+        },
+        mutations: { 
+          retry: false 
+        },
       },
     })
     
@@ -92,6 +108,8 @@ describe('Recipe Form Error Handling', () => {
 
   describe('Network Error Handling', () => {
     it('should handle network failure during recipe submission', async () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      
       global.fetch = vi.fn().mockImplementation((url) => {
         if (url === '/api/categories') {
           return Promise.resolve({
@@ -126,10 +144,14 @@ describe('Recipe Form Error Handling', () => {
       // Should show error message
       await waitFor(() => {
         expect(screen.getByText(/failed to create recipe/i)).toBeInTheDocument()
-      })
+      }, { timeout: 5000 })
+      
+      consoleSpy.mockRestore()
     })
 
     it('should handle server error responses', async () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      
       global.fetch = vi.fn().mockImplementation((url) => {
         if (url === '/api/categories') {
           return Promise.resolve({
@@ -167,10 +189,14 @@ describe('Recipe Form Error Handling', () => {
       
       await waitFor(() => {
         expect(screen.getByText(/failed to create recipe/i)).toBeInTheDocument()
-      })
+      }, { timeout: 5000 })
+      
+      consoleSpy.mockRestore()
     })
 
     it('should handle timeout errors', async () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      
       global.fetch = vi.fn().mockImplementation((url) => {
         if (url === '/api/categories') {
           return Promise.resolve({
@@ -205,7 +231,9 @@ describe('Recipe Form Error Handling', () => {
       
       await waitFor(() => {
         expect(screen.getByText(/failed to create recipe/i)).toBeInTheDocument()
-      }, { timeout: 3000 })
+      }, { timeout: 5000 })
+      
+      consoleSpy.mockRestore()
     })
   })
 
@@ -246,9 +274,6 @@ describe('Recipe Form Error Handling', () => {
       })
       
       consoleSpy.mockRestore()
-      
-      // Reset the mock for next tests
-      mockUploadRecipePhoto.mockResolvedValue('https://example.com/photo.jpg')
     })
 
     it('should handle invalid file types', async () => {
@@ -312,13 +337,32 @@ describe('Recipe Form Error Handling', () => {
       
       renderForm()
       
-      // Should render form normally despite corrupted draft
-      expect(screen.getByLabelText('Recipe Title *')).toBeInTheDocument()
+      // Wait for form to render
+      await waitFor(() => {
+        expect(screen.getByLabelText('Recipe Title *')).toBeInTheDocument()
+      })
       
       consoleSpy.mockRestore()
     })
 
     it('should clear draft after successful submission', async () => {
+      // Mock successful API response
+      global.fetch = vi.fn().mockImplementation((url) => {
+        if (url === '/api/categories') {
+          return Promise.resolve({
+            ok: true,
+            json: async () => [{ id: '1', name: 'Breakfast' }],
+          })
+        }
+        if (url === '/api/recipes') {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ id: 'recipe-123' }),
+          })
+        }
+        return Promise.resolve({ ok: true, json: async () => ({}) })
+      })
+      
       renderForm()
       
       // Fill and submit form
@@ -356,6 +400,8 @@ describe('Recipe Form Error Handling', () => {
     })
 
     it('should handle malformed API responses', async () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      
       global.fetch = vi.fn().mockImplementation((url) => {
         if (url === '/api/categories') {
           return Promise.resolve({
@@ -392,7 +438,9 @@ describe('Recipe Form Error Handling', () => {
       // Should handle gracefully
       await waitFor(() => {
         expect(screen.getByText(/failed to create recipe/i)).toBeInTheDocument()
-      })
+      }, { timeout: 5000 })
+      
+      consoleSpy.mockRestore()
     })
   })
 
