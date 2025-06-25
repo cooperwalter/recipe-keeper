@@ -184,7 +184,7 @@ jobs:
           echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4YW1wbGUiLCJyb2xlIjoic2VydmljZV9yb2xlIiwiaWF0IjoxNjAzMjQwMDAwLCJleHAiOjE5MTg4MDAwMDB9.example' }}" >> .env.local
 
       - name: Run E2E tests
-        run: pnpm test:e2e
+        run: pnpm test:e2e:pw
 
       - name: Upload Playwright report
         if: always()
