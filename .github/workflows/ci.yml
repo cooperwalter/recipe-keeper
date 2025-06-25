@@ -112,18 +112,38 @@ jobs:
             ls -la
             exit 1
           }
-          echo "Build completed. Checking for .next directory..."
+          echo "Build completed successfully"
+
+      - name: Verify build output
+        run: |
+          echo "Current working directory:"
+          pwd
+          echo "Directory contents:"
           ls -la
+          echo "Checking for .next directory..."
           if [ -d ".next" ]; then
             echo ".next directory exists"
-            echo "Contents of .next directory:"
-            ls -la .next/
+            echo "Size of .next directory:"
+            du -sh .next/
+            echo "Number of files in .next:"
+            find .next -type f | wc -l
+            echo "First few files in .next:"
+            find .next -type f | head -20
           else
             echo ".next directory does not exist"
-            echo "Checking for build output in other locations:"
+            echo "Searching for .next in current directory tree:"
             find . -name ".next" -type d 2>/dev/null || true
             exit 1
           fi
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: .next
+          retention-days: 1
+          if-no-files-found: error
+          include-hidden-files: true
 
   e2e:
     name: E2E Tests
