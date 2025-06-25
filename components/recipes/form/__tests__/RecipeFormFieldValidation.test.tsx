@@ -31,9 +31,12 @@ vi.mock('@/lib/hooks/use-duplicate-check', () => ({
 }))
 
 // Fix for Radix UI Select in jsdom
-Object.defineProperty(Element.prototype, 'hasPointerCapture', {
-  value: vi.fn(),
-})
+if (!Element.prototype.hasPointerCapture) {
+  Object.defineProperty(Element.prototype, 'hasPointerCapture', {
+    value: vi.fn(),
+    writable: true,
+  })
+}
 
 describe('Recipe Form Field Validation', () => {
   const user = userEvent.setup()

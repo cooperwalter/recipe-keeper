@@ -1,6 +1,9 @@
 import '@testing-library/jest-dom'
 import { vi } from 'vitest'
-import React from 'react'
+import * as React from 'react'
+
+// Ensure React is available globally for JSX transform
+;(globalThis as any).React = React
 
 // Set up environment variables for tests
 process.env.ANTHROPIC_API_KEY = 'test-api-key'

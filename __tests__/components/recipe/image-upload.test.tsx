@@ -37,7 +37,7 @@ describe('ImageUpload', () => {
     render(<ImageUpload onUpload={mockOnUpload} />);
     
     expect(screen.getByText('Upload your recipe image')).toBeInTheDocument();
-    expect(screen.getByText('Tap to take a photo or choose from gallery')).toBeInTheDocument();
+    expect(screen.getByText('Drop a file here or use the buttons below')).toBeInTheDocument();
     expect(screen.getByText('Max 10MB • JPG, PNG, WebP')).toBeInTheDocument();
   });
 
@@ -154,7 +154,7 @@ describe('ImageUpload', () => {
     render(<ImageUpload onUpload={mockOnUpload} />);
     
     // Check that the dropzone wrapper exists with expected classes
-    const container = screen.getByRole('button', { hidden: true });
-    expect(container).toBeTruthy();
+    const container = screen.getByTestId('dropzone');
+    expect(container).toHaveClass('relative', 'rounded-lg', 'border-2', 'border-dashed');
   });
 });

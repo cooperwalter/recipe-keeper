@@ -191,6 +191,7 @@ describe('VoiceToRecipe', () => {
   })
 
   it('handles transcription errors', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     ;(global.fetch as vi.MockedFunction<typeof fetch>).mockRejectedValueOnce(new Error('Network error'))
     
     render(<VoiceToRecipe recipe={mockRecipe} onUpdate={mockOnUpdate} />)
@@ -220,6 +221,8 @@ describe('VoiceToRecipe', () => {
     await waitFor(() => {
       expect(screen.getByText('Network error')).toBeInTheDocument()
     })
+    
+    consoleSpy.mockRestore()
   })
 
   it('applies approved changes', async () => {

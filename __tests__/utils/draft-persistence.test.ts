@@ -12,7 +12,11 @@ const localStorageMock = {
   key: vi.fn()
 }
 
-global.localStorage = localStorageMock as any
+// Use Object.defineProperty to properly mock localStorage
+Object.defineProperty(global, 'localStorage', {
+  value: localStorageMock,
+  writable: true
+})
 
 describe('draftPersistence', () => {
   const mockFormData: RecipeFormData = {

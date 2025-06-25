@@ -160,7 +160,7 @@ export function VoiceChangeReview({ changes: initialChanges, onApprove, onCancel
   }
 
   return (
-    <Card>
+    <Card data-testid="voice-change-review">
       <CardHeader>
         <CardTitle>Review Recipe Changes</CardTitle>
       </CardHeader>
@@ -291,6 +291,7 @@ export function VoiceChangeReview({ changes: initialChanges, onApprove, onCancel
             <Button
               onClick={handleApprove}
               disabled={isApplying || changes.length === 0}
+              data-testid="approve-changes"
             >
               {isApplying ? 'Applying Changes...' : 'Apply Changes'}
             </Button>

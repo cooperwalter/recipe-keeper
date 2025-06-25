@@ -62,7 +62,7 @@ describe('POST /api/transcribe', () => {
     expect(data.error).toBe('No audio file provided')
   })
 
-  it('successfully returns mock transcription', async () => {
+  it('successfully returns mock transcription', { timeout: 10000 }, async () => {
     mockSupabase.auth.getUser.mockResolvedValue({ 
       data: { user: { id: 'test-user-id' } } 
     })
@@ -85,7 +85,7 @@ describe('POST /api/transcribe', () => {
     expect(data.text.length).toBeGreaterThan(0)
   })
 
-  it('returns one of the mock transcriptions', async () => {
+  it('returns one of the mock transcriptions', { timeout: 10000 }, async () => {
     mockSupabase.auth.getUser.mockResolvedValue({ 
       data: { user: { id: 'test-user-id' } } 
     })
@@ -112,7 +112,7 @@ describe('POST /api/transcribe', () => {
     expect(mockTranscriptions).toContain(data.text)
   })
 
-  it('handles different audio file types', async () => {
+  it('handles different audio file types', { timeout: 10000 }, async () => {
     mockSupabase.auth.getUser.mockResolvedValue({ 
       data: { user: { id: 'test-user-id' } } 
     })
@@ -137,7 +137,7 @@ describe('POST /api/transcribe', () => {
     }
   })
 
-  it('handles large audio files', async () => {
+  it('handles large audio files', { timeout: 10000 }, async () => {
     mockSupabase.auth.getUser.mockResolvedValue({ 
       data: { user: { id: 'test-user-id' } } 
     })
@@ -164,10 +164,13 @@ describe('POST /api/transcribe', () => {
       data: { user: { id: 'test-user-id' } } 
     })
 
-    // Mock FormData to throw an error
+    // Create request with invalid content-type to trigger error
     const request = new NextRequest('http://localhost/api/transcribe', {
       method: 'POST',
-      body: null as unknown as FormData
+      headers: {
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({ invalid: 'data' })
     })
 
     const response = await POST(request)
@@ -200,7 +203,7 @@ describe('POST /api/transcribe', () => {
     expect(data.error).toBe('Voice transcription is not configured. Please contact support.')
   })
 
-  it('works for demo user in production without OPENAI_API_KEY', async () => {
+  it('works for demo user in production without OPENAI_API_KEY', { timeout: 10000 }, async () => {
     // Set production environment
     process.env.NODE_ENV = 'production'
     

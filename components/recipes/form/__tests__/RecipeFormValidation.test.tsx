@@ -43,9 +43,12 @@ vi.mock('@/lib/hooks/use-duplicate-check', () => ({
 }))
 
 // Fix for Radix UI Select in jsdom
-Object.defineProperty(Element.prototype, 'hasPointerCapture', {
-  value: vi.fn(),
-})
+if (!Element.prototype.hasPointerCapture) {
+  Object.defineProperty(Element.prototype, 'hasPointerCapture', {
+    value: vi.fn(),
+    writable: true,
+  })
+}
 
 describe('RecipeFormValidation', () => {
   const user = userEvent.setup()
@@ -502,12 +505,14 @@ describe('RecipeFormValidation', () => {
   })
 
   describe('Edge Cases and Special Validation', () => {
-    it('should handle very long recipe titles', async () => {
+    it('should handle very long recipe titles', { timeout: 15000 }, async () => {
       renderForm()
       
       const titleInput = screen.getByLabelText('Recipe Title *')
       const longTitle = 'A'.repeat(256) // Very long title
-      await user.type(titleInput, longTitle)
+      // Use paste instead of type for performance
+      await user.click(titleInput)
+      await user.paste(longTitle)
       
       // Should still be valid (unless there's a max length)
       const nextButton = screen.getByRole('button', { name: /next/i })
