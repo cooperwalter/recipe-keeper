@@ -1,16 +1,17 @@
 import { test, expect } from '@playwright/test'
 import { mockAuthentication } from './helpers/auth'
+import { setupAPIMocks, setupNavigationMocks } from './helpers/mock-api'
 
 test.describe('Ingredient Adjustment at 1x Scale', () => {
   test.beforeEach(async ({ page }) => {
-    // Set up authentication mocking
+    // Set up authentication and API mocking
     await mockAuthentication(page)
+    await setupAPIMocks(page)
   })
 
   test('should show ingredient adjuster only at 1x scale and update recipe directly', async ({ page }) => {
-    // Navigate to a recipe detail page - click on the first recipe
-    const firstRecipe = page.locator('[data-testid="recipe-card"]').first()
-    await firstRecipe.click()
+    // Navigate directly to the test recipe page
+    await page.goto('/protected/recipes/test-recipe-123')
     
     // Wait for recipe detail page to load
     await page.waitForSelector('h1') // Recipe title
@@ -115,9 +116,8 @@ test.describe('Ingredient Adjustment at 1x Scale', () => {
   })
 
   test('should handle increment and decrement buttons correctly', async ({ page }) => {
-    // Navigate to a recipe
-    const firstRecipe = page.locator('[data-testid="recipe-card"]').first()
-    await firstRecipe.click()
+    // Navigate directly to the test recipe page
+    await page.goto('/protected/recipes/test-recipe-123')
     
     // Wait for recipe detail page
     await page.waitForSelector('h1')
@@ -171,9 +171,8 @@ test.describe('Ingredient Adjustment at 1x Scale', () => {
   })
 
   test('should not show adjustment controls for ingredients without amounts', async ({ page }) => {
-    // Navigate to a recipe
-    const firstRecipe = page.locator('[data-testid="recipe-card"]').first()
-    await firstRecipe.click()
+    // Navigate directly to the test recipe page
+    await page.goto('/protected/recipes/test-recipe-123')
     
     // Wait for recipe detail page
     await page.waitForSelector('h1')

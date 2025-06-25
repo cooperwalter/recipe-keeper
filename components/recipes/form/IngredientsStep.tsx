@@ -93,8 +93,8 @@ export function IngredientsStep() {
                 </button>
               </div>
 
-              <div className="flex-1 grid grid-cols-12 gap-2">
-                <div className="col-span-2">
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-12 gap-2">
+                <div className="sm:col-span-2">
                   <Input
                     type="number"
                     placeholder="Amount"
@@ -103,14 +103,14 @@ export function IngredientsStep() {
                     step="0.25"
                   />
                 </div>
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <Input
                     placeholder="Unit"
                     value={ingredient.unit || ''}
                     onChange={(e) => updateIngredient(index, 'unit', e.target.value)}
                   />
                 </div>
-                <div className="col-span-4">
+                <div className="sm:col-span-4">
                   <Input
                     placeholder="Ingredient *"
                     value={ingredient.ingredient}
@@ -118,14 +118,14 @@ export function IngredientsStep() {
                     required
                   />
                 </div>
-                <div className="col-span-3">
+                <div className="sm:col-span-3">
                   <Input
                     placeholder="Notes (optional)"
                     value={ingredient.notes || ''}
                     onChange={(e) => updateIngredient(index, 'notes', e.target.value)}
                   />
                 </div>
-                <div className="col-span-1">
+                <div className="sm:col-span-1 flex justify-end sm:justify-center">
                   <Button
                     type="button"
                     onClick={() => removeIngredient(index)}

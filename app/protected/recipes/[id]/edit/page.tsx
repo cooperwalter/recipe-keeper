@@ -406,28 +406,28 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           {ingredients.map((ingredient, index) => (
-            <div key={index} className="flex flex-col sm:flex-row gap-2">
-              <div className="flex gap-2 flex-1">
+            <div key={index} className="flex flex-col gap-2">
+              <div className="flex gap-2">
                 <Input
                   value={ingredient.amount}
                   onChange={(e) => updateIngredient(index, 'amount', e.target.value)}
                   placeholder="Amount"
-                  className="w-20 sm:w-24"
+                  className="w-full sm:w-24"
                 />
                 <Input
                   value={ingredient.unit}
                   onChange={(e) => updateIngredient(index, 'unit', e.target.value)}
                   placeholder="Unit"
-                  className="w-20 sm:w-24"
+                  className="w-full sm:w-32"
                 />
+              </div>
+              <div className="flex gap-2">
                 <Input
                   value={ingredient.ingredient}
                   onChange={(e) => updateIngredient(index, 'ingredient', e.target.value)}
                   placeholder="Ingredient"
                   className="flex-1"
                 />
-              </div>
-              <div className="flex gap-2">
                 <Input
                   value={ingredient.notes}
                   onChange={(e) => updateIngredient(index, 'notes', e.target.value)}

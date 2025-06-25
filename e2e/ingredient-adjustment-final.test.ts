@@ -1,74 +1,13 @@
 import { test, expect } from '@playwright/test'
-import { testRecipe } from './helpers/test-recipe'
+import { setupAPIMocks } from './helpers/mock-api'
 
 test.describe('Ingredient Adjustment', () => {
   test('shows adjusters only at 1x scale', async ({ page }) => {
-    // Set up request mocking BEFORE navigation
-    await page.route('**/auth/v1/**', async (route) => {
-      // Mock auth endpoints
-      if (route.request().url().includes('/user')) {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            id: 'test-user-123',
-            email: 'test@example.com',
-            app_metadata: {},
-            user_metadata: {},
-            aud: 'authenticated',
-            created_at: new Date().toISOString()
-          })
-        })
-      } else {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            access_token: 'mock-token',
-            refresh_token: 'mock-refresh',
-            expires_in: 3600,
-            user: { id: 'test-user-123', email: 'test@example.com' }
-          })
-        })
-      }
-    })
-
-    // Mock the recipe API
-    await page.route('**/api/recipes/test-recipe-id', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(testRecipe)
-      })
-    })
-
-    // Mock ingredient updates
-    await page.route('**/api/recipes/test-recipe-id/ingredients/*', async (route) => {
-      if (route.request().method() === 'PATCH') {
-        const body = JSON.parse(route.request().postData() || '{}')
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({ id: 'ing-1', amount: body.amount.toString() })
-        })
-      }
-    })
-
-    // Set auth in localStorage before navigation
-    await page.addInitScript(() => {
-      localStorage.setItem('supabase.auth.token', JSON.stringify({
-        currentSession: {
-          access_token: 'mock-token',
-          refresh_token: 'mock-refresh',
-          expires_at: Date.now() + 3600000,
-          user: { id: 'test-user-123', email: 'test@example.com' }
-        },
-        expiresAt: Date.now() + 3600000
-      }))
-    })
+    // Set up API mocks
+    await setupAPIMocks(page)
 
     // Navigate to the recipe page
-    await page.goto('/protected/recipes/test-recipe-id', { waitUntil: 'networkidle' })
+    await page.goto('/protected/recipes/test-recipe-123', { waitUntil: 'networkidle' })
 
     // Wait for React to hydrate
     await page.waitForTimeout(2000)
@@ -76,15 +15,15 @@ test.describe('Ingredient Adjustment', () => {
     // Debug: Take screenshot
     await page.screenshot({ path: 'test-results/recipe-page.png' })
 
-    // Look for any heading that contains "Test Recipe"
-    const heading = await page.locator('h1, h2, h3').filter({ hasText: 'Test Recipe' }).first()
+    // Look for the recipe title
+    const heading = await page.locator('h1').filter({ hasText: 'Test Recipe' }).first()
     await expect(heading).toBeVisible({ timeout: 10000 })
 
     // Find ingredients section
     await expect(page.locator('text=Ingredients')).toBeVisible()
 
     // Look for the flour ingredient
-    const flourText = await page.locator('text=/flour/i').first()
+    const flourText = await page.locator('text=/Flour/i').first()
     await expect(flourText).toBeVisible()
 
     // Find adjuster button (should be visible at 1x)

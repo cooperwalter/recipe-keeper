@@ -101,7 +101,16 @@ export default function UrlRecipePage() {
 
     try {
       // Transform ingredients and instructions to the expected format
-      const ingredients = editedRecipe.ingredients.map((ing) => ing.trim()).filter(Boolean)
+      // Handle both string and structured ingredient formats
+      const ingredients = editedRecipe.ingredients.map((ing) => {
+        if (typeof ing === 'string') {
+          return ing.trim();
+        } else if (ing && typeof ing === 'object') {
+          // Already structured format from AI parsing
+          return ing;
+        }
+        return '';
+      }).filter(Boolean)
       const instructions = editedRecipe.instructions.map((inst) => inst.trim()).filter(Boolean)
 
       // Create the recipe via API
@@ -362,29 +371,39 @@ export default function UrlRecipePage() {
               <div>
                 <Label>Ingredients</Label>
                 <div className="mt-2 space-y-2">
-                  {editedRecipe.ingredients.map((ingredient, index) => (
-                    <div key={index} className="flex gap-2">
-                      <Input
-                        value={ingredient}
-                        onChange={(e) => {
-                          const newIngredients = [...editedRecipe.ingredients]
-                          newIngredients[index] = e.target.value
-                          updateRecipeField('ingredients', newIngredients)
-                        }}
-                        className="flex-1"
-                      />
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          const newIngredients = editedRecipe.ingredients.filter((_, i) => i !== index)
-                          updateRecipeField('ingredients', newIngredients)
-                        }}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
+                  {editedRecipe.ingredients.map((ingredient, index) => {
+                    // Convert to display string if it's an object
+                    const displayValue = typeof ingredient === 'string' 
+                      ? ingredient 
+                      : ingredient && typeof ingredient === 'object'
+                        ? `${ingredient.amount || ''} ${ingredient.unit || ''} ${ingredient.ingredient}${ingredient.notes ? `, ${ingredient.notes}` : ''}`.trim()
+                        : '';
+                    
+                    return (
+                      <div key={index} className="flex gap-2">
+                        <Input
+                          value={displayValue}
+                          onChange={(e) => {
+                            const newIngredients = [...editedRecipe.ingredients]
+                            // Convert back to string format for editing
+                            newIngredients[index] = e.target.value
+                            updateRecipeField('ingredients', newIngredients)
+                          }}
+                          className="flex-1"
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const newIngredients = editedRecipe.ingredients.filter((_, i) => i !== index)
+                            updateRecipeField('ingredients', newIngredients)
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    );
+                  })}
                   <Button
                     variant="outline"
                     size="sm"

@@ -1,70 +1,15 @@
 import { test, expect } from '@playwright/test'
 import { mockAuthentication } from './helpers/auth'
+import { setupAPIMocks } from './helpers/mock-api'
 
 test.describe('Ingredient Adjustment Feature', () => {
   test('adjusters only show at 1x scale and update recipe directly', async ({ page }) => {
-    // Set up authentication
-    await mockAuthentication(page)
-
-    // Mock the recipe API endpoint
-    await page.route('**/api/recipes/test-recipe-id', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          id: 'test-recipe-id',
-          title: 'Test Recipe',
-          description: 'A test recipe',
-          servings: 4,
-          prepTime: 15,
-          cookTime: 30,
-          createdBy: 'test-user-123',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          isPublic: false,
-          isFavorite: false,
-          version: 1,
-          ingredients: [
-            {
-              id: 'ing-1',
-              recipeId: 'test-recipe-id',
-              ingredient: 'flour',
-              amount: '2',
-              unit: 'cups',
-              orderIndex: 0,
-              notes: null,
-              createdAt: new Date().toISOString()
-            },
-            {
-              id: 'ing-2',
-              recipeId: 'test-recipe-id',
-              ingredient: 'salt',
-              amount: null,
-              unit: null,
-              orderIndex: 1,
-              notes: 'to taste',
-              createdAt: new Date().toISOString()
-            }
-          ],
-          instructions: [
-            {
-              id: 'inst-1',
-              recipeId: 'test-recipe-id',
-              stepNumber: 1,
-              instruction: 'Mix ingredients',
-              createdAt: new Date().toISOString()
-            }
-          ],
-          photos: [],
-          tags: [],
-          categories: []
-        })
-      })
-    })
+    // Set up API mocks
+    await setupAPIMocks(page)
 
     // Mock the ingredient update endpoint
     let updatedAmount = '2'
-    await page.route('**/api/recipes/test-recipe-id/ingredients/ing-1', async (route) => {
+    await page.route('**/api/recipes/test-recipe-123/ingredients/1', async (route) => {
       if (route.request().method() === 'PATCH') {
         const body = JSON.parse(route.request().postData() || '{}')
         updatedAmount = body.amount.toString()
@@ -72,7 +17,7 @@ test.describe('Ingredient Adjustment Feature', () => {
           status: 200,
           contentType: 'application/json',
           body: JSON.stringify({
-            id: 'ing-1',
+            id: '1',
             amount: updatedAmount
           })
         })
@@ -80,7 +25,7 @@ test.describe('Ingredient Adjustment Feature', () => {
     })
 
     // Navigate to the recipe page
-    await page.goto('/protected/recipes/test-recipe-id')
+    await page.goto('/protected/recipes/test-recipe-123')
 
     // Wait for the page to load
     await page.waitForLoadState('domcontentloaded')
@@ -98,7 +43,7 @@ test.describe('Ingredient Adjustment Feature', () => {
     await expect(scale1x).toHaveAttribute('data-state', 'on')
 
     // Find the flour ingredient
-    const flourIngredient = page.locator('text=/2 cups flour/')
+    const flourIngredient = page.locator('text=/2 cups Flour/')
     await expect(flourIngredient).toBeVisible()
 
     // Find the adjuster button for flour (should be visible at 1x)
@@ -109,7 +54,7 @@ test.describe('Ingredient Adjustment Feature', () => {
     await adjusterButton.click()
 
     // Wait for popover
-    const popoverTitle = page.locator('h4:has-text("Adjust flour")')
+    const popoverTitle = page.locator('h4:has-text("Adjust Flour")')
     await expect(popoverTitle).toBeVisible()
 
     // Find the input and change value
@@ -128,7 +73,7 @@ test.describe('Ingredient Adjustment Feature', () => {
     await page.waitForTimeout(500)
 
     // Verify the ingredient text updated
-    await expect(page.locator('text=/2.25 cups flour|2 ¼ cups flour/')).toBeVisible()
+    await expect(page.locator('text=/2.25 cups Flour|2 ¼ cups Flour/')).toBeVisible()
 
     // Switch to 2x scale
     const scale2x = scaleToggle.locator('button:has-text("2x")')
@@ -139,7 +84,7 @@ test.describe('Ingredient Adjustment Feature', () => {
     await expect(adjusterButton).not.toBeVisible()
 
     // Amount should be doubled (2.25 * 2 = 4.5)
-    await expect(page.locator('text=/4.5 cups flour|4 ½ cups flour/')).toBeVisible()
+    await expect(page.locator('text=/4.5 cups Flour|4 ½ cups Flour/')).toBeVisible()
 
     // Switch back to 1x
     await scale1x.click()
@@ -148,12 +93,12 @@ test.describe('Ingredient Adjustment Feature', () => {
     await expect(adjusterButton).toBeVisible()
 
     // Amount should be back to 2.25
-    await expect(page.locator('text=/2.25 cups flour|2 ¼ cups flour/')).toBeVisible()
+    await expect(page.locator('text=/2.25 cups Flour|2 ¼ cups Flour/')).toBeVisible()
 
     // Verify salt (no amount) has no adjuster
-    const saltIngredient = page.locator('text=/salt/')
+    const saltIngredient = page.locator('text=/Salt/')
     await expect(saltIngredient).toBeVisible()
-    const saltAdjusters = page.locator('li:has-text("salt") button[aria-label*="Adjust"]')
+    const saltAdjusters = page.locator('li:has-text("Salt") button[aria-label*="Adjust"]')
     await expect(saltAdjusters).toHaveCount(0)
   })
 })

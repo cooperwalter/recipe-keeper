@@ -67,8 +67,22 @@ export function OCRRecipeFlow() {
       setUploadProgress(40);
 
       if (!uploadResponse.ok) {
-        const errorData = await uploadResponse.json();
-        throw new Error(errorData.error || "Failed to upload image");
+        let errorMessage = "Failed to upload image";
+        try {
+          const contentType = uploadResponse.headers.get("content-type");
+          if (contentType && contentType.includes("application/json")) {
+            const errorData = await uploadResponse.json();
+            errorMessage = errorData.error || errorMessage;
+          } else {
+            // If response is not JSON (e.g., HTML error page)
+            const text = await uploadResponse.text();
+            console.error("Non-JSON error response:", text);
+            errorMessage = `Server error (${uploadResponse.status}): ${uploadResponse.statusText}`;
+          }
+        } catch (parseError) {
+          console.error("Error parsing error response:", parseError);
+        }
+        throw new Error(errorMessage);
       }
 
       const { imageUrl: url, extractedText: text } = await uploadResponse.json();
@@ -88,8 +102,22 @@ export function OCRRecipeFlow() {
       setUploadProgress(80);
 
       if (!extractResponse.ok) {
-        const errorData = await extractResponse.json();
-        throw new Error(errorData.error || "Failed to extract recipe data");
+        let errorMessage = "Failed to extract recipe data";
+        try {
+          const contentType = extractResponse.headers.get("content-type");
+          if (contentType && contentType.includes("application/json")) {
+            const errorData = await extractResponse.json();
+            errorMessage = errorData.error || errorMessage;
+          } else {
+            // If response is not JSON (e.g., HTML error page)
+            const text = await extractResponse.text();
+            console.error("Non-JSON error response:", text);
+            errorMessage = `Server error (${extractResponse.status}): ${extractResponse.statusText}`;
+          }
+        } catch (parseError) {
+          console.error("Error parsing error response:", parseError);
+        }
+        throw new Error(errorMessage);
       }
 
       const { recipe } = await extractResponse.json();

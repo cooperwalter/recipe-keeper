@@ -200,7 +200,21 @@ export function VoiceReviewForm({
         </CardHeader>
         <CardContent className="space-y-4">
           {formData.ingredients.map((ingredient, index) => (
-            <div key={index} className="flex gap-2 items-start">
+            <div key={index} className="flex flex-col sm:flex-row gap-2 items-start">
+              <div className="flex gap-2 w-full sm:w-auto">
+                <Input
+                  placeholder="Amount"
+                  value={ingredient.amount || ''}
+                  onChange={(e) => updateIngredient(index, 'amount', e.target.value)}
+                  className="w-full sm:w-24"
+                />
+                <Input
+                  placeholder="Unit"
+                  value={ingredient.unit || ''}
+                  onChange={(e) => updateIngredient(index, 'unit', e.target.value)}
+                  className="w-full sm:w-24"
+                />
+              </div>
               <div className="flex-1">
                 <Input
                   placeholder="Ingredient *"
@@ -209,26 +223,13 @@ export function VoiceReviewForm({
                   required
                 />
               </div>
-              <div className="w-24">
-                <Input
-                  placeholder="Amount"
-                  value={ingredient.amount || ''}
-                  onChange={(e) => updateIngredient(index, 'amount', e.target.value)}
-                />
-              </div>
-              <div className="w-24">
-                <Input
-                  placeholder="Unit"
-                  value={ingredient.unit || ''}
-                  onChange={(e) => updateIngredient(index, 'unit', e.target.value)}
-                />
-              </div>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
                 onClick={() => removeIngredient(index)}
                 aria-label="Remove ingredient"
+                className="self-end sm:self-auto"
               >
                 <X className="h-4 w-4" />
               </Button>

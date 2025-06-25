@@ -1,75 +1,10 @@
 import { test, expect } from '@playwright/test'
+import { setupAPIMocks } from './helpers/mock-api'
 
 test.describe('Ingredient Adjustment at 1x Scale', () => {
   test('should show ingredient adjuster only at 1x scale', async ({ page }) => {
-    // Mock the API responses
-    await page.route('**/api/recipes/test-recipe-123', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          id: 'test-recipe-123',
-          title: 'Test Recipe',
-          description: 'A test recipe for ingredient adjustments',
-          servings: 4,
-          prepTime: 15,
-          cookTime: 30,
-          createdBy: 'user-123',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          isPublic: false,
-          isFavorite: false,
-          version: 1,
-          ingredients: [
-            {
-              id: 'ing-1',
-              recipeId: 'test-recipe-123',
-              ingredient: 'all-purpose flour',
-              amount: '2',
-              unit: 'cups',
-              orderIndex: 0,
-              notes: null,
-              createdAt: new Date().toISOString()
-            },
-            {
-              id: 'ing-2',
-              recipeId: 'test-recipe-123',
-              ingredient: 'sugar',
-              amount: '0.5',
-              unit: 'cup',
-              orderIndex: 1,
-              notes: null,
-              createdAt: new Date().toISOString()
-            },
-            {
-              id: 'ing-3',
-              recipeId: 'test-recipe-123',
-              ingredient: 'salt',
-              amount: null,
-              unit: null,
-              orderIndex: 2,
-              notes: 'to taste',
-              createdAt: new Date().toISOString()
-            }
-          ],
-          instructions: [
-            {
-              id: 'inst-1',
-              recipeId: 'test-recipe-123',
-              stepNumber: 1,
-              instruction: 'Mix dry ingredients',
-              createdAt: new Date().toISOString()
-            }
-          ],
-          photos: [],
-          tags: [],
-          categories: [],
-          sourceName: 'Test Kitchen',
-          sourceNotes: null,
-          ingredientAdjustments: null
-        })
-      })
-    })
+    // Set up API mocks
+    await setupAPIMocks(page)
 
     // Mock the ingredient update endpoint
     await page.route('**/api/recipes/test-recipe-123/ingredients/*', async (route) => {
@@ -79,7 +14,7 @@ test.describe('Ingredient Adjustment at 1x Scale', () => {
           status: 200,
           contentType: 'application/json',
           body: JSON.stringify({
-            id: 'ing-1',
+            id: '1',
             amount: body.amount.toString()
           })
         })
@@ -98,7 +33,7 @@ test.describe('Ingredient Adjustment at 1x Scale', () => {
     await expect(scaleIndicator).toBeVisible()
 
     // Find the first ingredient with an amount (flour)
-    const flourIngredient = page.locator('li').filter({ hasText: '2 cups all-purpose flour' }).first()
+    const flourIngredient = page.locator('li').filter({ hasText: '2 cups Flour' }).first()
     await expect(flourIngredient).toBeVisible()
 
     // Verify the adjuster button is visible at 1x scale
@@ -109,7 +44,7 @@ test.describe('Ingredient Adjustment at 1x Scale', () => {
     await adjusterButton.click()
 
     // Wait for popover to appear
-    await page.waitForSelector('h4:has-text("Adjust all-purpose flour")')
+    await page.waitForSelector('h4:has-text("Adjust Flour")')
 
     // Find the amount input
     const amountInput = page.locator('input[aria-label="Custom amount"]')
@@ -141,7 +76,7 @@ test.describe('Ingredient Adjustment at 1x Scale', () => {
     await expect(adjusterButton).not.toBeVisible()
 
     // Verify the amount is doubled (2.25 * 2 = 4.5)
-    const scaledFlour = page.locator('li').filter({ hasText: /4[.½]? cups all-purpose flour/ })
+    const scaledFlour = page.locator('li').filter({ hasText: /4[.½]? cups Flour/ })
     await expect(scaledFlour).toBeVisible()
 
     // Switch to 3x scale
@@ -155,7 +90,7 @@ test.describe('Ingredient Adjustment at 1x Scale', () => {
     await expect(adjusterButton).not.toBeVisible()
 
     // Verify the amount is tripled (2.25 * 3 = 6.75)
-    const tripledFlour = page.locator('li').filter({ hasText: /6[.¾]? cups all-purpose flour/ })
+    const tripledFlour = page.locator('li').filter({ hasText: /6[.¾]? cups Flour/ })
     await expect(tripledFlour).toBeVisible()
 
     // Go back to 1x scale
@@ -166,13 +101,16 @@ test.describe('Ingredient Adjustment at 1x Scale', () => {
     await expect(adjusterButton).toBeVisible()
 
     // Verify ingredient without amount (salt) has no adjuster
-    const saltIngredient = page.locator('li').filter({ hasText: 'salt' })
+    const saltIngredient = page.locator('li').filter({ hasText: 'Salt' })
     const saltAdjuster = saltIngredient.locator('button[aria-label*="Adjust amount"]')
     await expect(saltAdjuster).not.toBeVisible()
   })
 
   test('should handle fractional amounts correctly', async ({ page }) => {
-    // Mock the API responses
+    // Set up API mocks with custom data
+    await setupAPIMocks(page)
+    
+    // Override the recipe response with butter ingredient
     await page.route('**/api/recipes/test-recipe-123', async (route) => {
       await route.fulfill({
         status: 200,
@@ -182,19 +120,33 @@ test.describe('Ingredient Adjustment at 1x Scale', () => {
           title: 'Test Recipe',
           description: 'Testing fractional amounts',
           servings: 4,
+          prep_time: 15,
+          cook_time: 30,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          user_id: 'test-user-123',
+          is_public: true,
           ingredients: [
             {
-              id: 'ing-1',
-              ingredient: 'butter',
+              id: '1',
+              recipe_id: 'test-recipe-123',
+              name: 'butter',
               amount: '0.5',
               unit: 'cup',
-              orderIndex: 0
+              order_index: 0,
+              is_adjustable: true
             }
           ],
-          instructions: [],
-          photos: [],
-          tags: [],
-          categories: []
+          instructions: [
+            {
+              id: '1',
+              recipe_id: 'test-recipe-123',
+              step_number: 1,
+              instruction: 'Mix ingredients',
+              time_in_minutes: 5
+            }
+          ],
+          recipe_photos: []
         })
       })
     })

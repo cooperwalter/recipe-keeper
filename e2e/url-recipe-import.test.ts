@@ -1,18 +1,13 @@
 import { test, expect } from '@playwright/test'
+import { setupAPIMocks } from './helpers/mock-api'
 
 test.describe('URL Recipe Import', () => {
   test.beforeEach(async ({ page }) => {
-    // Navigate to recipes page and login if needed
-    await page.goto('/protected/recipes/new')
+    // Set up API mocks
+    await setupAPIMocks(page)
     
-    // Check if we need to login
-    if (await page.url().includes('/auth/login')) {
-      // Use test credentials
-      await page.fill('input[name="email"]', 'test@example.com')
-      await page.fill('input[name="password"]', 'testpassword123')
-      await page.click('button[type="submit"]')
-      await page.waitForURL('/protected/recipes/new')
-    }
+    // Navigate to recipes page
+    await page.goto('/protected/recipes/new')
   })
 
   test('should display URL import option on recipe creation page', async ({ page }) => {

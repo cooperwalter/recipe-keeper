@@ -148,6 +148,9 @@ describe('OCRRecipeFlow Integration', () => {
     // Mock failed upload response
     (fetch as any).mockResolvedValueOnce({
       ok: false,
+      headers: {
+        get: (name: string) => name === 'content-type' ? 'application/json' : null
+      },
       json: async () => ({
         error: 'Upload failed',
       }),
@@ -181,6 +184,9 @@ describe('OCRRecipeFlow Integration', () => {
       })
       .mockResolvedValueOnce({
         ok: false,
+        headers: {
+          get: (name: string) => name === 'content-type' ? 'application/json' : null
+        },
         json: async () => ({
           error: 'Extraction failed',
         }),

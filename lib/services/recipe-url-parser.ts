@@ -3,7 +3,12 @@ import { load } from 'cheerio'
 export interface ExtractedRecipe {
   title?: string
   description?: string
-  ingredients?: string[]
+  ingredients?: (string | {
+    amount?: string
+    unit?: string
+    ingredient: string
+    notes?: string
+  })[]
   instructions?: string[]
   prepTime?: number
   cookTime?: number

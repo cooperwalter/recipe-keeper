@@ -243,19 +243,21 @@ export function OCRReviewForm({
         </CardHeader>
         <CardContent className="space-y-4">
           {recipe.ingredients.map((ingredient, index) => (
-            <div key={index} className="flex gap-2">
-              <Input
-                placeholder="Amount"
-                value={ingredient.amount || ""}
-                onChange={(e) => updateIngredient(index, "amount", e.target.value)}
-                className="w-24"
-              />
-              <Input
-                placeholder="Unit"
-                value={ingredient.unit || ""}
-                onChange={(e) => updateIngredient(index, "unit", e.target.value)}
-                className="w-24"
-              />
+            <div key={index} className="flex flex-col sm:flex-row gap-2">
+              <div className="flex gap-2 sm:flex-initial">
+                <Input
+                  placeholder="Amount"
+                  value={ingredient.amount || ""}
+                  onChange={(e) => updateIngredient(index, "amount", e.target.value)}
+                  className="w-full sm:w-24"
+                />
+                <Input
+                  placeholder="Unit"
+                  value={ingredient.unit || ""}
+                  onChange={(e) => updateIngredient(index, "unit", e.target.value)}
+                  className="w-full sm:w-24"
+                />
+              </div>
               <Input
                 placeholder="Ingredient *"
                 value={ingredient.ingredient}
@@ -268,6 +270,7 @@ export function OCRReviewForm({
                 variant="ghost"
                 size="icon"
                 onClick={() => removeIngredient(index)}
+                className="self-end sm:self-auto"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>

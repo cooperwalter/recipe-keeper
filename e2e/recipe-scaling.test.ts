@@ -1,115 +1,123 @@
 import { test, expect, Page } from '@playwright/test'
+import { setupAPIMocks } from './helpers/mock-api'
 
 test.describe('Recipe Scaling Feature', () => {
-  // Helper to login and navigate to a recipe
+  // Helper to navigate to a recipe
   async function navigateToRecipe(page: Page) {
-    // Mock a recipe with various ingredient types
-    await page.route('**/api/recipes/*', async (route) => {
-      if (route.request().url().includes('/api/recipes/test-recipe-123')) {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            id: 'test-recipe-123',
-            title: 'Test Recipe for Scaling',
-            description: 'A recipe to test scaling features',
-            servings: 4,
-            prepTime: 15,
-            cookTime: 30,
-            ingredients: [
-              {
-                id: '1',
-                ingredient: 'all-purpose flour',
-                amount: 2,
-                unit: 'cups',
-                orderIndex: 0
-              },
-              {
-                id: '2',
-                ingredient: 'kosher salt',
-                amount: 1,
-                unit: 'tsp',
-                orderIndex: 1
-              },
-              {
-                id: '3',
-                ingredient: 'black pepper',
-                amount: 0.5,
-                unit: 'tsp',
-                orderIndex: 2
-              },
-              {
-                id: '4',
-                ingredient: 'baking powder',
-                amount: 1,
-                unit: 'tbsp',
-                orderIndex: 3
-              },
-              {
-                id: '5',
-                ingredient: 'eggs',
-                amount: 2,
-                unit: '',
-                orderIndex: 4
-              },
-              {
-                id: '6',
-                ingredient: 'milk',
-                amount: 1,
-                unit: 'cup',
-                orderIndex: 5
-              },
-              {
-                id: '7',
-                ingredient: 'vanilla extract',
-                amount: 1,
-                unit: 'tsp',
-                orderIndex: 6
-              }
-            ],
-            instructions: [
-              {
-                id: '1',
-                stepNumber: 1,
-                instruction: 'Mix dry ingredients'
-              },
-              {
-                id: '2',
-                stepNumber: 2,
-                instruction: 'Whisk wet ingredients'
-              },
-              {
-                id: '3',
-                stepNumber: 3,
-                instruction: 'Combine and bake'
-              }
-            ],
-            photos: [],
-            tags: ['test'],
-            categories: [],
-            isFavorite: false,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            createdBy: 'test-user',
-            isPublic: false,
-            version: 1
-          })
+    // Set up API mocks with custom scaling recipe data
+    await setupAPIMocks(page)
+    
+    // Override the recipe response with scaling test data
+    await page.route('**/api/recipes/test-recipe-123', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 'test-recipe-123',
+          title: 'Test Recipe for Scaling',
+          description: 'A recipe to test scaling features',
+          servings: 4,
+          prep_time: 15,
+          cook_time: 30,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          user_id: 'test-user-123',
+          is_public: true,
+          ingredients: [
+            {
+              id: '1',
+              recipe_id: 'test-recipe-123',
+              name: 'all-purpose flour',
+              amount: '2',
+              unit: 'cups',
+              order_index: 0,
+              is_adjustable: false
+            },
+            {
+              id: '2',
+              recipe_id: 'test-recipe-123',
+              name: 'kosher salt',
+              amount: '1',
+              unit: 'tsp',
+              order_index: 1,
+              is_adjustable: true
+            },
+            {
+              id: '3',
+              recipe_id: 'test-recipe-123',
+              name: 'black pepper',
+              amount: '0.5',
+              unit: 'tsp',
+              order_index: 2,
+              is_adjustable: true
+            },
+            {
+              id: '4',
+              recipe_id: 'test-recipe-123',
+              name: 'baking powder',
+              amount: '1',
+              unit: 'tbsp',
+              order_index: 3,
+              is_adjustable: true
+            },
+            {
+              id: '5',
+              recipe_id: 'test-recipe-123',
+              name: 'eggs',
+              amount: '2',
+              unit: '',
+              order_index: 4,
+              is_adjustable: false
+            },
+            {
+              id: '6',
+              recipe_id: 'test-recipe-123',
+              name: 'milk',
+              amount: '1',
+              unit: 'cup',
+              order_index: 5,
+              is_adjustable: false
+            },
+            {
+              id: '7',
+              recipe_id: 'test-recipe-123',
+              name: 'vanilla extract',
+              amount: '1',
+              unit: 'tsp',
+              order_index: 6,
+              is_adjustable: true
+            }
+          ],
+          instructions: [
+            {
+              id: '1',
+              recipe_id: 'test-recipe-123',
+              step_number: 1,
+              instruction: 'Mix dry ingredients',
+              time_in_minutes: 5
+            },
+            {
+              id: '2',
+              recipe_id: 'test-recipe-123',
+              step_number: 2,
+              instruction: 'Whisk wet ingredients',
+              time_in_minutes: 5
+            },
+            {
+              id: '3',
+              recipe_id: 'test-recipe-123',
+              step_number: 3,
+              instruction: 'Combine and bake',
+              time_in_minutes: 20
+            }
+          ],
+          recipe_photos: []
         })
-      } else {
-        await route.continue()
-      }
+      })
     })
 
     // Navigate to the recipe
     await page.goto('/protected/recipes/test-recipe-123')
-    
-    // Check if we need to login
-    if (await page.url().includes('/auth/login')) {
-      await page.fill('input[name="email"]', 'test@example.com')
-      await page.fill('input[name="password"]', 'testpassword123')
-      await page.click('button[type="submit"]')
-      await page.waitForURL('/protected/recipes/test-recipe-123')
-    }
   }
 
   test('should display recipe scaler with 1x, 2x, 3x options', async ({ page }) => {

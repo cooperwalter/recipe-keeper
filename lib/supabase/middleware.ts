@@ -62,7 +62,15 @@ export async function updateSession(request: NextRequest) {
     !request.nextUrl.pathname.startsWith("/auth") &&
     !isPublicApiRoute
   ) {
-    // no user, potentially respond by redirecting the user to the login page
+    // For API routes, return 401 Unauthorized instead of redirecting
+    if (request.nextUrl.pathname.startsWith("/api/")) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+    
+    // For other routes, redirect to login page
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
     return NextResponse.redirect(url);
