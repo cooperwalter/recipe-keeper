@@ -118,8 +118,7 @@ export function RecipeFormProvider({ children, initialData }: RecipeFormProvider
         return formData.ingredients.length > 0 && 
                formData.ingredients.every(ing => ing.ingredient.trim().length > 0)
       case 2: // Instructions
-        return formData.instructions.length > 0 &&
-               formData.instructions.every(inst => inst.instruction.trim().length > 0)
+        return true // Instructions are now optional
       case 3: // Photos & Notes
         return true // Optional step
       default:

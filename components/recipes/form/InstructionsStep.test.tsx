@@ -49,7 +49,7 @@ describe('InstructionsStep', () => {
     fireEvent.click(screen.getByText('Add Your First Step'))
     
     expect(screen.queryByText('No instructions added yet')).not.toBeInTheDocument()
-    expect(screen.getByPlaceholderText('Describe this step *')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Describe this step')).toBeInTheDocument()
     expect(screen.getByTestId('instructions-count')).toHaveTextContent('1')
   })
 
@@ -60,7 +60,7 @@ describe('InstructionsStep', () => {
     fireEvent.click(screen.getByText('Add Step'))
     
     // Update text
-    const textarea = screen.getByPlaceholderText('Describe this step *')
+    const textarea = screen.getByPlaceholderText('Describe this step')
     fireEvent.change(textarea, { target: { value: 'Preheat oven to 350°F' } })
     
     expect(screen.getByTestId('instruction-0')).toHaveTextContent('Step 1: Preheat oven to 350°F')
@@ -107,7 +107,7 @@ describe('InstructionsStep', () => {
     fireEvent.click(screen.getByText('Add Step'))
     
     // Set values
-    const textareas = screen.getAllByPlaceholderText('Describe this step *')
+    const textareas = screen.getAllByPlaceholderText('Describe this step')
     fireEvent.change(textareas[0], { target: { value: 'First step' } })
     fireEvent.change(textareas[1], { target: { value: 'Second step' } })
     fireEvent.change(textareas[2], { target: { value: 'Third step' } })
@@ -129,7 +129,7 @@ describe('InstructionsStep', () => {
     fireEvent.click(screen.getByText('Add Step'))
     
     // Set values
-    const textareas = screen.getAllByPlaceholderText('Describe this step *')
+    const textareas = screen.getAllByPlaceholderText('Describe this step')
     fireEvent.change(textareas[0], { target: { value: 'First step' } })
     fireEvent.change(textareas[1], { target: { value: 'Second step' } })
     
@@ -159,7 +159,7 @@ describe('InstructionsStep', () => {
     fireEvent.click(screen.getByText('Add Step'))
     
     // Set multi-line text
-    const textarea = screen.getByPlaceholderText('Describe this step *')
+    const textarea = screen.getByPlaceholderText('Describe this step')
     fireEvent.change(textarea, { 
       target: { value: 'Mix dry ingredients:\n- Flour\n- Sugar\n- Salt' } 
     })

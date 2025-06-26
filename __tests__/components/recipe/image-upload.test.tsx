@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ImageUpload } from '@/components/recipe/image-upload';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { useDropzone } from 'react-dropzone';
 
 // Mock react-dropzone
@@ -34,6 +34,14 @@ describe('ImageUpload', () => {
   });
 
   it('renders upload area with correct text', () => {
+    // Ensure desktop viewport
+    Object.defineProperty(window, 'innerWidth', {
+      writable: true,
+      configurable: true,
+      value: 1024,
+    });
+    window.dispatchEvent(new Event('resize'));
+    
     render(<ImageUpload onUpload={mockOnUpload} />);
     
     expect(screen.getByText('Upload your recipe image')).toBeInTheDocument();
@@ -156,5 +164,64 @@ describe('ImageUpload', () => {
     // Check that the dropzone wrapper exists with expected classes
     const container = screen.getByTestId('dropzone');
     expect(container).toHaveClass('relative', 'rounded-lg', 'border-2', 'border-dashed');
+  });
+
+  describe('Mobile behavior', () => {
+    const originalInnerWidth = window.innerWidth;
+
+    beforeEach(() => {
+      // Mock mobile viewport
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: 500,
+      });
+      window.dispatchEvent(new Event('resize'));
+    });
+
+    afterEach(() => {
+      // Restore original viewport
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: originalInnerWidth,
+      });
+    });
+
+    it('shows single "Choose Photo" button on mobile', async () => {
+      render(<ImageUpload onUpload={mockOnUpload} />);
+      
+      await waitFor(() => {
+        expect(screen.getByText('Choose Photo')).toBeInTheDocument();
+        expect(screen.queryByText('Camera')).not.toBeInTheDocument();
+        expect(screen.queryByText('Gallery')).not.toBeInTheDocument();
+      });
+    });
+
+    it('does not show drag-and-drop text on mobile', async () => {
+      render(<ImageUpload onUpload={mockOnUpload} />);
+      
+      await waitFor(() => {
+        expect(screen.queryByText('Drop a file here or use the buttons below')).not.toBeInTheDocument();
+      });
+    });
+
+    it('shows two buttons on desktop', async () => {
+      // Change to desktop viewport
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: 1024,
+      });
+      window.dispatchEvent(new Event('resize'));
+
+      render(<ImageUpload onUpload={mockOnUpload} />);
+      
+      await waitFor(() => {
+        expect(screen.getByText('Camera')).toBeInTheDocument();
+        expect(screen.getByText('Gallery')).toBeInTheDocument();
+        expect(screen.queryByText('Choose Photo')).not.toBeInTheDocument();
+      });
+    });
   });
 });
