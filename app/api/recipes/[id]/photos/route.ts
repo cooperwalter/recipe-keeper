@@ -4,7 +4,7 @@ import { RecipeService } from '@/lib/db/recipes'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient()
@@ -16,7 +16,7 @@ export async function POST(
     }
 
   const recipeService = new RecipeService(supabase)
-  const { id } = params
+  const { id } = await params
     
     // Verify recipe ownership
     const recipe = await recipeService.getRecipe(id)
@@ -49,7 +49,7 @@ export async function POST(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient()
@@ -61,7 +61,7 @@ export async function GET(
     }
 
   const recipeService = new RecipeService(supabase)
-  const { id } = params
+  const { id } = await params
     
     // Get recipe with photos
     const recipe = await recipeService.getRecipe(id)
