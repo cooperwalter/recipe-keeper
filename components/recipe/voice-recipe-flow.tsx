@@ -403,6 +403,7 @@ export function VoiceRecipeFlow() {
         <CardContent>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li>• Start with the recipe name</li>
+            <li>• Say who the recipe is from (e.g., &quot;This recipe is from Grandma&quot;)</li>
             <li>• Clearly state each ingredient with its amount</li>
             <li>• Pause between ingredients and instructions</li>
             <li>• Number your steps or say &quot;first&quot;, &quot;next&quot;, &quot;then&quot;</li>

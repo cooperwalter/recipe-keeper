@@ -34,7 +34,8 @@ export async function POST(request: NextRequest) {
     - Instructions (step by step)
     - Prep time and cook time (if mentioned)
     - Servings (if mentioned)
-    - Any source/attribution or family notes
+    - Recipe source/attribution
+    - Any family notes or memories
     
     Format the response as JSON with this structure:
     {
@@ -52,12 +53,29 @@ export async function POST(request: NextRequest) {
       "sourceNotes": "Any family notes or memories mentioned"
     }
     
-    Important:
+    IMPORTANT Recipe Attribution Rules:
+    - When the user says "this recipe is from [person]", "this is [person]'s recipe", "I got this from [person]", or similar phrases, put the person's name in "sourceName"
+    - Do NOT put recipe attribution in the "description" field
+    - Common phrases that indicate recipe source:
+      - "This recipe is from..."
+      - "This is [person]'s recipe"
+      - "I got this from..."
+      - "[Person] gave me this recipe"
+      - "Recipe from..."
+      - "This was [person]'s"
+      - "From [person]'s kitchen"
+    - Examples:
+      - "This recipe is from Grandma" → sourceName: "Grandma"
+      - "This is my mother's apple pie recipe" → sourceName: "Mother"
+      - "I got this from Aunt Sally" → sourceName: "Aunt Sally"
+    
+    Other Important Rules:
     - Extract amounts and units carefully, converting spoken numbers to digits
     - If amounts include fractions like "two and a half", convert to "2 1/2"
     - Separate each instruction into its own step
     - Only include fields that were actually mentioned
-    - Be generous in interpreting pauses and speech patterns`;
+    - Be generous in interpreting pauses and speech patterns
+    - Keep sourceNotes for additional context like "she always made this for holidays" or "family favorite since 1950"`;
 
     const message = await anthropic.messages.create({
       model: 'claude-3-haiku-20240307',

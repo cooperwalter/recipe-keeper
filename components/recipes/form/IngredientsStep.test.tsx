@@ -49,10 +49,13 @@ describe('IngredientsStep', () => {
     fireEvent.click(screen.getByText('Add Your First Ingredient'))
     
     expect(screen.queryByText('No ingredients added yet')).not.toBeInTheDocument()
-    expect(screen.getByPlaceholderText('Amount')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('Unit')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('Ingredient *')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('Notes (optional)')).toBeInTheDocument()
+    // Due to responsive layout, we have multiple inputs with same placeholder
+    expect(screen.getAllByPlaceholderText('Amount').length).toBeGreaterThan(0)
+    expect(screen.getAllByPlaceholderText('Unit').length).toBeGreaterThan(0)
+    expect(screen.getAllByPlaceholderText('Ingredient *').length).toBeGreaterThan(0)
+    // Notes field exists only on desktop
+    const notesInputs = screen.queryAllByPlaceholderText('Notes (optional)')
+    expect(notesInputs.length).toBeGreaterThanOrEqual(1)
   })
 
   it('updates ingredient fields', () => {
@@ -61,11 +64,18 @@ describe('IngredientsStep', () => {
     // Add ingredient
     fireEvent.click(screen.getByText('Add Ingredient'))
     
-    // Update fields
-    fireEvent.change(screen.getByPlaceholderText('Amount'), { target: { value: '2' } })
-    fireEvent.change(screen.getByPlaceholderText('Unit'), { target: { value: 'cups' } })
-    fireEvent.change(screen.getByPlaceholderText('Ingredient *'), { target: { value: 'flour' } })
-    fireEvent.change(screen.getByPlaceholderText('Notes (optional)'), { target: { value: 'sifted' } })
+    // Update fields - get all inputs and use the visible ones
+    const amountInputs = screen.getAllByPlaceholderText('Amount')
+    const unitInputs = screen.getAllByPlaceholderText('Unit')
+    const ingredientInputs = screen.getAllByPlaceholderText('Ingredient *')
+    const notesInputs = screen.queryAllByPlaceholderText('Notes (optional)')
+    
+    fireEvent.change(amountInputs[0], { target: { value: '2' } })
+    fireEvent.change(unitInputs[0], { target: { value: 'cups' } })
+    fireEvent.change(ingredientInputs[0], { target: { value: 'flour' } })
+    if (notesInputs.length > 0) {
+      fireEvent.change(notesInputs[0], { target: { value: 'sifted' } })
+    }
     
     expect(screen.getByTestId('ingredient-0')).toHaveTextContent('2,cups,flour,sifted')
   })
@@ -95,10 +105,12 @@ describe('IngredientsStep', () => {
     fireEvent.click(screen.getByText('Add Ingredient'))
     fireEvent.click(screen.getByText('Add Ingredient'))
     
-    // Set values
+    // Set values - handle duplicate inputs from responsive layout
     const ingredientInputs = screen.getAllByPlaceholderText('Ingredient *')
+    // We have duplicate inputs (mobile + desktop), so we need to update the correct ones
+    // Each ingredient has 2 inputs, so second ingredient starts at index 2
     fireEvent.change(ingredientInputs[0], { target: { value: 'First' } })
-    fireEvent.change(ingredientInputs[1], { target: { value: 'Second' } })
+    fireEvent.change(ingredientInputs[2], { target: { value: 'Second' } })
     
     // Move second ingredient up
     const moveButtons = screen.getAllByLabelText('Move up')
@@ -125,8 +137,9 @@ describe('IngredientsStep', () => {
     // Add ingredient
     fireEvent.click(screen.getByText('Add Ingredient'))
     
-    // Set decimal amount
-    fireEvent.change(screen.getByPlaceholderText('Amount'), { target: { value: '0.5' } })
+    // Set decimal amount - use first available input
+    const amountInputs = screen.getAllByPlaceholderText('Amount')
+    fireEvent.change(amountInputs[0], { target: { value: '0.5' } })
     
     expect(screen.getByTestId('ingredient-0')).toHaveTextContent('0.5,')
   })
@@ -154,17 +167,20 @@ describe('IngredientsStep', () => {
     fireEvent.click(screen.getByText('Add Ingredient'))
     fireEvent.click(screen.getByText('Add Ingredient'))
     
-    // Set values
+    // Set values - handle duplicate inputs from responsive layout
     const ingredientInputs = screen.getAllByPlaceholderText('Ingredient *')
+    // Each ingredient has 2 inputs (mobile + desktop)
     fireEvent.change(ingredientInputs[0], { target: { value: 'First' } })
-    fireEvent.change(ingredientInputs[1], { target: { value: 'Second' } })
-    fireEvent.change(ingredientInputs[2], { target: { value: 'Third' } })
+    fireEvent.change(ingredientInputs[2], { target: { value: 'Second' } })
+    fireEvent.change(ingredientInputs[4], { target: { value: 'Third' } })
     
     // Remove middle ingredient
+    // We have multiple remove buttons due to responsive layout (2 per ingredient)
     const removeButtons = screen.getAllByRole('button', { name: '' }).filter(
       btn => btn.querySelector('.lucide-x')
     )
-    fireEvent.click(removeButtons[1])
+    // Second ingredient's remove button would be at index 2 or 3
+    fireEvent.click(removeButtons[2])
     
     // Check remaining ingredients maintain order
     expect(screen.getByTestId('ingredient-0')).toHaveTextContent('First')

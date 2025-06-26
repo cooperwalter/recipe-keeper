@@ -697,6 +697,7 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
                   <li>&quot;Change the baking time to 25 minutes&quot;</li>
                   <li>&quot;Remove the vanilla extract&quot;</li>
                   <li>&quot;Add a note about room temperature eggs&quot;</li>
+                  <li>&quot;This recipe is from Grandma&quot;</li>
                   <li>&quot;Change the recipe source to Grandma Mary&quot;</li>
                   <li>&quot;Make this recipe public&quot;</li>
                   <li>&quot;Add vegan and gluten-free badges&quot;</li>
