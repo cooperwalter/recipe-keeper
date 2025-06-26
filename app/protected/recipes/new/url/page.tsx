@@ -288,6 +288,7 @@ export default function UrlRecipePage() {
                 <li>Most major recipe websites (AllRecipes, Food Network, etc.)</li>
                 <li>Food blogs with properly formatted recipes</li>
                 <li>Any site using Schema.org Recipe markup</li>
+                <li>Most other recipe sites will work, too</li>
               </ul>
             </div>
           </div>
