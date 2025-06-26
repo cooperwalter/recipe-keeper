@@ -192,7 +192,8 @@ describe('RecipeFormValidation', () => {
       // Add an ingredient
       await user.click(screen.getByRole('button', { name: /add ingredient/i }))
       
-      const ingredientInput = screen.getByPlaceholderText('Ingredient *')
+      const ingredientInputs = screen.getAllByPlaceholderText('Ingredient *')
+      const ingredientInput = ingredientInputs[0]
       await user.type(ingredientInput, 'Flour')
       
       // Now next button should be enabled
@@ -226,7 +227,8 @@ describe('RecipeFormValidation', () => {
       
       // Add ingredient with only spaces
       await user.click(screen.getByRole('button', { name: /add ingredient/i }))
-      const ingredientInput = screen.getByPlaceholderText('Ingredient *')
+      const ingredientInputs = screen.getAllByPlaceholderText('Ingredient *')
+      const ingredientInput = ingredientInputs[0]
       await user.type(ingredientInput, '   ')
       
       // Next button should be disabled
@@ -265,7 +267,8 @@ describe('RecipeFormValidation', () => {
       
       // Add ingredient with only name (no amount or unit)
       await user.click(screen.getByRole('button', { name: /add ingredient/i }))
-      const ingredientInput = screen.getByPlaceholderText('Ingredient *')
+      const ingredientInputs = screen.getAllByPlaceholderText('Ingredient *')
+      const ingredientInput = ingredientInputs[0]
       await user.type(ingredientInput, 'Salt to taste')
       
       // Should be valid
@@ -283,7 +286,8 @@ describe('RecipeFormValidation', () => {
       
       // Add ingredient
       await user.click(screen.getByRole('button', { name: /add ingredient/i }))
-      const ingredientInput = screen.getByPlaceholderText('Ingredient *')
+      const ingredientInputs = screen.getAllByPlaceholderText('Ingredient *')
+      const ingredientInput = ingredientInputs[0]
       await user.type(ingredientInput, 'Flour')
       await user.click(screen.getByRole('button', { name: /next/i }))
     }
@@ -346,7 +350,8 @@ describe('RecipeFormValidation', () => {
       
       // Add ingredient
       await user.click(screen.getByRole('button', { name: /add ingredient/i }))
-      const ingredientInput = screen.getByPlaceholderText('Ingredient *')
+      const ingredientInputs = screen.getAllByPlaceholderText('Ingredient *')
+      const ingredientInput = ingredientInputs[0]
       await user.type(ingredientInput, 'Flour')
       await user.click(screen.getByRole('button', { name: /next/i }))
       
@@ -437,7 +442,8 @@ describe('RecipeFormValidation', () => {
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       await user.click(screen.getByRole('button', { name: /add ingredient/i }))
-      const ingredientInput = screen.getByPlaceholderText('Ingredient *')
+      const ingredientInputs = screen.getAllByPlaceholderText('Ingredient *')
+      const ingredientInput = ingredientInputs[0]
       await user.type(ingredientInput, 'Flour')
       await user.click(screen.getByRole('button', { name: /next/i }))
       
@@ -475,7 +481,8 @@ describe('RecipeFormValidation', () => {
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       await user.click(screen.getByRole('button', { name: /add ingredient/i }))
-      const ingredientInput = screen.getByPlaceholderText('Ingredient *')
+      const ingredientInputs = screen.getAllByPlaceholderText('Ingredient *')
+      const ingredientInput = ingredientInputs[0]
       await user.type(ingredientInput, 'Flour')
       await user.click(screen.getByRole('button', { name: /next/i }))
       
@@ -558,7 +565,8 @@ describe('RecipeFormValidation', () => {
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       await user.click(screen.getByRole('button', { name: /add ingredient/i }))
-      const ingredientInput = screen.getByPlaceholderText('Ingredient *')
+      const ingredientInputs = screen.getAllByPlaceholderText('Ingredient *')
+      const ingredientInput = ingredientInputs[0]
       await user.type(ingredientInput, 'Test')
       await user.click(screen.getByRole('button', { name: /next/i }))
       

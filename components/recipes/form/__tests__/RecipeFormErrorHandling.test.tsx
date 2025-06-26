@@ -130,7 +130,8 @@ describe('Recipe Form Error Handling', () => {
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       await user.click(screen.getByRole('button', { name: /add ingredient/i }))
-      await user.type(screen.getByPlaceholderText('Ingredient *'), 'Flour')
+      const ingredientInputs = screen.getAllByPlaceholderText('Ingredient *')
+      await user.type(ingredientInputs[0], 'Flour')
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       await user.click(screen.getByRole('button', { name: /add step/i }))
@@ -177,7 +178,8 @@ describe('Recipe Form Error Handling', () => {
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       await user.click(screen.getByRole('button', { name: /add ingredient/i }))
-      await user.type(screen.getByPlaceholderText('Ingredient *'), 'Flour')
+      const ingredientInputs = screen.getAllByPlaceholderText('Ingredient *')
+      await user.type(ingredientInputs[0], 'Flour')
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       await user.click(screen.getByRole('button', { name: /add step/i }))
@@ -219,7 +221,8 @@ describe('Recipe Form Error Handling', () => {
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       await user.click(screen.getByRole('button', { name: /add ingredient/i }))
-      await user.type(screen.getByPlaceholderText('Ingredient *'), 'Flour')
+      const ingredientInputs = screen.getAllByPlaceholderText('Ingredient *')
+      await user.type(ingredientInputs[0], 'Flour')
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       await user.click(screen.getByRole('button', { name: /add step/i }))
@@ -251,7 +254,8 @@ describe('Recipe Form Error Handling', () => {
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       await user.click(screen.getByRole('button', { name: /add ingredient/i }))
-      await user.type(screen.getByPlaceholderText('Ingredient *'), 'Flour')
+      const ingredientInputs = screen.getAllByPlaceholderText('Ingredient *')
+      await user.type(ingredientInputs[0], 'Flour')
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       await user.click(screen.getByRole('button', { name: /add step/i }))
@@ -284,7 +288,8 @@ describe('Recipe Form Error Handling', () => {
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       await user.click(screen.getByRole('button', { name: /add ingredient/i }))
-      await user.type(screen.getByPlaceholderText('Ingredient *'), 'Flour')
+      const ingredientInputs = screen.getAllByPlaceholderText('Ingredient *')
+      await user.type(ingredientInputs[0], 'Flour')
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       await user.click(screen.getByRole('button', { name: /add step/i }))
@@ -370,7 +375,8 @@ describe('Recipe Form Error Handling', () => {
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       await user.click(screen.getByRole('button', { name: /add ingredient/i }))
-      await user.type(screen.getByPlaceholderText('Ingredient *'), 'Flour')
+      const ingredientInputs = screen.getAllByPlaceholderText('Ingredient *')
+      await user.type(ingredientInputs[0], 'Flour')
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       await user.click(screen.getByRole('button', { name: /add step/i }))
@@ -425,7 +431,8 @@ describe('Recipe Form Error Handling', () => {
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       await user.click(screen.getByRole('button', { name: /add ingredient/i }))
-      await user.type(screen.getByPlaceholderText('Ingredient *'), 'Flour')
+      const ingredientInputs = screen.getAllByPlaceholderText('Ingredient *')
+      await user.type(ingredientInputs[0], 'Flour')
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       await user.click(screen.getByRole('button', { name: /add step/i }))
@@ -474,7 +481,8 @@ describe('Recipe Form Error Handling', () => {
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       await user.click(screen.getByRole('button', { name: /add ingredient/i }))
-      await user.type(screen.getByPlaceholderText('Ingredient *'), 'Flour')
+      const ingredientInputs = screen.getAllByPlaceholderText('Ingredient *')
+      await user.type(ingredientInputs[0], 'Flour')
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       await user.click(screen.getByRole('button', { name: /add step/i }))
@@ -523,7 +531,8 @@ describe('Recipe Form Error Handling', () => {
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       await user.click(screen.getByRole('button', { name: /add ingredient/i }))
-      await user.type(screen.getByPlaceholderText('Ingredient *'), 'Flour')
+      const ingredientInputs = screen.getAllByPlaceholderText('Ingredient *')
+      await user.type(ingredientInputs[0], 'Flour')
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       await user.click(screen.getByRole('button', { name: /add step/i }))
