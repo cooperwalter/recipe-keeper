@@ -3,14 +3,14 @@ import { createClient } from '@/lib/supabase/server'
 import { RecipeService } from '@/lib/db/recipes'
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = params
+    const { id } = await params
     const { searchParams } = new URL(request.url)
     const v1 = searchParams.get('v1')
     const v2 = searchParams.get('v2')
