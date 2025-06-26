@@ -99,7 +99,8 @@ export function InstructionsStep() {
                   placeholder="Describe this step"
                   value={instruction.instruction}
                   onChange={(e) => updateInstruction(index, e.target.value)}
-                  rows={2}
+                  rows={4}
+                  className="min-h-[100px] sm:min-h-[80px]"
                 />
               </div>
 

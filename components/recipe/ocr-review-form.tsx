@@ -271,34 +271,71 @@ export function OCRReviewForm({
         </CardHeader>
         <CardContent className="space-y-4">
           {recipe.ingredients.map((ingredient, index) => (
-            <div key={index} className="flex gap-2">
-              <Input
-                placeholder="Amount"
-                value={ingredient.amount || ""}
-                onChange={(e) => updateIngredient(index, "amount", e.target.value)}
-                className="w-24"
-              />
-              <Input
-                placeholder="Unit"
-                value={ingredient.unit || ""}
-                onChange={(e) => updateIngredient(index, "unit", e.target.value)}
-                className="w-24"
-              />
-              <Input
-                placeholder="Ingredient *"
-                value={ingredient.ingredient}
-                onChange={(e) => updateIngredient(index, "ingredient", e.target.value)}
-                className="flex-1"
-                required
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => removeIngredient(index)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+            <div key={index} className="space-y-2">
+              {/* Mobile: 2-row layout, Desktop: single row */}
+              <div className="flex gap-2 sm:hidden">
+                {/* Mobile: Amount and Unit on first row */}
+                <Input
+                  placeholder="Amount"
+                  value={ingredient.amount || ""}
+                  onChange={(e) => updateIngredient(index, "amount", e.target.value)}
+                  className="w-24"
+                />
+                <Input
+                  placeholder="Unit"
+                  value={ingredient.unit || ""}
+                  onChange={(e) => updateIngredient(index, "unit", e.target.value)}
+                  className="w-24"
+                />
+              </div>
+              {/* Mobile: Ingredient on second row with delete button */}
+              <div className="flex gap-2 sm:hidden">
+                <Input
+                  placeholder="Ingredient *"
+                  value={ingredient.ingredient}
+                  onChange={(e) => updateIngredient(index, "ingredient", e.target.value)}
+                  className="flex-1"
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeIngredient(index)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+              {/* Desktop: All fields in one row */}
+              <div className="hidden sm:flex gap-2">
+                <Input
+                  placeholder="Amount"
+                  value={ingredient.amount || ""}
+                  onChange={(e) => updateIngredient(index, "amount", e.target.value)}
+                  className="w-24"
+                />
+                <Input
+                  placeholder="Unit"
+                  value={ingredient.unit || ""}
+                  onChange={(e) => updateIngredient(index, "unit", e.target.value)}
+                  className="w-24"
+                />
+                <Input
+                  placeholder="Ingredient *"
+                  value={ingredient.ingredient}
+                  onChange={(e) => updateIngredient(index, "ingredient", e.target.value)}
+                  className="flex-1"
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeIngredient(index)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           ))}
           <Button
@@ -330,8 +367,8 @@ export function OCRReviewForm({
                 placeholder="Instruction *"
                 value={instruction.instruction}
                 onChange={(e) => updateInstruction(index, e.target.value)}
-                className="flex-1"
-                rows={2}
+                className="flex-1 min-h-[100px] sm:min-h-[80px]"
+                rows={4}
                 required
               />
               <Button

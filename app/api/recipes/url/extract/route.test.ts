@@ -35,7 +35,10 @@ describe('POST /api/recipes/url/extract', () => {
     const mockExtractedRecipe = {
       title: 'Test Recipe',
       description: 'A test recipe',
-      ingredients: ['Ingredient 1', 'Ingredient 2'],
+      ingredients: [
+        { amount: undefined, unit: undefined, ingredient: 'Ingredient 1', notes: undefined },
+        { amount: undefined, unit: undefined, ingredient: 'Ingredient 2', notes: undefined }
+      ],
       instructions: ['Step 1', 'Step 2'],
       prepTime: 15,
       cookTime: 30,
@@ -67,7 +70,10 @@ describe('POST /api/recipes/url/extract', () => {
     expect(data.recipe).toEqual({
       title: 'Test Recipe',
       description: 'A test recipe',
-      ingredients: ['Ingredient 1', 'Ingredient 2'],
+      ingredients: [
+        { amount: undefined, unit: undefined, ingredient: 'Ingredient 1' },
+        { amount: undefined, unit: undefined, ingredient: 'Ingredient 2' }
+      ],
       instructions: ['Step 1', 'Step 2'],
       prepTime: 15,
       cookTime: 30,
@@ -213,7 +219,9 @@ describe('POST /api/recipes/url/extract', () => {
 
     const mockExtractedRecipe = {
       title: 'Minimal Recipe',
-      ingredients: ['One ingredient'],
+      ingredients: [
+        { amount: undefined, unit: undefined, ingredient: 'One ingredient', notes: undefined }
+      ],
       // Other fields are undefined
     }
 
@@ -232,7 +240,9 @@ describe('POST /api/recipes/url/extract', () => {
 
     expect(response.status).toBe(200)
     expect(data.recipe.title).toBe('Minimal Recipe')
-    expect(data.recipe.ingredients).toEqual(['One ingredient'])
+    expect(data.recipe.ingredients).toEqual([
+      { amount: undefined, unit: undefined, ingredient: 'One ingredient' }
+    ])
     expect(data.recipe.instructions).toEqual([])
     expect(data.recipe.description).toBe('')
     expect(data.recipe.prepTime).toBeUndefined()
@@ -245,7 +255,9 @@ describe('POST /api/recipes/url/extract', () => {
 
     const mockExtractedRecipe = {
       title: 'Full Recipe',
-      ingredients: ['Ingredient'],
+      ingredients: [
+        { amount: undefined, unit: undefined, ingredient: 'Ingredient', notes: undefined }
+      ],
       category: 'Main Course',
       cuisine: 'Italian',
       yield: '6 servings',
