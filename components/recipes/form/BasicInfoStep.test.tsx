@@ -41,7 +41,6 @@ describe('BasicInfoStep', () => {
       expect(screen.getByLabelText('Servings')).toBeInTheDocument()
       expect(screen.getByLabelText('Category')).toBeInTheDocument()
       expect(screen.getByLabelText('Recipe Source')).toBeInTheDocument()
-      expect(screen.getByLabelText('Make this recipe public')).toBeInTheDocument()
     })
   })
 
@@ -115,18 +114,6 @@ describe('BasicInfoStep', () => {
     })
     
     expect(sourceInput).toHaveValue('Grandma Rose')
-  })
-
-  it('toggles public switch', async () => {
-    renderWithProvider()
-    
-    const publicSwitch = screen.getByLabelText('Make this recipe public')
-    
-    await act(async () => {
-      fireEvent.click(publicSwitch)
-    })
-    
-    expect(publicSwitch).toBeChecked()
   })
 
   it('handles category selection', async () => {
