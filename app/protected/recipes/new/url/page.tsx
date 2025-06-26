@@ -240,19 +240,34 @@ export default function UrlRecipePage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="flex gap-2">
-              <Input
-                type="url"
-                placeholder="https://example.com/recipes/chocolate-cake"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleExtract()}
-                disabled={isExtracting}
-                className="flex-1"
-              />
+            <div className="flex flex-col gap-3">
+              <div className="relative">
+                <Input
+                  type="url"
+                  placeholder="https://example.com/recipes/chocolate-cake"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleExtract()}
+                  disabled={isExtracting}
+                  className="w-full pr-10"
+                />
+                {/* Clear button - visible on mobile when there's text */}
+                {url && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setUrl('')}
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0 sm:hidden"
+                    disabled={isExtracting}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
               <Button 
                 onClick={handleExtract} 
                 disabled={isExtracting || !url.trim()}
+                className="w-full"
               >
                 <ButtonLoading isLoading={isExtracting} loadingText="Extracting recipe">
                   Extract Recipe
