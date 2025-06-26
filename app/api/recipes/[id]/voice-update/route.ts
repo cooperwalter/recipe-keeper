@@ -112,10 +112,26 @@ Examples:
 - "Change baking time to 30 minutes" -> modify cookTime
 - "Add a note about using room temperature eggs" -> modify sourceNotes
 - "Change the recipe source to Grandma Mary" -> modify sourceName
+- "This recipe is from Grandma" -> modify sourceName to "Grandma"
+- "This is my mother's recipe" -> modify sourceName to "Mother"
+- "I got this recipe from Aunt Sally" -> modify sourceName to "Aunt Sally"
+- "Recipe from my neighbor Bob" -> modify sourceName to "Neighbor Bob"
 - "Make this recipe public" -> modify isPublic to true
 - "Remove the vanilla extract" -> remove ingredient
 - "Add step to preheat oven" -> add instruction
 - "Add vegan badge" -> modify badges
+
+IMPORTANT Recipe Attribution Rules:
+- When the user says "this recipe is from [person]", "this is [person]'s recipe", "I got this from [person]", "[person] gave me this recipe", or similar phrases, extract the person's name and set it as the sourceName field
+- Do NOT add this information to the description field
+- Common phrases that indicate recipe source:
+  - "This recipe is from..."
+  - "This is [person]'s recipe"
+  - "I got this from..."
+  - "[Person] gave me this recipe"
+  - "Recipe from..."
+  - "This was [person]'s"
+  - "From [person]'s kitchen"
 
 Important:
 - For ingredients, preserve the structure with amount, unit, and ingredient name
