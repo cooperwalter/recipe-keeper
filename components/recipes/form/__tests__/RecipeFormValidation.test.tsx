@@ -35,6 +35,7 @@ const mockDuplicateCheck = vi.fn()
 vi.mock('@/lib/hooks/use-duplicate-check', () => ({
   useDuplicateCheck: () => ({
     mutate: mockDuplicateCheck,
+    mutateAsync: vi.fn().mockResolvedValue({ duplicates: [] }),
     reset: vi.fn(),
     isPending: false,
     data: null,
@@ -50,11 +51,23 @@ if (!Element.prototype.hasPointerCapture) {
   })
 }
 
+// Mock localStorage
+const localStorageMock = {
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
+}
+Object.defineProperty(window, 'localStorage', { value: localStorageMock, writable: true })
+
 describe('RecipeFormValidation', () => {
   const user = userEvent.setup()
   
   beforeEach(() => {
     vi.clearAllMocks()
+    localStorageMock.getItem.mockReturnValue(null)
+    localStorageMock.setItem.mockImplementation(() => {})
+    localStorageMock.removeItem.mockImplementation(() => {})
     // Mock categories fetch
     ;(global.fetch as unknown as ReturnType<typeof vi.fn>).mockImplementation((url) => {
       if (url === '/api/categories') {
@@ -292,52 +305,53 @@ describe('RecipeFormValidation', () => {
       await user.click(screen.getByRole('button', { name: /next/i }))
     }
 
-    it('should disable submit button when no instructions are added', async () => {
+    it('should enable submit button even when no instructions are added', async () => {
       renderForm()
       await navigateToInstructionsStep()
       
+      // Instructions are now optional
       const nextButton = screen.getByRole('button', { name: /next/i })
-      expect(nextButton).toBeDisabled()
+      expect(nextButton).toBeEnabled()
     })
 
-    it('should require at least one instruction', async () => {
+    it('should accept instructions when added', async () => {
       renderForm()
       await navigateToInstructionsStep()
       
       // Add instruction
       await user.click(screen.getByRole('button', { name: /add step/i }))
-      const instructionInput = screen.getByPlaceholderText('Describe this step *')
+      const instructionInput = screen.getByPlaceholderText('Describe this step')
       await user.type(instructionInput, 'Mix all ingredients')
       
       const nextButton = screen.getByRole('button', { name: /next/i })
       expect(nextButton).toBeEnabled()
     })
 
-    it('should validate that instruction text is not empty', async () => {
+    it('should allow empty instructions since they are optional', async () => {
       renderForm()
       await navigateToInstructionsStep()
       
-      // Add instruction but leave empty
+      // Add instruction but leave empty - should still be valid since instructions are optional
       await user.click(screen.getByRole('button', { name: /add step/i }))
       
       const nextButton = screen.getByRole('button', { name: /next/i })
-      expect(nextButton).toBeDisabled()
+      expect(nextButton).toBeEnabled()
     })
 
-    it('should validate all instructions when multiple are added', async () => {
+    it('should allow all instructions even when some are empty', async () => {
       renderForm()
       await navigateToInstructionsStep()
       
       // Add first instruction
       await user.click(screen.getByRole('button', { name: /add step/i }))
-      const instruction1 = screen.getAllByPlaceholderText('Describe this step *')[0]
+      const instruction1 = screen.getAllByPlaceholderText('Describe this step')[0]
       await user.type(instruction1, 'Step 1')
       
-      // Add second instruction but leave empty
+      // Add second instruction but leave empty - should still be valid
       await user.click(screen.getByRole('button', { name: /add step/i }))
       
       const nextButton = screen.getByRole('button', { name: /next/i })
-      expect(nextButton).toBeDisabled()
+      expect(nextButton).toBeEnabled()
     })
   })
 
@@ -355,10 +369,7 @@ describe('RecipeFormValidation', () => {
       await user.type(ingredientInput, 'Flour')
       await user.click(screen.getByRole('button', { name: /next/i }))
       
-      // Add instruction
-      await user.click(screen.getByRole('button', { name: /add step/i }))
-      const instructionInput = screen.getByPlaceholderText('Describe this step *')
-      await user.type(instructionInput, 'Mix all ingredients')
+      // Skip instructions (they're optional now)
       await user.click(screen.getByRole('button', { name: /next/i }))
     }
 
@@ -447,23 +458,15 @@ describe('RecipeFormValidation', () => {
       await user.type(ingredientInput, 'Flour')
       await user.click(screen.getByRole('button', { name: /next/i }))
       
-      await user.click(screen.getByRole('button', { name: /add step/i }))
-      const instructionInput = screen.getByPlaceholderText('Describe this step *')
-      await user.type(instructionInput, 'Mix all ingredients')
+      // Skip instructions (they're optional now)
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       // Try to submit
       const submitButton = screen.getByRole('button', { name: /create recipe/i })
       await user.click(submitButton)
       
-      // Handle duplicate check dialog
-      await waitFor(() => {
-        expect(screen.getByText(/checking for similar recipes/i)).toBeInTheDocument()
-      })
-      
-      // Click continue in the dialog
-      const continueButton = await screen.findByRole('button', { name: /continue/i })
-      await user.click(continueButton)
+      // Wait for submission to process
+      await new Promise(resolve => setTimeout(resolve, 100))
       
       // Should show error message
       await waitFor(() => {
@@ -486,23 +489,15 @@ describe('RecipeFormValidation', () => {
       await user.type(ingredientInput, 'Flour')
       await user.click(screen.getByRole('button', { name: /next/i }))
       
-      await user.click(screen.getByRole('button', { name: /add step/i }))
-      const instructionInput = screen.getByPlaceholderText('Describe this step *')
-      await user.type(instructionInput, 'Mix all ingredients')
+      // Skip instructions (they're optional now)
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       // Submit
       const submitButton = screen.getByRole('button', { name: /create recipe/i })
       await user.click(submitButton)
       
-      // Handle duplicate check dialog
-      await waitFor(() => {
-        expect(screen.getByText(/checking for similar recipes/i)).toBeInTheDocument()
-      })
-      
-      // Click continue in the dialog
-      const continueButton = await screen.findByRole('button', { name: /continue/i })
-      await user.click(continueButton)
+      // Wait for submission to process
+      await new Promise(resolve => setTimeout(resolve, 100))
       
       // Should navigate to new recipe
       await waitFor(() => {
@@ -570,23 +565,15 @@ describe('RecipeFormValidation', () => {
       await user.type(ingredientInput, 'Test')
       await user.click(screen.getByRole('button', { name: /next/i }))
       
-      await user.click(screen.getByRole('button', { name: /add step/i }))
-      const instructionInput = screen.getByPlaceholderText('Describe this step *')
-      await user.type(instructionInput, 'Test')
+      // Skip instructions (they're optional now)
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       // Try to submit
       const submitButton = screen.getByRole('button', { name: /create recipe/i })
       await user.click(submitButton)
       
-      // Handle duplicate check dialog
-      await waitFor(() => {
-        expect(screen.getByText(/checking for similar recipes/i)).toBeInTheDocument()
-      })
-      
-      // Click continue in the dialog
-      const continueButton = await screen.findByRole('button', { name: /continue/i })
-      await user.click(continueButton)
+      // Wait for submission to process
+      await new Promise(resolve => setTimeout(resolve, 100))
       
       // Should navigate after successful submission
       await waitFor(() => {

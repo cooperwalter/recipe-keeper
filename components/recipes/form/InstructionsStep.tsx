@@ -55,7 +55,7 @@ export function InstructionsStep() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <Label>Instructions *</Label>
+        <Label>Instructions (Optional)</Label>
         <Button
           type="button"
           onClick={addInstruction}
@@ -96,11 +96,10 @@ export function InstructionsStep() {
 
               <div className="flex-1">
                 <Textarea
-                  placeholder="Describe this step *"
+                  placeholder="Describe this step"
                   value={instruction.instruction}
                   onChange={(e) => updateInstruction(index, e.target.value)}
                   rows={2}
-                  required
                 />
               </div>
 

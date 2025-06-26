@@ -223,14 +223,15 @@ describe('Recipe Form Field Validation', () => {
     it('should handle instructions with URLs', async () => {
       renderWithProviders(
         <RecipeFormProvider initialData={{ 
-          instructions: [{ instruction: '', stepNumber: 1 }] 
+          instructions: [{ instruction: 'Test', stepNumber: 1 }] 
         }}>
           <InstructionsStep />
         </RecipeFormProvider>
       )
 
-      const instructionInput = screen.getByPlaceholderText('Describe this step *')
+      const instructionInput = screen.getByPlaceholderText('Describe this step')
       
+      await user.clear(instructionInput)
       await user.type(instructionInput, 'Visit https://example.com for technique video')
       expect(instructionInput).toHaveValue('Visit https://example.com for technique video')
     })
@@ -238,14 +239,15 @@ describe('Recipe Form Field Validation', () => {
     it('should handle instructions with measurements', async () => {
       renderWithProviders(
         <RecipeFormProvider initialData={{ 
-          instructions: [{ instruction: '', stepNumber: 1 }] 
+          instructions: [{ instruction: 'Test', stepNumber: 1 }] 
         }}>
           <InstructionsStep />
         </RecipeFormProvider>
       )
 
-      const instructionInput = screen.getByPlaceholderText('Describe this step *')
+      const instructionInput = screen.getByPlaceholderText('Describe this step')
       
+      await user.clear(instructionInput)
       await user.type(instructionInput, 'Bake at 350°F (175°C) for 25-30 minutes')
       expect(instructionInput.value).toContain('350°F')
     })
@@ -253,14 +255,15 @@ describe('Recipe Form Field Validation', () => {
     it('should handle multi-line instructions', async () => {
       renderWithProviders(
         <RecipeFormProvider initialData={{ 
-          instructions: [{ instruction: '', stepNumber: 1 }] 
+          instructions: [{ instruction: 'Test', stepNumber: 1 }] 
         }}>
           <InstructionsStep />
         </RecipeFormProvider>
       )
 
-      const instructionInput = screen.getByPlaceholderText('Describe this step *')
+      const instructionInput = screen.getByPlaceholderText('Describe this step')
       
+      await user.clear(instructionInput)
       // Attempt to add line breaks
       await user.type(instructionInput, 'Step 1: Mix dry ingredients{enter}Step 2: Add wet ingredients')
       

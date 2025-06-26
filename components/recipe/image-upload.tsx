@@ -100,6 +100,11 @@ export function ImageUpload({
     galleryInputRef.current?.click();
   };
 
+  const handleMobileClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    mobileInputRef.current?.click();
+  };
+
   const displayPreview = preview || localPreview;
   const rejectionError = fileRejections[0]?.errors[0]?.message;
   const displayError = error || rejectionError;
@@ -133,6 +138,13 @@ export function ImageUpload({
         />
         <input
           ref={galleryInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          style={{ display: 'none' }}
+        />
+        <input
+          ref={mobileInputRef}
           type="file"
           accept="image/*"
           onChange={handleFileChange}
@@ -184,30 +196,47 @@ export function ImageUpload({
                     : "Upload your recipe image"}
                 </p>
               )}
-              <p className="text-xs text-muted-foreground">
-                Drop a file here or use the buttons below
-              </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-4 w-full px-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="default"
-                  onClick={handleCameraClick}
-                  className="flex items-center gap-2 w-full sm:w-auto min-w-[140px]"
-                >
-                  <Camera className="h-5 w-5" />
-                  Camera
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="default"
-                  onClick={handleGalleryClick}
-                  className="flex items-center gap-2 w-full sm:w-auto min-w-[140px]"
-                >
-                  <FolderOpen className="h-5 w-5" />
-                  Gallery
-                </Button>
+              {!isMobile && (
+                <p className="text-xs text-muted-foreground">
+                  Drop a file here or use the buttons below
+                </p>
+              )}
+              <div className="mt-4 w-full px-4">
+                {isMobile ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="default"
+                    onClick={handleMobileClick}
+                    className="flex items-center gap-2 w-full"
+                  >
+                    <ImageIcon className="h-5 w-5" />
+                    Choose Photo
+                  </Button>
+                ) : (
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="default"
+                      onClick={handleCameraClick}
+                      className="flex items-center gap-2 w-full sm:w-auto min-w-[140px]"
+                    >
+                      <Camera className="h-5 w-5" />
+                      Camera
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="default"
+                      onClick={handleGalleryClick}
+                      className="flex items-center gap-2 w-full sm:w-auto min-w-[140px]"
+                    >
+                      <FolderOpen className="h-5 w-5" />
+                      Gallery
+                    </Button>
+                  </div>
+                )}
               </div>
               <p className="text-xs text-muted-foreground mt-2">
                 Max 10MB • JPG, PNG, WebP
