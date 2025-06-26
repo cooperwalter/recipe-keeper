@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { Upload, X, Image as ImageIcon, Loader2, Camera, FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -35,8 +35,21 @@ export function ImageUpload({
   className,
 }: ImageUploadProps) {
   const [localPreview, setLocalPreview] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
+  const mobileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640); // sm breakpoint
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
