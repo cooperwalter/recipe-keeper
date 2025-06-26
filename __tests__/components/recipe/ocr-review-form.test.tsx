@@ -10,6 +10,18 @@ vi.mock('next/navigation', () => ({
   useRouter: vi.fn(),
 }));
 
+// Mock duplicate check hook
+vi.mock('@/lib/hooks/use-duplicate-check', () => ({
+  useDuplicateCheck: () => ({
+    mutate: vi.fn(),
+    mutateAsync: vi.fn().mockResolvedValue({ duplicates: [] }),
+    isPending: false,
+    isError: false,
+    data: { duplicates: [], totalChecked: 1 },
+    reset: vi.fn(),
+  }),
+}));
+
 // Helper function to render with providers
 function renderWithProviders(component: React.ReactElement) {
   const queryClient = new QueryClient({
@@ -274,15 +286,7 @@ describe('OCRReviewForm', () => {
     const submitButton = screen.getByRole('button', { name: /create recipe/i });
     await user.click(submitButton);
 
-    // Wait for the duplicate check dialog to appear and click Continue
-    await waitFor(() => {
-      const continueButton = screen.getByRole('button', { name: /continue|create anyway/i });
-      expect(continueButton).toBeInTheDocument();
-    });
-    
-    const continueButton = screen.getByRole('button', { name: /continue|create anyway/i });
-    await user.click(continueButton);
-
+    // Since no duplicates are found, it should submit directly
     await waitFor(() => {
       expect(mockOnSubmit).toHaveBeenCalledWith(expect.objectContaining({
         title: 'Chocolate Chip Cookies',
@@ -312,15 +316,7 @@ describe('OCRReviewForm', () => {
     const submitButton = screen.getByRole('button', { name: /create recipe/i });
     await user.click(submitButton);
 
-    // Wait for and click the continue button in duplicate check dialog
-    await waitFor(() => {
-      const continueButton = screen.getByRole('button', { name: /continue|create anyway/i });
-      expect(continueButton).toBeInTheDocument();
-    });
-    
-    const continueButton = screen.getByRole('button', { name: /continue|create anyway/i });
-    await user.click(continueButton);
-
+    // Since no duplicates are found, it should try to submit directly and show error
     await waitFor(() => {
       expect(screen.getByText(errorMessage)).toBeInTheDocument();
     });
@@ -362,16 +358,8 @@ describe('OCRReviewForm', () => {
     
     await user.click(submitButton);
 
-    // Wait for and click the continue button in duplicate check dialog
-    await waitFor(() => {
-      const continueButton = screen.getByRole('button', { name: /continue|create anyway/i });
-      expect(continueButton).toBeInTheDocument();
-    });
-    
-    const continueButton = screen.getByRole('button', { name: /continue|create anyway/i });
-    await user.click(continueButton);
-
-    // Now check if the buttons are disabled during submission
+    // Since no duplicates are found, it should start submitting directly
+    // Check if the buttons are disabled during submission
     await waitFor(() => {
       expect(submitButton).toBeDisabled();
       expect(cancelButton).toBeDisabled();

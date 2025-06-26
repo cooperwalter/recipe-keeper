@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -11,8 +10,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { LoadingSpinner } from '@/components/ui/loading-states'
-import { AlertTriangle, Check, ChevronRight } from 'lucide-react'
+import { AlertTriangle, ChevronRight } from 'lucide-react'
 import { useDuplicateCheck } from '@/lib/hooks/use-duplicate-check'
 import { getSimilarityDescription } from '@/lib/utils/recipe-similarity'
 import type { RecipeMatch } from '@/lib/utils/recipe-similarity'
@@ -41,21 +39,15 @@ interface DuplicateCheckDialogProps {
 export function DuplicateCheckDialog({
   open,
   onOpenChange,
-  recipeData,
   onContinue,
   onCancel,
 }: DuplicateCheckDialogProps) {
-  const [hasChecked, setHasChecked] = useState(false)
   const duplicateCheck = useDuplicateCheck()
 
-  // Auto-check when dialog opens
+  // Since we're now checking beforehand, just handle open/close
   const handleOpen = (isOpen: boolean) => {
-    if (isOpen && !hasChecked) {
-      duplicateCheck.mutate(recipeData)
-      setHasChecked(true)
-    } else if (!isOpen) {
+    if (!isOpen) {
       // Reset state when closing
-      setHasChecked(false)
       duplicateCheck.reset()
     }
     onOpenChange(isOpen)
@@ -81,47 +73,25 @@ export function DuplicateCheckDialog({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            {hasDuplicates && <AlertTriangle className="h-5 w-5 text-amber-500" />}
-            Checking for Similar Recipes
+            <AlertTriangle className="h-5 w-5 text-amber-500" />
+            Duplicate Recipe Found
           </DialogTitle>
           <DialogDescription>
-            We&apos;re checking if you already have a similar recipe saved.
+            We found a recipe that appears to be very similar to the one you&apos;re creating.
           </DialogDescription>
         </DialogHeader>
 
         <div className="py-4">
-          {duplicateCheck.isPending ? (
-            <div className="flex flex-col items-center justify-center py-8">
-              <LoadingSpinner size="lg" />
-              <p className="mt-4 text-sm text-muted-foreground">
-                Checking your recipes for duplicates...
-              </p>
+          <div className="space-y-4">
+            <p className="text-sm">
+              We found {duplicates.length} duplicate recipe{duplicates.length > 1 ? 's' : ''}:
+            </p>
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {duplicates.map((match) => (
+                <DuplicateRecipeCard key={match.recipe.id} match={match} />
+              ))}
             </div>
-          ) : duplicateCheck.isError ? (
-            <div className="text-center py-8">
-              <p className="text-sm text-destructive">
-                Failed to check for duplicates. You can continue anyway.
-              </p>
-            </div>
-          ) : hasDuplicates ? (
-            <div className="space-y-4">
-              <p className="text-sm">
-                We found {duplicates.length} similar recipe{duplicates.length > 1 ? 's' : ''}:
-              </p>
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {duplicates.map((match) => (
-                  <DuplicateRecipeCard key={match.recipe.id} match={match} />
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <Check className="h-12 w-12 text-green-500 mx-auto mb-4" />
-              <p className="text-sm text-muted-foreground">
-                No similar recipes found. Your recipe appears to be unique!
-              </p>
-            </div>
-          )}
+          </div>
         </div>
 
         <DialogFooter>

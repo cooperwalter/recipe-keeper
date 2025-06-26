@@ -13,6 +13,7 @@ import { ChevronLeft, ChevronRight, Loader2, Save, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { StorageService } from '@/lib/supabase/storage'
 import { DuplicateCheckDialog } from '@/components/recipe/duplicate-check-dialog'
+import { useDuplicateCheck } from '@/lib/hooks/use-duplicate-check'
 
 const steps = [
   { title: 'Basic Info', description: 'Title, times, and categories' },
@@ -27,14 +28,47 @@ export function RecipeFormWizard() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showDuplicateCheck, setShowDuplicateCheck] = useState(false)
+  const duplicateCheck = useDuplicateCheck()
 
   const handleSubmit = async () => {
-    // First show duplicate check
-    setShowDuplicateCheck(true)
+    // Check for duplicates first
+    const recipeData = {
+      title: formData.title,
+      description: formData.description,
+      ingredients: formData.ingredients.map(ing => ({
+        ingredient: ing.ingredient,
+        amount: ing.amount,
+        unit: ing.unit,
+      })),
+      instructions: formData.instructions.map(inst => inst.instruction),
+      prepTime: formData.prepTime,
+      cookTime: formData.cookTime,
+      servings: formData.servings,
+    }
+
+    try {
+      const result = await duplicateCheck.mutateAsync(recipeData)
+      
+      // Only show dialog if duplicates found
+      if (result.duplicates && result.duplicates.length > 0) {
+        setShowDuplicateCheck(true)
+      } else {
+        // No duplicates, proceed directly
+        await createRecipe()
+      }
+    } catch (error) {
+      // If duplicate check fails, proceed anyway
+      console.error('Duplicate check failed:', error)
+      await createRecipe()
+    }
   }
 
   const handleDuplicateCheckContinue = async () => {
     setShowDuplicateCheck(false)
+    await createRecipe()
+  }
+
+  const createRecipe = async () => {
     setIsSubmitting(true)
     setError(null)
 
@@ -196,7 +230,7 @@ export function RecipeFormWizard() {
         </div>
       </div>
 
-      {/* Duplicate Check Dialog */}
+      {/* Duplicate Check Dialog - Only shown when duplicates are found */}
       <DuplicateCheckDialog
         open={showDuplicateCheck}
         onOpenChange={setShowDuplicateCheck}

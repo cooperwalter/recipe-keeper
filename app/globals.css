@@ -114,3 +114,22 @@
   }
 }
 
+/* Touch-specific styles to prevent highlighting on scroll */
+@layer base {
+  /* Remove tap highlight on all links */
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Disable hover effects on touch devices */
+@media (hover: none) {
+  .hover\:shadow-lg:hover {
+    box-shadow: var(--tw-shadow, 0 0 #0000) !important;
+  }
+  
+  .hover\:border-primary\/50:hover {
+    border-color: hsl(var(--border)) !important;
+  }
+}
+

@@ -25,6 +25,7 @@ vi.mock('@/lib/supabase/storage', () => ({
 vi.mock('@/lib/hooks/use-duplicate-check', () => ({
   useDuplicateCheck: () => ({
     mutate: vi.fn(),
+    mutateAsync: vi.fn().mockResolvedValue({ duplicates: [] }),
     reset: vi.fn(),
     isPending: false,
     data: null,
@@ -49,13 +50,11 @@ Object.defineProperty(window, 'localStorage', { value: localStorageMock })
 describe('Recipe Form Error Handling', () => {
   let user: ReturnType<typeof userEvent.setup>
   
-  // Helper to handle duplicate check dialog
+  // Helper to handle duplicate check dialog if it appears
   const handleDuplicateCheck = async () => {
-    await waitFor(() => {
-      expect(screen.getByText(/checking for similar recipes/i)).toBeInTheDocument()
-    }, { timeout: 5000 })
-    const continueButton = await screen.findByRole('button', { name: /continue/i })
-    await user.click(continueButton)
+    // Since mock returns no duplicates, dialog shouldn't appear
+    // Just wait a bit for the async operation
+    await new Promise(resolve => setTimeout(resolve, 100))
   }
   
   beforeEach(() => {
@@ -134,8 +133,7 @@ describe('Recipe Form Error Handling', () => {
       await user.type(ingredientInputs[0], 'Flour')
       await user.click(screen.getByRole('button', { name: /next/i }))
       
-      await user.click(screen.getByRole('button', { name: /add step/i }))
-      await user.type(screen.getByPlaceholderText('Describe this step *'), 'Mix')
+      // Skip instructions (they're optional now)
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       // Try to submit
@@ -182,8 +180,7 @@ describe('Recipe Form Error Handling', () => {
       await user.type(ingredientInputs[0], 'Flour')
       await user.click(screen.getByRole('button', { name: /next/i }))
       
-      await user.click(screen.getByRole('button', { name: /add step/i }))
-      await user.type(screen.getByPlaceholderText('Describe this step *'), 'Mix')
+      // Skip instructions (they're optional now)
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       await user.click(screen.getByRole('button', { name: /create recipe/i }))
@@ -225,8 +222,7 @@ describe('Recipe Form Error Handling', () => {
       await user.type(ingredientInputs[0], 'Flour')
       await user.click(screen.getByRole('button', { name: /next/i }))
       
-      await user.click(screen.getByRole('button', { name: /add step/i }))
-      await user.type(screen.getByPlaceholderText('Describe this step *'), 'Mix')
+      // Skip instructions (they're optional now)
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       await user.click(screen.getByRole('button', { name: /create recipe/i }))
@@ -258,8 +254,7 @@ describe('Recipe Form Error Handling', () => {
       await user.type(ingredientInputs[0], 'Flour')
       await user.click(screen.getByRole('button', { name: /next/i }))
       
-      await user.click(screen.getByRole('button', { name: /add step/i }))
-      await user.type(screen.getByPlaceholderText('Describe this step *'), 'Mix')
+      // Skip instructions (they're optional now)
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       // Add a photo
@@ -292,8 +287,7 @@ describe('Recipe Form Error Handling', () => {
       await user.type(ingredientInputs[0], 'Flour')
       await user.click(screen.getByRole('button', { name: /next/i }))
       
-      await user.click(screen.getByRole('button', { name: /add step/i }))
-      await user.type(screen.getByPlaceholderText('Describe this step *'), 'Mix')
+      // Skip instructions (they're optional now)
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       // Try to upload non-image file
@@ -379,8 +373,7 @@ describe('Recipe Form Error Handling', () => {
       await user.type(ingredientInputs[0], 'Flour')
       await user.click(screen.getByRole('button', { name: /next/i }))
       
-      await user.click(screen.getByRole('button', { name: /add step/i }))
-      await user.type(screen.getByPlaceholderText('Describe this step *'), 'Mix')
+      // Skip instructions (they're optional now)
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       await user.click(screen.getByRole('button', { name: /create recipe/i }))
@@ -435,8 +428,7 @@ describe('Recipe Form Error Handling', () => {
       await user.type(ingredientInputs[0], 'Flour')
       await user.click(screen.getByRole('button', { name: /next/i }))
       
-      await user.click(screen.getByRole('button', { name: /add step/i }))
-      await user.type(screen.getByPlaceholderText('Describe this step *'), 'Mix')
+      // Skip instructions (they're optional now)
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       await user.click(screen.getByRole('button', { name: /create recipe/i }))
@@ -485,8 +477,7 @@ describe('Recipe Form Error Handling', () => {
       await user.type(ingredientInputs[0], 'Flour')
       await user.click(screen.getByRole('button', { name: /next/i }))
       
-      await user.click(screen.getByRole('button', { name: /add step/i }))
-      await user.type(screen.getByPlaceholderText('Describe this step *'), 'Mix')
+      // Skip instructions (they're optional now)
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       // Submit
@@ -535,8 +526,7 @@ describe('Recipe Form Error Handling', () => {
       await user.type(ingredientInputs[0], 'Flour')
       await user.click(screen.getByRole('button', { name: /next/i }))
       
-      await user.click(screen.getByRole('button', { name: /add step/i }))
-      await user.type(screen.getByPlaceholderText('Describe this step *'), 'Mix')
+      // Skip instructions (they're optional now)
       await user.click(screen.getByRole('button', { name: /next/i }))
       
       // Try to submit multiple times

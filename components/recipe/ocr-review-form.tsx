@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, AlertCircle, Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DuplicateCheckDialog } from "@/components/recipe/duplicate-check-dialog";
+import { useDuplicateCheck } from "@/lib/hooks/use-duplicate-check";
 
 interface ExtractedIngredient {
   amount?: string;
@@ -59,6 +60,7 @@ export function OCRReviewForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showDuplicateCheck, setShowDuplicateCheck] = useState(false);
+  const duplicateCheck = useDuplicateCheck();
 
   const updateField = (field: keyof ExtractedRecipe, value: unknown) => {
     setRecipe((prev) => ({ ...prev, [field]: value }));
@@ -120,8 +122,30 @@ export function OCRReviewForm({
         throw new Error("At least one instruction is required");
       }
 
-      // Show duplicate check dialog
-      setShowDuplicateCheck(true);
+      // Check for duplicates first
+      const recipeData = {
+        title: recipe.title,
+        description: recipe.description,
+        ingredients: recipe.ingredients.map(ing => ({
+          ingredient: ing.ingredient,
+          amount: ing.amount,
+          unit: ing.unit,
+        })),
+        instructions: recipe.instructions.map(inst => inst.instruction),
+        prepTime: recipe.prepTime,
+        cookTime: recipe.cookTime,
+        servings: recipe.servings,
+      };
+
+      const result = await duplicateCheck.mutateAsync(recipeData);
+      
+      // Only show dialog if duplicates found
+      if (result.duplicates && result.duplicates.length > 0) {
+        setShowDuplicateCheck(true);
+      } else {
+        // No duplicates, proceed directly
+        await submitRecipe();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save recipe");
     }
@@ -129,6 +153,10 @@ export function OCRReviewForm({
 
   const handleDuplicateCheckContinue = async () => {
     setShowDuplicateCheck(false);
+    await submitRecipe();
+  };
+
+  const submitRecipe = async () => {
     setIsSubmitting(true);
 
     try {
@@ -433,7 +461,7 @@ export function OCRReviewForm({
         </Button>
       </div>
 
-      {/* Duplicate Check Dialog */}
+      {/* Duplicate Check Dialog - Only shown when duplicates are found */}
       <DuplicateCheckDialog
         open={showDuplicateCheck}
         onOpenChange={setShowDuplicateCheck}

@@ -110,6 +110,7 @@ export function IngredientsStep() {
                       placeholder="Unit"
                       value={ingredient.unit || ''}
                       onChange={(e) => updateIngredient(index, 'unit', e.target.value)}
+                      autoCapitalize="off"
                       className="h-9"
                     />
                   </div>
@@ -119,6 +120,7 @@ export function IngredientsStep() {
                     value={ingredient.ingredient}
                     onChange={(e) => updateIngredient(index, 'ingredient', e.target.value)}
                     required
+                    autoCapitalize="off"
                     className="h-9 w-full"
                   />
                   {/* Notes hidden on mobile */}
@@ -141,6 +143,7 @@ export function IngredientsStep() {
                       placeholder="Unit"
                       value={ingredient.unit || ''}
                       onChange={(e) => updateIngredient(index, 'unit', e.target.value)}
+                      autoCapitalize="off"
                       className="h-9"
                     />
                   </div>
@@ -150,6 +153,7 @@ export function IngredientsStep() {
                       value={ingredient.ingredient}
                       onChange={(e) => updateIngredient(index, 'ingredient', e.target.value)}
                       required
+                      autoCapitalize="off"
                       className="h-9"
                     />
                   </div>
