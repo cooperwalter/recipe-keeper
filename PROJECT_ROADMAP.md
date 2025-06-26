@@ -469,13 +469,37 @@ This roadmap outlines the development phases for the Recipe Inheritance Keeper M
 
 ## Phase 6: Sharing & Export (Week 11-12)
 
-### Share Links
-- [ ] Generate unique share URLs
-- [ ] Create public recipe view
-- [ ] Add social media meta tags
-- [ ] Implement link expiration (optional)
-- [ ] Add share analytics
-- [ ] Test link generation
+### Share Links & Permissions 🎯 HIGH PRIORITY
+- [ ] Generate unique share URLs with configurable permissions
+  - [ ] View-only permission (default)
+  - [ ] Edit permission for collaborative cooking
+  - [ ] Comment permission for feedback without editing
+  - [ ] Time-limited access options (24h, 7 days, 30 days, permanent)
+- [ ] Create permission-aware recipe views
+  - [ ] Read-only view with clear visual indicators
+  - [ ] Edit mode with change tracking
+  - [ ] Show who has access and their permission level
+  - [ ] Activity log showing who viewed/edited
+- [ ] Implement secure sharing features
+  - [ ] Password protection option for shared links
+  - [ ] Email invitation system with access control
+  - [ ] Revoke access capability
+  - [ ] Share with specific email addresses vs public link
+- [ ] Collaborative features for edit permission
+  - [ ] Real-time collaboration indicators
+  - [ ] Change attribution (who made what edits)
+  - [ ] Optional approval workflow for edits
+  - [ ] Notification when shared recipes are modified
+- [ ] Social sharing enhancements
+  - [ ] Add social media meta tags with recipe preview
+  - [ ] Custom share messages for different platforms
+  - [ ] Recipe card image generation for visual sharing
+- [ ] Share management dashboard
+  - [ ] View all shared recipes and their permissions
+  - [ ] Bulk permission updates
+  - [ ] Share analytics (views, edits, duration)
+  - [ ] Quick share templates (family only, friends, public)
+- [ ] Test link generation and permission enforcement
 
 ### PDF Export
 - [ ] Design PDF templates
@@ -533,6 +557,22 @@ This roadmap outlines the development phases for the Recipe Inheritance Keeper M
 - [x] Test on various printers ✅
 - [x] Beautiful print layout with photos ✅
 - [x] Print-friendly formatting for ingredients and instructions ✅
+
+### Enhanced Print Features 🎯 HIGH PRIORITY
+- [ ] Improve recipe printing with advanced formatting options
+  - [ ] Multiple print layout templates (full page, recipe cards, half-page)
+  - [ ] Customizable print options (include/exclude photos, notes, nutrition)
+  - [ ] Print preview with live adjustments
+  - [ ] Support for different paper sizes (letter, A4, 3x5 cards, 4x6 cards)
+  - [ ] Scaling controls for ingredient amounts in print view
+  - [ ] Option to print QR code for digital version
+  - [ ] Print multiple recipes at once with table of contents
+  - [ ] Custom headers/footers with family name or cookbook title
+  - [ ] Large print option for accessibility
+  - [ ] Print-optimized ingredient formatting (fractions, measurements)
+  - [ ] Option to include/exclude recipe source attribution
+  - [ ] Printer-friendly color schemes (B&W, color-saving)
+  - [ ] Export to print-ready PDF with selectable options
 
 ## Phase 7: Version Control & Preservation (Week 13-14) ✅ COMPLETE
 
