@@ -4,7 +4,6 @@ import { useRecipeForm } from './RecipeFormContext'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Switch } from '@/components/ui/switch'
 import {
   Select,
   SelectContent,
@@ -129,16 +128,6 @@ export function BasicInfoStep() {
         />
       </div>
 
-      <div className="flex items-center space-x-2">
-        <Switch
-          id="isPublic"
-          checked={formData.isPublic}
-          onCheckedChange={(checked) => updateFormData({ isPublic: checked })}
-        />
-        <Label htmlFor="isPublic" className="cursor-pointer">
-          Make this recipe public
-        </Label>
-      </div>
     </div>
   )
 }
