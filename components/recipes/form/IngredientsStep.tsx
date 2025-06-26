@@ -80,7 +80,7 @@ export function IngredientsStep() {
       ) : (
         <div className="space-y-3">
           {formData.ingredients.map((ingredient, index) => (
-            <div key={index} className="flex gap-2 items-start">
+            <div key={index} className="flex gap-2 items-start p-3 bg-muted/30 rounded-lg border border-muted">
               <div className="flex flex-col gap-1 pt-2">
                 <button
                   type="button"
@@ -93,49 +93,99 @@ export function IngredientsStep() {
                 </button>
               </div>
 
-              <div className="flex-1 grid grid-cols-12 gap-2">
-                <div className="col-span-2">
-                  <Input
-                    type="number"
-                    placeholder="Amount"
-                    value={ingredient.amount || ''}
-                    onChange={(e) => updateIngredient(index, 'amount', e.target.value ? parseFloat(e.target.value) : undefined)}
-                    step="0.25"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <Input
-                    placeholder="Unit"
-                    value={ingredient.unit || ''}
-                    onChange={(e) => updateIngredient(index, 'unit', e.target.value)}
-                  />
-                </div>
-                <div className="col-span-4">
+              <div className="flex-1">
+                {/* Mobile: Two rows layout */}
+                <div className="sm:hidden space-y-2">
+                  {/* First row: Amount and Unit */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input
+                      type="number"
+                      placeholder="Amount"
+                      value={ingredient.amount || ''}
+                      onChange={(e) => updateIngredient(index, 'amount', e.target.value ? parseFloat(e.target.value) : undefined)}
+                      step="0.25"
+                      className="h-9"
+                    />
+                    <Input
+                      placeholder="Unit"
+                      value={ingredient.unit || ''}
+                      onChange={(e) => updateIngredient(index, 'unit', e.target.value)}
+                      className="h-9"
+                    />
+                  </div>
+                  {/* Second row: Ingredient */}
                   <Input
                     placeholder="Ingredient *"
                     value={ingredient.ingredient}
                     onChange={(e) => updateIngredient(index, 'ingredient', e.target.value)}
                     required
+                    className="h-9 w-full"
                   />
+                  {/* Notes hidden on mobile */}
                 </div>
-                <div className="col-span-3">
-                  <Input
-                    placeholder="Notes (optional)"
-                    value={ingredient.notes || ''}
-                    onChange={(e) => updateIngredient(index, 'notes', e.target.value)}
-                  />
+                
+                {/* Desktop: Single row layout */}
+                <div className="hidden sm:grid sm:grid-cols-12 sm:gap-2">
+                  <div className="col-span-2">
+                    <Input
+                      type="number"
+                      placeholder="Amount"
+                      value={ingredient.amount || ''}
+                      onChange={(e) => updateIngredient(index, 'amount', e.target.value ? parseFloat(e.target.value) : undefined)}
+                      step="0.25"
+                      className="h-9"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Input
+                      placeholder="Unit"
+                      value={ingredient.unit || ''}
+                      onChange={(e) => updateIngredient(index, 'unit', e.target.value)}
+                      className="h-9"
+                    />
+                  </div>
+                  <div className="col-span-4">
+                    <Input
+                      placeholder="Ingredient *"
+                      value={ingredient.ingredient}
+                      onChange={(e) => updateIngredient(index, 'ingredient', e.target.value)}
+                      required
+                      className="h-9"
+                    />
+                  </div>
+                  <div className="col-span-3">
+                    <Input
+                      placeholder="Notes (optional)"
+                      value={ingredient.notes || ''}
+                      onChange={(e) => updateIngredient(index, 'notes', e.target.value)}
+                      className="h-9"
+                    />
+                  </div>
+                  <div className="col-span-1">
+                    <Button
+                      type="button"
+                      onClick={() => removeIngredient(index)}
+                      size="icon"
+                      variant="ghost"
+                      className="text-destructive hover:text-destructive h-9 w-9"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="col-span-1">
-                  <Button
-                    type="button"
-                    onClick={() => removeIngredient(index)}
-                    size="icon"
-                    variant="ghost"
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
+              </div>
+              
+              {/* Mobile: Remove button */}
+              <div className="sm:hidden">
+                <Button
+                  type="button"
+                  onClick={() => removeIngredient(index)}
+                  size="sm"
+                  variant="ghost"
+                  className="text-destructive hover:text-destructive h-8 w-8 p-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
             </div>
           ))}
