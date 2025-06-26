@@ -469,37 +469,48 @@ This roadmap outlines the development phases for the Recipe Inheritance Keeper M
 
 ## Phase 6: Sharing & Export (Week 11-12)
 
-### Share Links & Permissions 🎯 HIGH PRIORITY
-- [ ] Generate unique share URLs with configurable permissions
-  - [ ] View-only permission (default)
-  - [ ] Edit permission for collaborative cooking
-  - [ ] Comment permission for feedback without editing
-  - [ ] Time-limited access options (24h, 7 days, 30 days, permanent)
-- [ ] Create permission-aware recipe views
-  - [ ] Read-only view with clear visual indicators
-  - [ ] Edit mode with change tracking
-  - [ ] Show who has access and their permission level
-  - [ ] Activity log showing who viewed/edited
-- [ ] Implement secure sharing features
-  - [ ] Password protection option for shared links
-  - [ ] Email invitation system with access control
-  - [ ] Revoke access capability
-  - [ ] Share with specific email addresses vs public link
-- [ ] Collaborative features for edit permission
-  - [ ] Real-time collaboration indicators
-  - [ ] Change attribution (who made what edits)
-  - [ ] Optional approval workflow for edits
-  - [ ] Notification when shared recipes are modified
-- [ ] Social sharing enhancements
-  - [ ] Add social media meta tags with recipe preview
-  - [ ] Custom share messages for different platforms
-  - [ ] Recipe card image generation for visual sharing
-- [ ] Share management dashboard
-  - [ ] View all shared recipes and their permissions
-  - [ ] Bulk permission updates
-  - [ ] Share analytics (views, edits, duration)
-  - [ ] Quick share templates (family only, friends, public)
-- [ ] Test link generation and permission enforcement
+### Recipe Sharing (Version 1) 🎯 HIGH PRIORITY
+- [ ] Read-only recipe sharing
+  - [ ] Generate unique share URLs for recipes
+  - [ ] Share links display recipe in read-only mode
+  - [ ] Clear "Shared Recipe" badge/indicator on shared views
+  - [ ] "Copy to My Recipes" button for recipients
+  - [ ] No login required to view shared recipes
+- [ ] Copy functionality for shared recipes
+  - [ ] One-click copy creates user's own version
+  - [ ] Copied recipe becomes fully editable
+  - [ ] Track recipe source (optional "Inspired by" field)
+  - [ ] Both original shared and copied versions visible in My Recipes
+  - [ ] Clear visual distinction between shared and owned recipes
+- [ ] My Recipes page enhancements
+  - [ ] "Shared with me" section or filter
+  - [ ] Visual indicators (icon/badge) for shared recipes
+  - [ ] Show who shared the recipe
+  - [ ] Date when recipe was shared
+  - [ ] Easy access to both shared and copied versions
+- [ ] Share management for recipe owners
+  - [ ] View all recipes you've shared
+  - [ ] See share link analytics (view count)
+  - [ ] Revoke share links if needed
+  - [ ] Re-share existing recipes
+- [ ] Basic sharing features
+  - [ ] Copy share link to clipboard
+  - [ ] Share via email (mailto link)
+  - [ ] Social media meta tags for preview
+  - [ ] QR code generation for easy mobile sharing
+- [ ] Security and privacy
+  - [ ] Share links don't expose user information
+  - [ ] Optional expiring links (7 days, 30 days, never)
+  - [ ] Rate limiting on share link access
+- [ ] Test sharing flow end-to-end
+
+### Future Sharing Enhancements (Version 2)
+- [ ] Collaborative editing with permissions
+- [ ] Comment system for shared recipes
+- [ ] Real-time collaboration
+- [ ] Family groups with automatic sharing
+- [ ] Recipe collections/cookbooks sharing
+- [ ] Advanced permission management
 
 ### PDF Export
 - [ ] Design PDF templates
