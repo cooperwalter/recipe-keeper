@@ -87,7 +87,7 @@ describe('POST /api/recipes/[id]/voice-update', () => {
     mockSupabase.auth.getUser.mockResolvedValue({ data: { user: null } })
 
     const request = createRequest({ transcript: 'Add more flour' })
-    const response = await POST(request, { params: { id: 'test-recipe-id' } })
+    const response = await POST(request, { params: Promise.resolve({ id: 'test-recipe-id' }) })
     const data = await response.json()
 
     expect(response.status).toBe(401)
@@ -100,7 +100,7 @@ describe('POST /api/recipes/[id]/voice-update', () => {
     })
 
     const request = createRequest({})
-    const response = await POST(request, { params: { id: 'test-recipe-id' } })
+    const response = await POST(request, { params: Promise.resolve({ id: 'test-recipe-id' }) })
     const data = await response.json()
 
     expect(response.status).toBe(400)
@@ -114,7 +114,7 @@ describe('POST /api/recipes/[id]/voice-update', () => {
     mockRecipeService.getRecipe.mockResolvedValue(null)
 
     const request = createRequest({ transcript: 'Add more flour' })
-    const response = await POST(request, { params: { id: 'test-recipe-id' } })
+    const response = await POST(request, { params: Promise.resolve({ id: 'test-recipe-id' }) })
     const data = await response.json()
 
     expect(response.status).toBe(404)
@@ -145,7 +145,7 @@ describe('POST /api/recipes/[id]/voice-update', () => {
       transcript: 'Add half a cup more flour',
       currentRecipe: mockRecipe 
     })
-    const response = await POST(request, { params: { id: 'test-recipe-id' } })
+    const response = await POST(request, { params: Promise.resolve({ id: 'test-recipe-id' }) })
     const data = await response.json()
 
     expect(response.status).toBe(200)
@@ -189,7 +189,7 @@ describe('POST /api/recipes/[id]/voice-update', () => {
       transcript: 'Bake for 3 more minutes and add a teaspoon of vanilla',
       currentRecipe: mockRecipe 
     })
-    const response = await POST(request, { params: { id: 'test-recipe-id' } })
+    const response = await POST(request, { params: Promise.resolve({ id: 'test-recipe-id' }) })
     const data = await response.json()
 
     expect(response.status).toBe(200)
@@ -222,7 +222,7 @@ describe('POST /api/recipes/[id]/voice-update', () => {
       transcript: 'Change the oven temperature to 375 degrees',
       currentRecipe: mockRecipe 
     })
-    const response = await POST(request, { params: { id: 'test-recipe-id' } })
+    const response = await POST(request, { params: Promise.resolve({ id: 'test-recipe-id' }) })
     const data = await response.json()
 
     expect(response.status).toBe(200)
@@ -253,7 +253,7 @@ describe('POST /api/recipes/[id]/voice-update', () => {
       transcript: 'Add a note that this works best with room temperature eggs',
       currentRecipe: mockRecipe 
     })
-    const response = await POST(request, { params: { id: 'test-recipe-id' } })
+    const response = await POST(request, { params: Promise.resolve({ id: 'test-recipe-id' }) })
     const data = await response.json()
 
     expect(response.status).toBe(200)
@@ -284,7 +284,7 @@ describe('POST /api/recipes/[id]/voice-update', () => {
       transcript: 'Remove the sugar',
       currentRecipe: mockRecipe 
     })
-    const response = await POST(request, { params: { id: 'test-recipe-id' } })
+    const response = await POST(request, { params: Promise.resolve({ id: 'test-recipe-id' }) })
     const data = await response.json()
 
     expect(response.status).toBe(200)
@@ -306,7 +306,7 @@ describe('POST /api/recipes/[id]/voice-update', () => {
       transcript: 'Um, I think maybe...',
       currentRecipe: mockRecipe 
     })
-    const response = await POST(request, { params: { id: 'test-recipe-id' } })
+    const response = await POST(request, { params: Promise.resolve({ id: 'test-recipe-id' }) })
     const data = await response.json()
 
     expect(response.status).toBe(200)
@@ -325,7 +325,7 @@ describe('POST /api/recipes/[id]/voice-update', () => {
       transcript: 'Add more flour',
       currentRecipe: mockRecipe 
     })
-    const response = await POST(request, { params: { id: 'test-recipe-id' } })
+    const response = await POST(request, { params: Promise.resolve({ id: 'test-recipe-id' }) })
     const data = await response.json()
 
     expect(response.status).toBe(500)
@@ -347,7 +347,7 @@ describe('POST /api/recipes/[id]/voice-update', () => {
       transcript: 'Add more flour',
       currentRecipe: mockRecipe 
     })
-    const response = await POST(request, { params: { id: 'test-recipe-id' } })
+    const response = await POST(request, { params: Promise.resolve({ id: 'test-recipe-id' }) })
     const data = await response.json()
 
     expect(response.status).toBe(200)
@@ -385,7 +385,7 @@ describe('POST /api/recipes/[id]/voice-update', () => {
       currentRecipe: mockRecipe 
     })
     
-    const response = await POST(request, { params: { id: 'test-recipe-id' } })
+    const response = await POST(request, { params: Promise.resolve({ id: 'test-recipe-id' }) })
     const data = await response.json()
     
     expect(response.status).toBe(500)

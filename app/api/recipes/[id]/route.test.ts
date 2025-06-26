@@ -48,7 +48,7 @@ describe.skip('/api/recipes/[id]', () => {
       mockRecipeService.getRecipe.mockResolvedValueOnce(mockRecipe)
 
       const request = createAuthenticatedRequest('http://localhost:3000/api/recipes/recipe-123')
-      const response = await GET(request, { params: { id: 'recipe-123' } })
+      const response = await GET(request, { params: Promise.resolve({ id: 'recipe-123' }) })
       const data = await expectSuccess(response)
 
       expect(data).toEqual(mockRecipe)
@@ -59,7 +59,7 @@ describe.skip('/api/recipes/[id]', () => {
       mockRecipeService.getRecipe.mockResolvedValueOnce(null)
 
       const request = createAuthenticatedRequest('http://localhost:3000/api/recipes/recipe-123')
-      const response = await GET(request, { params: { id: 'recipe-123' } })
+      const response = await GET(request, { params: Promise.resolve({ id: 'recipe-123' }) })
       
       await expectError(response, 404, 'Recipe not found')
     })
@@ -71,7 +71,7 @@ describe.skip('/api/recipes/[id]', () => {
       })
 
       const request = createAuthenticatedRequest('http://localhost:3000/api/recipes/recipe-123')
-      const response = await GET(request, { params: { id: 'recipe-123' } })
+      const response = await GET(request, { params: Promise.resolve({ id: 'recipe-123' }) })
       
       await expectAuthError(response)
     })
@@ -80,7 +80,7 @@ describe.skip('/api/recipes/[id]', () => {
       mockRecipeService.getRecipe.mockRejectedValueOnce(new Error('Database error'))
 
       const request = createAuthenticatedRequest('http://localhost:3000/api/recipes/recipe-123')
-      const response = await GET(request, { params: { id: 'recipe-123' } })
+      const response = await GET(request, { params: Promise.resolve({ id: 'recipe-123' }) })
       
       await expectError(response, 500, 'Failed to fetch recipe')
     })
@@ -103,7 +103,7 @@ describe.skip('/api/recipes/[id]', () => {
         updateData,
         'PUT'
       )
-      const response = await PUT(request, { params: { id: 'recipe-123' } })
+      const response = await PUT(request, { params: Promise.resolve({ id: 'recipe-123' }) })
       const data = await expectSuccess(response)
 
       expect(data).toEqual(updatedRecipe)
@@ -129,7 +129,7 @@ describe.skip('/api/recipes/[id]', () => {
         updateData,
         'PUT'
       )
-      const response = await PUT(request, { params: { id: 'recipe-123' } })
+      const response = await PUT(request, { params: Promise.resolve({ id: 'recipe-123' }) })
       await expectSuccess(response)
 
       expect(mockRecipeService.updateIngredient).toHaveBeenCalledWith(
@@ -158,7 +158,7 @@ describe.skip('/api/recipes/[id]', () => {
         updateData,
         'PUT'
       )
-      const response = await PUT(request, { params: { id: 'recipe-123' } })
+      const response = await PUT(request, { params: Promise.resolve({ id: 'recipe-123' }) })
       await expectSuccess(response)
 
       expect(mockRecipeService.addInstructions).toHaveBeenCalledWith(
@@ -178,7 +178,7 @@ describe.skip('/api/recipes/[id]', () => {
         { title: 'Test' },
         'PUT'
       )
-      const response = await PUT(request, { params: { id: 'recipe-123' } })
+      const response = await PUT(request, { params: Promise.resolve({ id: 'recipe-123' }) })
       
       await expectAuthError(response)
     })
@@ -191,7 +191,7 @@ describe.skip('/api/recipes/[id]', () => {
         { title: 'Test' },
         'PUT'
       )
-      const response = await PUT(request, { params: { id: 'recipe-123' } })
+      const response = await PUT(request, { params: Promise.resolve({ id: 'recipe-123' }) })
       
       await expectError(response, 500, 'Failed to update recipe')
     })
@@ -202,7 +202,7 @@ describe.skip('/api/recipes/[id]', () => {
       mockRecipeService.deleteRecipe.mockResolvedValueOnce(undefined)
 
       const request = createAuthenticatedRequest('http://localhost:3000/api/recipes/recipe-123')
-      const response = await DELETE(request, { params: { id: 'recipe-123' } })
+      const response = await DELETE(request, { params: Promise.resolve({ id: 'recipe-123' }) })
       
       expect(response.status).toBe(204)
       expect(mockRecipeService.deleteRecipe).toHaveBeenCalledWith('recipe-123')
@@ -215,7 +215,7 @@ describe.skip('/api/recipes/[id]', () => {
       })
 
       const request = createAuthenticatedRequest('http://localhost:3000/api/recipes/recipe-123')
-      const response = await DELETE(request, { params: { id: 'recipe-123' } })
+      const response = await DELETE(request, { params: Promise.resolve({ id: 'recipe-123' }) })
       
       await expectAuthError(response)
     })
@@ -224,7 +224,7 @@ describe.skip('/api/recipes/[id]', () => {
       mockRecipeService.deleteRecipe.mockRejectedValueOnce(new Error('Database error'))
 
       const request = createAuthenticatedRequest('http://localhost:3000/api/recipes/recipe-123')
-      const response = await DELETE(request, { params: { id: 'recipe-123' } })
+      const response = await DELETE(request, { params: Promise.resolve({ id: 'recipe-123' }) })
       
       await expectError(response, 500, 'Failed to delete recipe')
     })
