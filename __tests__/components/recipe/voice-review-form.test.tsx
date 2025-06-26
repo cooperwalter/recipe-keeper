@@ -39,9 +39,14 @@ describe('VoiceReviewForm', () => {
     
     expect(screen.getByDisplayValue('Test Recipe')).toBeInTheDocument()
     expect(screen.getByDisplayValue('A test recipe')).toBeInTheDocument()
-    expect(screen.getByDisplayValue('flour')).toBeInTheDocument()
-    expect(screen.getByDisplayValue('2')).toBeInTheDocument()
-    expect(screen.getByDisplayValue('cups')).toBeInTheDocument()
+    // Ingredients - expect duplicates for mobile/desktop
+    expect(screen.getAllByDisplayValue('flour')).toHaveLength(2)
+    expect(screen.getAllByDisplayValue('2')).toHaveLength(2)
+    expect(screen.getAllByDisplayValue('cups')).toHaveLength(2)
+    expect(screen.getAllByDisplayValue('sugar')).toHaveLength(2)
+    expect(screen.getAllByDisplayValue('1')).toHaveLength(2)
+    expect(screen.getAllByDisplayValue('cup')).toHaveLength(2)
+    // Instructions
     expect(screen.getByDisplayValue('Mix ingredients')).toBeInTheDocument()
     expect(screen.getByDisplayValue('10')).toBeInTheDocument()
     expect(screen.getByDisplayValue('20')).toBeInTheDocument()
@@ -64,8 +69,10 @@ describe('VoiceReviewForm', () => {
     const addButton = screen.getByRole('button', { name: /add ingredient/i })
     fireEvent.click(addButton)
     
+    // Count unique ingredient containers (duplicates exist for mobile/desktop)
     const ingredientInputs = screen.getAllByPlaceholderText('Ingredient *')
-    expect(ingredientInputs).toHaveLength(3)
+    // 3 ingredients * 2 (mobile + desktop) = 6 inputs
+    expect(ingredientInputs).toHaveLength(6)
   })
 
   it('should remove ingredient', () => {
@@ -77,8 +84,10 @@ describe('VoiceReviewForm', () => {
     )
     fireEvent.click(removeButtons[0])
     
+    // After removing flour, we should have no flour inputs
     expect(screen.queryByDisplayValue('flour')).not.toBeInTheDocument()
-    expect(screen.getByDisplayValue('sugar')).toBeInTheDocument()
+    // Sugar should still have 2 inputs (mobile + desktop)
+    expect(screen.getAllByDisplayValue('sugar')).toHaveLength(2)
   })
 
   it('should add new instruction', () => {

@@ -40,11 +40,38 @@ export async function POST(request: NextRequest) {
     const parser = new RecipeUrlParser()
     const extractedRecipe = await parser.extractFromUrl(url)
 
-    // Transform to our recipe format
+    // Transform to our recipe format, converting ingredient amounts to numbers where possible
     const recipe = {
       title: extractedRecipe.title || '',
       description: extractedRecipe.description || '',
-      ingredients: extractedRecipe.ingredients || [],
+      ingredients: (extractedRecipe.ingredients || []).map(ing => {
+        // Try to convert amount to number, handling fractions
+        let amountNum: number | undefined
+        if (ing.amount) {
+          // Handle fractions like "1/2", "1 1/2", etc
+          const fractionMatch = ing.amount.match(/^(\d+)?\s*(\d+)\/(\d+)$/)
+          if (fractionMatch) {
+            const whole = fractionMatch[1] ? parseInt(fractionMatch[1]) : 0
+            const numerator = parseInt(fractionMatch[2])
+            const denominator = parseInt(fractionMatch[3])
+            amountNum = whole + (numerator / denominator)
+          } else {
+            // Try parsing as regular number
+            const parsed = parseFloat(ing.amount)
+            if (!isNaN(parsed)) {
+              amountNum = parsed
+            }
+          }
+        }
+
+        return {
+          amount: amountNum,
+          unit: ing.unit,
+          ingredient: ing.ingredient,
+          // Append notes to ingredient name if present
+          ...(ing.notes ? { ingredient: `${ing.ingredient} (${ing.notes})` } : {})
+        }
+      }),
       instructions: extractedRecipe.instructions || [],
       prepTime: extractedRecipe.prepTime,
       cookTime: extractedRecipe.cookTime,

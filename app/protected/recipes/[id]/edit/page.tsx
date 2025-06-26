@@ -406,33 +406,57 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           {ingredients.map((ingredient, index) => (
-            <div key={index} className="flex flex-col sm:flex-row gap-2">
-              <div className="flex gap-2 flex-1">
-                <Input
-                  value={ingredient.amount}
-                  onChange={(e) => updateIngredient(index, 'amount', e.target.value)}
-                  placeholder="Amount"
-                  className="w-20 sm:w-24"
-                />
-                <Input
-                  value={ingredient.unit}
-                  onChange={(e) => updateIngredient(index, 'unit', e.target.value)}
-                  placeholder="Unit"
-                  className="w-20 sm:w-24"
-                />
+            <div key={index} className="space-y-2">
+              {/* Mobile: 2-row layout, Desktop: single row */}
+              <div className="flex flex-col sm:flex-row gap-2">
+                {/* Mobile: Amount and Unit on first row */}
+                <div className="flex gap-2 sm:flex-1">
+                  <Input
+                    value={ingredient.amount}
+                    onChange={(e) => updateIngredient(index, 'amount', e.target.value)}
+                    placeholder="Amount"
+                    className="flex-1 sm:w-24"
+                  />
+                  <Input
+                    value={ingredient.unit}
+                    onChange={(e) => updateIngredient(index, 'unit', e.target.value)}
+                    placeholder="Unit"
+                    className="flex-1 sm:w-24"
+                  />
+                  {/* Ingredient name on same line for desktop */}
+                  <Input
+                    value={ingredient.ingredient}
+                    onChange={(e) => updateIngredient(index, 'ingredient', e.target.value)}
+                    placeholder="Ingredient"
+                    className="flex-1 hidden sm:block"
+                  />
+                </div>
+                {/* Notes field - hidden on mobile, visible on desktop */}
+                <div className="hidden sm:flex gap-2">
+                  <Input
+                    value={ingredient.notes}
+                    onChange={(e) => updateIngredient(index, 'notes', e.target.value)}
+                    placeholder="Notes (optional)"
+                    className="w-48"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeIngredient(index)}
+                    aria-label="Remove ingredient"
+                    className="flex-shrink-0"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              {/* Mobile: Ingredient name on second row with delete button */}
+              <div className="flex gap-2 sm:hidden">
                 <Input
                   value={ingredient.ingredient}
                   onChange={(e) => updateIngredient(index, 'ingredient', e.target.value)}
                   placeholder="Ingredient"
                   className="flex-1"
-                />
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  value={ingredient.notes}
-                  onChange={(e) => updateIngredient(index, 'notes', e.target.value)}
-                  placeholder="Notes (optional)"
-                  className="flex-1 sm:w-48"
                 />
                 <Button
                   variant="ghost"

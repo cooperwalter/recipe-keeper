@@ -122,10 +122,13 @@ describe('OCRReviewForm', () => {
     expect(screen.getByDisplayValue('12')).toBeInTheDocument();
     expect(screen.getByDisplayValue('24')).toBeInTheDocument();
 
-    // Ingredients
-    expect(screen.getByDisplayValue('2')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('cups')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('all-purpose flour')).toBeInTheDocument();
+    // Ingredients - use getAllBy since we have duplicate inputs for mobile/desktop
+    expect(screen.getAllByDisplayValue('2')).toHaveLength(2); // One for mobile, one for desktop
+    expect(screen.getAllByDisplayValue('cups')).toHaveLength(2);
+    expect(screen.getAllByDisplayValue('all-purpose flour')).toHaveLength(2);
+    expect(screen.getAllByDisplayValue('1')).toHaveLength(2);
+    expect(screen.getAllByDisplayValue('tsp')).toHaveLength(2);
+    expect(screen.getAllByDisplayValue('baking soda')).toHaveLength(2);
 
     // Instructions
     expect(screen.getByDisplayValue('Preheat oven to 375°F')).toBeInTheDocument();
@@ -201,8 +204,13 @@ describe('OCRReviewForm', () => {
     const addButton = screen.getByRole('button', { name: /add ingredient/i });
     await user.click(addButton);
 
-    const ingredientInputs = screen.getAllByPlaceholderText('Ingredient *');
-    expect(ingredientInputs).toHaveLength(3);
+    // Count visible ingredient inputs (mobile shows duplicates, so we check by container)
+    const ingredientContainers = screen.getAllByPlaceholderText('Ingredient *')
+      .map(input => input.closest('.space-y-2'))
+      .filter((container, index, self) => 
+        self.indexOf(container) === index
+      );
+    expect(ingredientContainers).toHaveLength(3);
   });
 
   it('removes ingredient', async () => {
@@ -223,8 +231,13 @@ describe('OCRReviewForm', () => {
     
     await user.click(removeButtons[0]);
 
-    const ingredientInputs = screen.getAllByPlaceholderText('Ingredient *');
-    expect(ingredientInputs).toHaveLength(1);
+    // Count visible ingredient inputs (mobile shows duplicates, so we check by container)
+    const ingredientContainers = screen.getAllByPlaceholderText('Ingredient *')
+      .map(input => input.closest('.space-y-2'))
+      .filter((container, index, self) => 
+        self.indexOf(container) === index
+      );
+    expect(ingredientContainers).toHaveLength(1);
   });
 
   it('adds new instruction', async () => {

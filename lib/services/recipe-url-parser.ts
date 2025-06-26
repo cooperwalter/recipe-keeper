@@ -1,9 +1,15 @@
 import { load } from 'cheerio'
+import { parseIngredient } from '@/lib/utils/ingredient-parser'
 
 export interface ExtractedRecipe {
   title?: string
   description?: string
-  ingredients?: string[]
+  ingredients?: Array<{
+    amount?: string
+    unit?: string
+    ingredient: string
+    notes?: string
+  }>
   instructions?: string[]
   prepTime?: number
   cookTime?: number
@@ -139,9 +145,9 @@ export class RecipeUrlParser {
       }
     }
 
-    // Ingredients
+    // Ingredients - parse into structured format
     if (Array.isArray(data.recipeIngredient)) {
-      recipe.ingredients = data.recipeIngredient.map((ing: string) => ing.trim())
+      recipe.ingredients = data.recipeIngredient.map((ing: string) => parseIngredient(ing.trim()))
     }
 
     // Instructions
@@ -249,7 +255,7 @@ export class RecipeUrlParser {
     }
 
     if (ingredients.length > 0) {
-      recipe.ingredients = ingredients
+      recipe.ingredients = ingredients.map(ing => parseIngredient(ing))
     }
 
     // Instructions - try multiple patterns

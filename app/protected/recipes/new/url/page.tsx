@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { ButtonLoading } from '@/components/ui/loading-states'
 import { Input } from '@/components/ui/input'
@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 // import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { cn } from '@/lib/utils'
 import { 
   ChevronLeft, 
   Link as LinkIcon, 
@@ -24,9 +25,10 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 interface ExtractedIngredient {
-  amount?: number
+  amount?: string
   unit?: string
   ingredient: string
+  notes?: string
 }
 
 interface ExtractedRecipe {
@@ -56,12 +58,26 @@ interface ExtractedRecipe {
 
 export default function UrlRecipePage() {
   const router = useRouter()
+  const recipePreviewRef = useRef<HTMLDivElement>(null)
   const [url, setUrl] = useState('')
   const [isExtracting, setIsExtracting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [extractedRecipe, setExtractedRecipe] = useState<ExtractedRecipe | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [editedRecipe, setEditedRecipe] = useState<ExtractedRecipe | null>(null)
+
+  // Scroll to recipe preview when extraction is complete
+  useEffect(() => {
+    if (extractedRecipe && recipePreviewRef.current) {
+      // Small delay to ensure DOM is updated
+      setTimeout(() => {
+        recipePreviewRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        })
+      }, 100)
+    }
+  }, [extractedRecipe])
 
   const handleExtract = async () => {
     if (!url.trim()) {
@@ -249,7 +265,7 @@ export default function UrlRecipePage() {
                   onChange={(e) => setUrl(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleExtract()}
                   disabled={isExtracting}
-                  className="w-full pr-10"
+                  className={cn("w-full", url && "sm:pr-0 pr-10")}
                 />
                 {/* Clear button - visible on mobile when there's text */}
                 {url && (
@@ -316,7 +332,7 @@ export default function UrlRecipePage() {
 
       {/* Extracted Recipe Preview/Edit */}
       {editedRecipe && !isExtracting && (
-        <Card>
+        <Card ref={recipePreviewRef}>
           <CardHeader>
             <div className="flex justify-between items-start">
               <div className="flex-1">
@@ -560,8 +576,8 @@ export default function UrlRecipePage() {
                           newInstructions[index] = e.target.value
                           updateRecipeField('instructions', newInstructions)
                         }}
-                        rows={2}
-                        className="flex-1"
+                        rows={4}
+                        className="flex-1 min-h-[100px] sm:min-h-[80px]"
                       />
                       <Button
                         variant="ghost"

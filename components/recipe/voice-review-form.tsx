@@ -200,38 +200,76 @@ export function VoiceReviewForm({
         </CardHeader>
         <CardContent className="space-y-4">
           {formData.ingredients.map((ingredient, index) => (
-            <div key={index} className="flex gap-2 items-start">
-              <div className="flex-1">
-                <Input
-                  placeholder="Ingredient *"
-                  value={ingredient.ingredient}
-                  onChange={(e) => updateIngredient(index, 'ingredient', e.target.value)}
-                  required
-                />
-              </div>
-              <div className="w-24">
+            <div key={index} className="space-y-2">
+              {/* Mobile: 2-row layout, Desktop: single row */}
+              <div className="flex gap-2 sm:hidden">
+                {/* Mobile: Amount and Unit on first row */}
                 <Input
                   placeholder="Amount"
                   value={ingredient.amount || ''}
                   onChange={(e) => updateIngredient(index, 'amount', e.target.value)}
+                  className="w-24"
                 />
-              </div>
-              <div className="w-24">
                 <Input
                   placeholder="Unit"
                   value={ingredient.unit || ''}
                   onChange={(e) => updateIngredient(index, 'unit', e.target.value)}
+                  className="w-24"
                 />
               </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => removeIngredient(index)}
-                aria-label="Remove ingredient"
-              >
-                <X className="h-4 w-4" />
-              </Button>
+              {/* Mobile: Ingredient on second row with delete button */}
+              <div className="flex gap-2 sm:hidden">
+                <Input
+                  placeholder="Ingredient *"
+                  value={ingredient.ingredient}
+                  onChange={(e) => updateIngredient(index, 'ingredient', e.target.value)}
+                  className="flex-1"
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeIngredient(index)}
+                  aria-label="Remove ingredient"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              {/* Desktop: All fields in one row */}
+              <div className="hidden sm:flex gap-2 items-start">
+                <div className="w-24">
+                  <Input
+                    placeholder="Amount"
+                    value={ingredient.amount || ''}
+                    onChange={(e) => updateIngredient(index, 'amount', e.target.value)}
+                  />
+                </div>
+                <div className="w-24">
+                  <Input
+                    placeholder="Unit"
+                    value={ingredient.unit || ''}
+                    onChange={(e) => updateIngredient(index, 'unit', e.target.value)}
+                  />
+                </div>
+                <div className="flex-1">
+                  <Input
+                    placeholder="Ingredient *"
+                    value={ingredient.ingredient}
+                    onChange={(e) => updateIngredient(index, 'ingredient', e.target.value)}
+                    required
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeIngredient(index)}
+                  aria-label="Remove ingredient"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           ))}
           <Button type="button" variant="outline" onClick={addIngredient}>

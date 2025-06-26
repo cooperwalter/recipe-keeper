@@ -71,9 +71,9 @@ describe('RecipeUrlParser', () => {
         yield: '24 cookies',
         servings: 24,
         ingredients: [
-          '2 cups all-purpose flour',
-          '1 cup butter, softened',
-          '1 cup chocolate chips'
+          { amount: '2', unit: 'cup', ingredient: 'all-purpose flour', notes: undefined },
+          { amount: '1', unit: 'cup', ingredient: 'butter, softened', notes: undefined },
+          { amount: '1', unit: 'cup', ingredient: 'chocolate chips', notes: undefined }
         ],
         instructions: [
           'Preheat oven to 375°F',
@@ -81,7 +81,11 @@ describe('RecipeUrlParser', () => {
         ],
         image: 'https://example.com/cookie.jpg',
         sourceName: 'Test Chef',
-        sourceUrl: 'https://example.com/recipe'
+        sourceUrl: 'https://example.com/recipe',
+        category: undefined,
+        cuisine: undefined,
+        keywords: undefined,
+        nutrition: undefined
       })
     })
 
@@ -119,7 +123,11 @@ describe('RecipeUrlParser', () => {
       const result = await parser.extractFromUrl('https://example.com/recipe')
 
       expect(result.title).toBe('Pasta Carbonara')
-      expect(result.ingredients).toEqual(['Pasta', 'Eggs', 'Bacon'])
+      expect(result.ingredients).toEqual([
+        { amount: undefined, unit: undefined, ingredient: 'Pasta', notes: undefined },
+        { amount: undefined, unit: undefined, ingredient: 'Eggs', notes: undefined },
+        { amount: undefined, unit: undefined, ingredient: 'Bacon', notes: undefined }
+      ])
       expect(result.instructions).toEqual(['Cook pasta', 'Mix with eggs'])
     })
 
@@ -161,9 +169,9 @@ describe('RecipeUrlParser', () => {
       expect(result.description).toBe('Delicious homemade apple pie')
       expect(result.image).toBe('https://example.com/pie.jpg')
       expect(result.ingredients).toEqual([
-        '6 apples, sliced',
-        '1 cup sugar',
-        'Pie crust'
+        { amount: '6', unit: undefined, ingredient: 'apples, sliced', notes: undefined },
+        { amount: '1', unit: 'cup', ingredient: 'sugar', notes: undefined },
+        { amount: undefined, unit: undefined, ingredient: 'Pie crust', notes: undefined }
       ])
       expect(result.instructions).toEqual([
         'Prepare the filling',
@@ -416,7 +424,9 @@ describe('RecipeUrlParser', () => {
       const result = await parser.extractFromUrl('https://example.com/recipe')
 
       expect(result.title).toBe('Simple Recipe')
-      expect(result.ingredients).toEqual(['Ingredient 1'])
+      expect(result.ingredients).toEqual([
+        { amount: undefined, unit: undefined, ingredient: 'Ingredient 1', notes: undefined }
+      ])
     })
 
     it('should handle various instruction formats', async () => {
