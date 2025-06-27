@@ -12,7 +12,6 @@ import { Textarea } from '@/components/ui/textarea'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import { 
-  ChevronLeft, 
   Link as LinkIcon, 
   AlertCircle, 
   Clock, 
@@ -21,7 +20,6 @@ import {
   X,
   ExternalLink
 } from 'lucide-react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { BackButton } from '@/components/ui/back-button'
 
