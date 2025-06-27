@@ -135,7 +135,7 @@ export default function RecipesPageContent({ initialSearchParams }: RecipesPageC
 
   return (
     <div className="w-full">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+      <div className="flex flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <h1 className="text-3xl font-bold">My Recipes</h1>
         <Link href="/protected/recipes/new">
           <Button>
