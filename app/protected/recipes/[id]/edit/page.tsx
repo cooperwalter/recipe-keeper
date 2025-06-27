@@ -19,13 +19,11 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { 
-  ChevronLeft, 
   Plus, 
   Trash2, 
   Loader2,
   Save
 } from 'lucide-react'
-import Link from 'next/link'
 import { BackButton } from '@/components/ui/back-button'
 import { VoiceToRecipe } from '@/components/recipe/voice-to-recipe'
 import { useQueryClient } from '@tanstack/react-query'
