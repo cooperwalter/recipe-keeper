@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect, use, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { RecipeWithRelations } from '@/lib/types/recipe'
 import { Button } from '@/components/ui/button'
@@ -26,6 +26,7 @@ import {
   Save
 } from 'lucide-react'
 import Link from 'next/link'
+import { BackButton } from '@/components/ui/back-button'
 import { VoiceToRecipe } from '@/components/recipe/voice-to-recipe'
 import { useQueryClient } from '@tanstack/react-query'
 import { recipeKeys } from '@/lib/hooks/use-recipes'
@@ -58,6 +59,10 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showStickySave, setShowStickySave] = useState(false)
+  
+  // Refs for scroll detection
+  const mainSaveButtonRef = useRef<HTMLDivElement>(null)
   
   // Form state
   const [title, setTitle] = useState('')
@@ -73,6 +78,25 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
   useEffect(() => {
     fetchRecipe()
   }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Scroll detection for sticky save button
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!mainSaveButtonRef.current) return
+      
+      const buttonRect = mainSaveButtonRef.current.getBoundingClientRect()
+      const shouldShowSticky = buttonRect.bottom < 0
+      
+      setShowStickySave(shouldShowSticky)
+    }
+    
+    window.addEventListener('scroll', handleScroll)
+    handleScroll() // Check initial position
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [])
 
   const fetchRecipe = async () => {
     try {
@@ -258,12 +282,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
     return (
       <div className="container mx-auto py-8 px-4 text-center">
         <h1 className="text-2xl font-bold mb-4">Recipe not found</h1>
-        <Link href="/protected/recipes">
-          <Button variant="outline">
-            <ChevronLeft className="mr-2 h-4 w-4" />
-            Back to Recipes
-          </Button>
-        </Link>
+        <BackButton href="/protected/recipes" label="Back to Recipes" />
       </div>
     )
   }
@@ -272,32 +291,44 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
     <div className="container mx-auto py-8 px-4">
       {/* Back Button */}
       <div className="mb-6">
-        <Link href={`/protected/recipes/${id}`}>
-          <Button variant="outline" size="sm">
-            <ChevronLeft className="mr-2 h-4 w-4" />
-            Back to Recipe
-          </Button>
-        </Link>
+        <BackButton href={`/protected/recipes/${id}`} label="Back to Recipe" />
       </div>
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
         <h1 className="text-3xl font-bold">Edit Recipe</h1>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2" ref={mainSaveButtonRef}>
           <VoiceToRecipe 
             recipe={recipe} 
             onUpdate={handleVoiceUpdate}
           />
-          <Button 
-            variant="outline" 
-            onClick={() => setShowDeleteConfirm(true)}
-            disabled={isDeleting}
-            className="text-destructive hover:text-destructive"
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete
-          </Button>
           <Button onClick={() => handleSave()} disabled={isSaving || !title.trim()}>
+            {isSaving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                Save Changes
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+      
+      {/* Sticky Save Button - Mobile Only */}
+      <div className={`fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b transition-transform duration-200 sm:hidden ${
+        showStickySave ? 'translate-y-0' : '-translate-y-full'
+      }`}>
+        <div className="container mx-auto px-4 py-3">
+          <Button 
+            onClick={() => handleSave()} 
+            disabled={isSaving || !title.trim()}
+            className="w-full"
+            size="lg"
+          >
             {isSaving ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

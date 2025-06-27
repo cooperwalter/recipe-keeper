@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { BackButton } from '@/components/ui/back-button'
 
 interface ExtractedIngredient {
   amount?: string
@@ -230,12 +231,9 @@ export default function UrlRecipePage() {
     <div className="container mx-auto py-8 px-4 max-w-4xl">
       {/* Header */}
       <div className="mb-8">
-        <Link href="/protected/recipes/new">
-          <Button variant="ghost" size="sm" className="mb-4">
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Creation Options
-          </Button>
-        </Link>
+        <div className="mb-4">
+          <BackButton href="/protected/recipes/new" label="Back to Creation Options" />
+        </div>
         
         <h1 className="text-3xl font-bold mb-2">Import Recipe from URL</h1>
         <p className="text-muted-foreground">
