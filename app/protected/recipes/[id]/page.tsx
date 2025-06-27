@@ -38,6 +38,7 @@ import {
   Trash2
 } from 'lucide-react'
 import Link from 'next/link'
+import { BackButton } from '@/components/ui/back-button'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -157,12 +158,7 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
       <article className="container mx-auto pt-0 pb-8 px-4">
         {/* Back to Recipes Button */}
         <div className="mb-4 sm:mb-6 print:hidden">
-          <Link href="/protected/recipes">
-            <Button variant="ghost" size="sm">
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Back to Recipes
-            </Button>
-          </Link>
+          <BackButton href="/protected/recipes" label="Back to Recipes" />
         </div>
         {/* Header */}
         <div className="mb-6 sm:mb-8 recipe-header">
