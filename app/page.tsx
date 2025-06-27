@@ -100,6 +100,7 @@ export default async function Home() {
               icon={<Users className="h-8 w-8" />}
               title="Share with Family"
               description="Easily share recipes with family members and collaborate on your collection together."
+              comingSoon
             />
             <FeatureCard
               icon={<Search className="h-8 w-8" />}
@@ -168,14 +169,21 @@ export default async function Home() {
 function FeatureCard({ 
   icon, 
   title, 
-  description 
+  description,
+  comingSoon = false
 }: { 
   icon: React.ReactNode; 
   title: string; 
   description: string;
+  comingSoon?: boolean;
 }) {
   return (
-    <div className="flex flex-col items-center text-center space-y-3 p-6 rounded-xl bg-card border border-border/50 shadow-sm hover:shadow-md transition-shadow">
+    <div className="relative flex flex-col items-center text-center space-y-3 p-6 rounded-xl bg-card border border-border/50 shadow-sm hover:shadow-md transition-shadow">
+      {comingSoon && (
+        <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-semibold px-2 py-1 rounded-full">
+          Coming Soon
+        </div>
+      )}
       <div className="text-primary">{icon}</div>
       <h3 className="text-xl font-semibold">{title}</h3>
       <p className="text-muted-foreground">{description}</p>
