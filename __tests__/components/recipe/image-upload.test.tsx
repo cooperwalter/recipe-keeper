@@ -45,7 +45,7 @@ describe('ImageUpload', () => {
     render(<ImageUpload onUpload={mockOnUpload} />);
     
     expect(screen.getByText('Upload your recipe image')).toBeInTheDocument();
-    expect(screen.getByText('Drop a file here or use the buttons below')).toBeInTheDocument();
+    expect(screen.getByText('Drop a file here or use the button below')).toBeInTheDocument();
     expect(screen.getByText('Max 10MB • JPG, PNG, WebP')).toBeInTheDocument();
   });
 
@@ -206,7 +206,7 @@ describe('ImageUpload', () => {
       });
     });
 
-    it('shows two buttons on desktop', async () => {
+    it('shows single "Upload Photo" button on desktop', async () => {
       // Change to desktop viewport
       Object.defineProperty(window, 'innerWidth', {
         writable: true,
@@ -218,8 +218,9 @@ describe('ImageUpload', () => {
       render(<ImageUpload onUpload={mockOnUpload} />);
       
       await waitFor(() => {
-        expect(screen.getByText('Camera')).toBeInTheDocument();
-        expect(screen.getByText('Gallery')).toBeInTheDocument();
+        expect(screen.getByText('Upload Photo')).toBeInTheDocument();
+        expect(screen.queryByText('Camera')).not.toBeInTheDocument();
+        expect(screen.queryByText('Gallery')).not.toBeInTheDocument();
         expect(screen.queryByText('Choose Photo')).not.toBeInTheDocument();
       });
     });

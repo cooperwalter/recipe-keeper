@@ -119,6 +119,7 @@ export default function NewRecipePage() {
           return (
             <div
               key={recipe.id}
+              onClick={() => router.push(recipe.href)}
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={(e) => handleTouchEnd(e, recipe.id, recipe.href)}

@@ -68,31 +68,15 @@ export function OCRRecipeFlow() {
 
       if (!uploadResponse.ok) {
         const errorData = await uploadResponse.json();
+        if (uploadResponse.status === 503 && errorData.error?.includes("OCR service")) {
+          throw new Error("The OCR service is currently unavailable. This feature requires an API key to be configured. Please try importing from URL or entering the recipe manually.");
+        }
         throw new Error(errorData.error || "Failed to upload image");
       }
 
-      const { imageUrl: url, extractedText: text } = await uploadResponse.json();
+      const { imageUrl: url, extractedText: text, recipe } = await uploadResponse.json();
       setImageUrl(url);
       setExtractedText(text);
-      setUploadProgress(60);
-
-      // Extract structured recipe data
-      const extractResponse = await fetch("/api/recipes/ocr/extract", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ extractedText: text }),
-      });
-
-      setUploadProgress(80);
-
-      if (!extractResponse.ok) {
-        const errorData = await extractResponse.json();
-        throw new Error(errorData.error || "Failed to extract recipe data");
-      }
-
-      const { recipe } = await extractResponse.json();
       setExtractedRecipe(recipe);
       setUploadProgress(100);
       

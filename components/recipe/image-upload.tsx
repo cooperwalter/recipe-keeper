@@ -36,7 +36,6 @@ export function ImageUpload({
 }: ImageUploadProps) {
   const [localPreview, setLocalPreview] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const mobileInputRef = useRef<HTMLInputElement>(null);
 
@@ -90,10 +89,6 @@ export function ImageUpload({
     }
   };
 
-  const handleCameraClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    cameraInputRef.current?.click();
-  };
 
   const handleGalleryClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -127,15 +122,7 @@ export function ImageUpload({
           style={{ display: 'none' }}
         />
         
-        {/* Hidden file inputs for camera and gallery */}
-        <input
-          ref={cameraInputRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          onChange={handleFileChange}
-          style={{ display: 'none' }}
-        />
+        {/* Hidden file inputs for gallery and mobile */}
         <input
           ref={galleryInputRef}
           type="file"
@@ -198,10 +185,10 @@ export function ImageUpload({
               )}
               {!isMobile && (
                 <p className="text-xs text-muted-foreground">
-                  Drop a file here or use the buttons below
+                  Drop a file here or use the button below
                 </p>
               )}
-              <div className="mt-4 w-full px-4">
+              <div className="mt-4 w-full px-4 flex justify-center">
                 {isMobile ? (
                   <Button
                     type="button"
@@ -214,28 +201,16 @@ export function ImageUpload({
                     Choose Photo
                   </Button>
                 ) : (
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="default"
-                      onClick={handleCameraClick}
-                      className="flex items-center gap-2 w-full sm:w-auto min-w-[140px]"
-                    >
-                      <Camera className="h-5 w-5" />
-                      Camera
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="default"
-                      onClick={handleGalleryClick}
-                      className="flex items-center gap-2 w-full sm:w-auto min-w-[140px]"
-                    >
-                      <FolderOpen className="h-5 w-5" />
-                      Gallery
-                    </Button>
-                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="default"
+                    onClick={handleGalleryClick}
+                    className="flex items-center gap-2"
+                  >
+                    <FolderOpen className="h-5 w-5" />
+                    Upload Photo
+                  </Button>
                 )}
               </div>
               <p className="text-xs text-muted-foreground mt-2">
