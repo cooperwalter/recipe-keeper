@@ -2,10 +2,39 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import sharp from "sharp";
 import { anthropic } from "@ai-sdk/anthropic";
-import { generateText } from "ai";
+import { generateObject } from "ai";
+import { z } from "zod";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const MAX_IMAGE_DIMENSION = 4096; // Max dimension for Claude
+
+// Schema for extracted recipe data
+const ExtractedRecipeSchema = z.object({
+  title: z.string().describe("The recipe title"),
+  description: z.string().optional().describe("A brief description of the recipe"),
+  prepTime: z.number().optional().describe("Preparation time in minutes"),
+  cookTime: z.number().optional().describe("Cooking time in minutes"),
+  servings: z.number().optional().describe("Number of servings"),
+  ingredients: z.array(
+    z.object({
+      amount: z.string().optional().describe("Amount (e.g., '2', '1/2', '1.5')"),
+      unit: z.string().optional().describe("Unit of measurement (e.g., 'cup', 'tbsp', 'oz')"),
+      ingredient: z.string().describe("The ingredient name"),
+      notes: z.string().optional().describe("Any notes or preparation instructions"),
+    })
+  ).describe("List of ingredients"),
+  instructions: z.array(
+    z.string().describe("A single instruction step")
+  ).describe("List of cooking instructions"),
+  sourceName: z.string().optional().describe("Who the recipe is from (e.g., 'Grandma Betty')"),
+  sourceNotes: z.string().optional().describe("Any family notes, memories, or tips"),
+  categories: z.array(z.string()).optional().describe("Suggested categories (e.g., 'dessert', 'main dish')"),
+  confidence: z.object({
+    overall: z.number().min(0).max(1).describe("Overall confidence in extraction (0-1)"),
+    fields: z.record(z.number().min(0).max(1)).optional().describe("Confidence for each field"),
+  }).describe("Confidence scores for the extraction"),
+  extractedText: z.string().describe("The raw text extracted from the image for reference"),
+});
 
 export async function POST(request: NextRequest) {
   try {
@@ -94,28 +123,48 @@ export async function POST(request: NextRequest) {
       .from("ocr-uploads")
       .getPublicUrl(fileName);
 
-    // Extract text using Claude's vision capabilities
+    // Check if Anthropic API key is configured
+    if (!process.env.ANTHROPIC_API_KEY) {
+      console.error("ANTHROPIC_API_KEY not configured");
+      // Clean up uploaded file
+      await supabase.storage.from("ocr-uploads").remove([fileName]);
+      
+      return NextResponse.json(
+        { error: "OCR service not configured. Please contact support." },
+        { status: 503 }
+      );
+    }
+
+    // Extract and parse recipe in a single API call using Claude Haiku for cost efficiency
     try {
       const base64Image = processedBuffer.toString("base64");
       const mimeType = contentType;
       
-      const { text: extractedText } = await generateText({
-        model: anthropic("claude-3-5-sonnet-20241022"),
+      // Using Claude 3 Haiku for cost efficiency (~10x cheaper than Sonnet)
+      // For complex handwritten recipes, you can upgrade to:
+      // model: anthropic("claude-3-5-sonnet-20241022")
+      const { object: extractedRecipe } = await generateObject({
+        model: anthropic("claude-3-haiku-20240307"),
+        schema: ExtractedRecipeSchema,
         messages: [
           {
             role: "user",
             content: [
               {
                 type: "text",
-                text: `Please extract ALL text from this recipe image. Include:
-- Recipe title
-- All ingredients with amounts and units
-- All cooking instructions/steps
-- Any cooking times, temperatures, or serving information
-- Any notes or tips
-- Source attribution if visible
+                text: `Extract structured recipe data from this image. 
 
-Return the raw text exactly as it appears, preserving the structure and formatting as much as possible.`,
+Important guidelines:
+1. First, extract ALL visible text from the image
+2. Then parse it into the structured format
+3. Convert cooking times to minutes (e.g., "1 hour" = 60)
+4. Standardize ingredient amounts (e.g., "half cup" becomes "1/2")
+5. Keep units as they appear (don't convert between metric/imperial)
+6. Include any family notes, memories, or special tips in sourceNotes
+7. Set confidence scores based on how clearly you can read the text
+8. Include the raw extracted text in the extractedText field
+
+Be thorough and accurate in your extraction.`,
               },
               {
                 type: "image",
@@ -124,13 +173,27 @@ Return the raw text exactly as it appears, preserving the structure and formatti
             ],
           },
         ],
-        temperature: 0.1,
+        temperature: 0.2,
         maxTokens: 4000,
       });
 
+      // Post-process the extracted data
+      const processedRecipe = {
+        ...extractedRecipe,
+        ingredients: extractedRecipe.ingredients.map((ing, index) => ({
+          ...ing,
+          orderIndex: index,
+        })),
+        instructions: extractedRecipe.instructions.map((instruction, index) => ({
+          stepNumber: index + 1,
+          instruction,
+        })),
+      };
+
       return NextResponse.json({
         imageUrl: publicUrl,
-        extractedText,
+        extractedText: extractedRecipe.extractedText,
+        recipe: processedRecipe,
         fileName: uploadData.path,
       });
     } catch (ocrError) {

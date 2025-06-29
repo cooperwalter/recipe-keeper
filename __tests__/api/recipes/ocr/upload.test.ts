@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { POST } from '@/app/api/recipes/ocr/upload/route';
 import { createClient } from '@/lib/supabase/server';
 import sharp from 'sharp';
-import { generateText } from 'ai';
+import { generateObject } from 'ai';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 // Mock dependencies
@@ -147,8 +147,17 @@ describe('POST /api/recipes/ocr/upload', () => {
     });
 
     // Mock AI text generation
-    (generateText as any).mockResolvedValue({
-      text: 'Chocolate Chip Cookies\n\nIngredients:\n- 2 cups flour\n- 1 cup sugar',
+    (generateObject as any).mockResolvedValue({
+      object: {
+        title: 'Chocolate Chip Cookies',
+        ingredients: [
+          { amount: '2', unit: 'cups', ingredient: 'flour' },
+          { amount: '1', unit: 'cup', ingredient: 'sugar' }
+        ],
+        instructions: ['Mix ingredients', 'Bake at 350°F'],
+        extractedText: 'Chocolate Chip Cookies\n\nIngredients:\n- 2 cups flour\n- 1 cup sugar',
+        confidence: { overall: 0.9 }
+      }
     });
 
     const validFile = new File(['test'], 'recipe.jpg', {
@@ -167,14 +176,24 @@ describe('POST /api/recipes/ocr/upload', () => {
     const data = await response.json();
 
     expect(response.status).toBe(200);
-    expect(data).toEqual({
-      imageUrl: 'https://example.com/recipe.jpg',
-      extractedText: 'Chocolate Chip Cookies\n\nIngredients:\n- 2 cups flour\n- 1 cup sugar',
-      fileName: 'user123/123456-recipe.jpg',
+    expect(data).toHaveProperty('imageUrl', 'https://example.com/recipe.jpg');
+    expect(data).toHaveProperty('extractedText', 'Chocolate Chip Cookies\n\nIngredients:\n- 2 cups flour\n- 1 cup sugar');
+    expect(data).toHaveProperty('fileName', 'user123/123456-recipe.jpg');
+    expect(data).toHaveProperty('recipe');
+    expect(data.recipe).toMatchObject({
+      title: 'Chocolate Chip Cookies',
+      ingredients: expect.arrayContaining([
+        expect.objectContaining({ ingredient: 'flour', orderIndex: 0 }),
+        expect.objectContaining({ ingredient: 'sugar', orderIndex: 1 })
+      ]),
+      instructions: expect.arrayContaining([
+        expect.objectContaining({ instruction: 'Mix ingredients', stepNumber: 1 }),
+        expect.objectContaining({ instruction: 'Bake at 350°F', stepNumber: 2 })
+      ])
     });
 
     expect(mockStorageBucket.upload).toHaveBeenCalled();
-    expect(generateText).toHaveBeenCalled();
+    expect(generateObject).toHaveBeenCalled();
   });
 
   it('converts HEIC images to JPEG', async () => {
@@ -199,8 +218,14 @@ describe('POST /api/recipes/ocr/upload', () => {
       data: { publicUrl: 'https://example.com/recipe.jpg' },
     });
 
-    (generateText as any).mockResolvedValue({
-      text: 'Recipe text',
+    (generateObject as any).mockResolvedValue({
+      object: {
+        title: 'Test Recipe',
+        ingredients: [],
+        instructions: [],
+        extractedText: 'Recipe text',
+        confidence: { overall: 0.9 }
+      }
     });
 
     const heicFile = new File(['test'], 'recipe.heic', {
@@ -243,8 +268,14 @@ describe('POST /api/recipes/ocr/upload', () => {
       data: { publicUrl: 'https://example.com/recipe.jpg' },
     });
 
-    (generateText as any).mockResolvedValue({
-      text: 'Recipe text',
+    (generateObject as any).mockResolvedValue({
+      object: {
+        title: 'Test Recipe',
+        ingredients: [],
+        instructions: [],
+        extractedText: 'Recipe text',
+        confidence: { overall: 0.9 }
+      }
     });
 
     const largeImageFile = new File(['test'], 'recipe.jpg', {
@@ -290,7 +321,7 @@ describe('POST /api/recipes/ocr/upload', () => {
     });
 
     // Mock AI error
-    (generateText as any).mockRejectedValue(new Error('OCR failed'));
+    (generateObject as any).mockRejectedValue(new Error('OCR failed'));
 
     const validFile = new File(['test'], 'recipe.jpg', {
       type: 'image/jpeg',
