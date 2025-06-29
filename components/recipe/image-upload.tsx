@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
-import { Upload, X, Image as ImageIcon, Loader2, Camera, FolderOpen } from "lucide-react";
+import { Upload, X, Image as ImageIcon, Loader2, FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LoadingText } from "@/components/ui/loading-states";
 import { cn } from "@/lib/utils";
