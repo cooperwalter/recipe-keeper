@@ -5,6 +5,8 @@ import { defineConfig, devices } from '@playwright/test'
  */
 export default defineConfig({
   testDir: './e2e',
+  /* Test files to include */
+  testMatch: ['**/*.spec.ts', '**/*.test.ts'],
   /* Run tests in files in parallel */
   fullyParallel: false, // Changed to false to avoid auth conflicts
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -28,7 +30,7 @@ export default defineConfig({
     // Setup project that runs first
     {
       name: 'setup',
-      testMatch: /.*\.setup\.ts/,
+      testMatch: '**/*.setup.ts',
     },
     
     // Test projects that depend on setup
@@ -40,6 +42,7 @@ export default defineConfig({
         storageState: 'playwright/.auth/user.json',
       },
       dependencies: ['setup'],
+      testIgnore: '**/*.setup.ts',
     },
 
     {
@@ -49,6 +52,7 @@ export default defineConfig({
         storageState: 'playwright/.auth/user.json',
       },
       dependencies: ['setup'],
+      testIgnore: '**/*.setup.ts',
     },
 
     {
@@ -58,6 +62,7 @@ export default defineConfig({
         storageState: 'playwright/.auth/user.json',
       },
       dependencies: ['setup'],
+      testIgnore: '**/*.setup.ts',
     },
 
     /* Test against mobile viewports. */
@@ -68,6 +73,7 @@ export default defineConfig({
         storageState: 'playwright/.auth/user.json',
       },
       dependencies: ['setup'],
+      testIgnore: '**/*.setup.ts',
     },
     {
       name: 'Mobile Safari',
@@ -76,6 +82,7 @@ export default defineConfig({
         storageState: 'playwright/.auth/user.json',
       },
       dependencies: ['setup'],
+      testIgnore: '**/*.setup.ts',
     },
   ],
 
