@@ -22,7 +22,6 @@
     "test": "vitest --exclude '**/e2e/**'",
     "test:ui": "vitest --ui --exclude '**/e2e/**'",
     "test:coverage": "vitest run --coverage --exclude '**/e2e/**'",
-    "test:unit": "vitest run --config vitest.config.unit.ts",
     "test:api": "vitest run --config vitest.config.api.ts",
     "test:e2e": "vitest run --config vitest.config.e2e.ts",
     "test:e2e:pw": "playwright test",
