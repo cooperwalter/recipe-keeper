@@ -2,7 +2,7 @@ import { AuthButton } from "@/components/auth-button";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ChefHat, BookOpen, Heart, Users, Clock, Search, Camera, Mic, Scale, FileText, Link2, History } from "lucide-react";
+import { ChefHat, BookOpen, Heart, Users, Search, Camera, Mic, Scale, FileText, Link2, History } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
 import { userProfiles } from "@/lib/db/schema";
