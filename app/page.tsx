@@ -118,15 +118,15 @@ export default async function Home() {
               description="Generate beautiful recipe cards optimized for printing and sharing offline."
             />
             <FeatureCard
+              icon={<Users className="h-8 w-8" />}
+              title="Share with Family"
+              description="Easily share recipes with family members and collaborate on your collection together."
+            />
+            <FeatureCard
               icon={<Search className="h-8 w-8" />}
               title="Smart Search & Filters"
               description="Find recipes by name, category, dietary preferences, or cooking time with advanced filters."
               comingSoon
-            />
-            <FeatureCard
-              icon={<Users className="h-8 w-8" />}
-              title="Share with Family"
-              description="Easily share recipes with family members and collaborate on your collection together."
             />
           </div>
         </div>
