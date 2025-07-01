@@ -143,6 +143,24 @@ export const favorites = pgTable('favorites', {
   };
 });
 
+// Share links table
+export const shareLinks = pgTable('share_links', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  recipeId: uuid('recipe_id').references(() => recipes.id, { onDelete: 'cascade' }).notNull(),
+  token: text('token').notNull().unique(),
+  createdBy: uuid('created_by').notNull(), // References auth.users
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }), // null means never expires
+  viewCount: integer('view_count').default(0).notNull(),
+  lastViewedAt: timestamp('last_viewed_at', { withTimezone: true }),
+}, (table) => {
+  return {
+    tokenIdx: uniqueIndex('idx_share_links_token').on(table.token),
+    recipeIdIdx: index('idx_share_links_recipe_id').on(table.recipeId),
+    createdByIdx: index('idx_share_links_created_by').on(table.createdBy),
+  };
+});
+
 // Schema migrations table
 export const schemaMigrations = pgTable('schema_migrations', {
   version: text('version').primaryKey(),
@@ -167,6 +185,7 @@ export const recipesRelations = relations(recipes, ({ one, many }) => ({
   categoryMappings: many(recipeCategoryMappings),
   versions: many(recipeVersions),
   favorites: many(favorites),
+  shareLinks: many(shareLinks),
 }));
 
 export const ingredientsRelations = relations(ingredients, ({ one }) => ({
@@ -215,6 +234,21 @@ export const favoritesRelations = relations(favorites, ({ one }) => ({
   }),
 }));
 
+export const shareLinksRelations = relations(shareLinks, ({ one }) => ({
+  recipe: one(recipes, {
+    fields: [shareLinks.recipeId],
+    references: [recipes.id],
+  }),
+  creator: one(userProfiles, {
+    fields: [shareLinks.createdBy],
+    references: [userProfiles.userId],
+  }),
+}));
+
+export const userProfilesRelations = relations(userProfiles, ({ many }) => ({
+  shareLinks: many(shareLinks),
+}));
+
 // Types
 export type RecipeCategory = typeof recipeCategories.$inferSelect;
 export type NewRecipeCategory = typeof recipeCategories.$inferInsert;
@@ -242,3 +276,6 @@ export type NewFavorite = typeof favorites.$inferInsert;
 
 export type UserProfile = typeof userProfiles.$inferSelect;
 export type NewUserProfile = typeof userProfiles.$inferInsert;
+
+export type ShareLink = typeof shareLinks.$inferSelect;
+export type NewShareLink = typeof shareLinks.$inferInsert;
