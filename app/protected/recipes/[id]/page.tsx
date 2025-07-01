@@ -35,7 +35,10 @@ import {
   ChevronLeft,
   Calendar,
   User,
-  Trash2
+  Trash2,
+  Share2,
+  Check,
+  Loader2
 } from 'lucide-react'
 import Link from 'next/link'
 import { BackButton } from '@/components/ui/back-button'
@@ -53,6 +56,9 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
   const router = useRouter()
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [recipeScale, setRecipeScale] = useState(1)
+  const [shareUrl, setShareUrl] = useState<string | null>(null)
+  const [isLoadingShare, setIsLoadingShare] = useState(false)
+  const [copiedToClipboard, setCopiedToClipboard] = useState(false)
 
   const { data: recipe, isLoading } = useRecipe(id)
   const toggleFavorite = useToggleFavorite()
@@ -110,6 +116,47 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
 
   const handlePrint = () => {
     window.print()
+  }
+
+  const handleShare = async () => {
+    if (shareUrl) {
+      // If we already have a share URL, just copy it
+      await copyToClipboard(shareUrl)
+      return
+    }
+
+    setIsLoadingShare(true)
+    try {
+      const response = await fetch(`/api/recipes/${id}/share`, {
+        method: 'POST',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to create share link')
+      }
+
+      const data = await response.json()
+      // Construct full URL if only path is returned
+      const fullUrl = data.shareUrl.startsWith('http') 
+        ? data.shareUrl 
+        : `${window.location.origin}${data.shareUrl}`
+      setShareUrl(fullUrl)
+      await copyToClipboard(fullUrl)
+    } catch {
+      alert('Failed to create share link')
+    } finally {
+      setIsLoadingShare(false)
+    }
+  }
+
+  const copyToClipboard = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopiedToClipboard(true)
+      setTimeout(() => setCopiedToClipboard(false), 2000)
+    } catch {
+      alert('Failed to copy to clipboard')
+    }
   }
 
   const handleDelete = () => {
@@ -187,7 +234,7 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
                 </TooltipContent>
               </Tooltip>
             </div>
-            <div className="grid grid-cols-3 sm:flex sm:flex-nowrap gap-2 print:hidden">
+            <div className="grid grid-cols-4 sm:flex sm:flex-nowrap gap-2 print:hidden">
               <div className="w-full sm:w-auto">
                 <VoiceRecipeChat recipe={recipe} />
               </div>
@@ -202,6 +249,31 @@ export default function RecipeDetailPage({ params }: RecipeDetailPageProps) {
                   Edit
                 </Button>
               </Link>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleShare} 
+                aria-label="Share recipe"
+                className="w-full sm:w-auto"
+                disabled={isLoadingShare}
+              >
+                {isLoadingShare ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                    Loading...
+                  </>
+                ) : copiedToClipboard ? (
+                  <>
+                    <Check className="h-4 w-4 mr-1" />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <Share2 className="h-4 w-4 mr-1" />
+                    Share
+                  </>
+                )}
+              </Button>
               <Button 
                 variant="outline" 
                 size="sm" 

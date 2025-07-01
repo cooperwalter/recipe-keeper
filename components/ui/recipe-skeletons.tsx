@@ -94,26 +94,19 @@ export function RecipeListItemSkeleton({ className }: { className?: string }) {
 // Enhanced Recipe Detail Skeleton
 export function RecipeDetailSkeleton({ className }: { className?: string }) {
   return (
-    <div className={cn("container mx-auto pt-0 pb-8 px-4", className)}>
-      {/* Back button */}
-      <Skeleton className="h-10 w-32 mb-6" />
-      
+    <div className={cn("space-y-6", className)}>
       {/* Header */}
       <div className="mb-8">
-        <div className="flex justify-between items-start gap-4 mb-4">
-          <div className="flex items-center gap-2">
-            <ShimmerSkeleton className="h-10 w-64" />
-            <Skeleton className="h-8 w-8 rounded-full" />
-          </div>
-          <div className="flex gap-2">
-            <Skeleton className="h-9 w-24" />
-            <Skeleton className="h-9 w-20" />
-            <Skeleton className="h-9 w-20" />
-          </div>
+        <div className="flex items-center justify-between mb-4">
+          <Skeleton className="h-10 w-3/4 max-w-md" />
+          <Skeleton className="h-10 w-10 rounded" />
         </div>
         
         {/* Description */}
-        <ShimmerSkeleton className="h-6 w-full max-w-2xl mb-4" />
+        <Skeleton className="h-6 w-full max-w-2xl mb-4" />
+        
+        {/* Shared by info */}
+        <Skeleton className="h-12 w-full max-w-md mb-4" />
         
         {/* Meta info */}
         <div className="flex flex-wrap gap-4">
@@ -126,27 +119,23 @@ export function RecipeDetailSkeleton({ className }: { className?: string }) {
       
       {/* Photo gallery skeleton */}
       <div className="mb-8">
-        <ShimmerSkeleton className="h-96 w-full rounded-lg">
+        <ShimmerSkeleton className="h-64 md:h-96 w-full rounded-lg">
           <div className="absolute inset-0 flex items-center justify-center">
             <ChefHat className="h-16 w-16 text-muted-foreground/20" />
           </div>
         </ShimmerSkeleton>
       </div>
       
-      {/* Recipe scaler */}
-      <div className="mb-6">
-        <Skeleton className="h-12 w-full max-w-md" />
-      </div>
-      
       {/* Main content */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="grid md:grid-cols-2 gap-8">
         {/* Ingredients */}
-        <div className="md:col-span-1">
+        <div>
+          {/* Recipe scaler */}
+          <Skeleton className="h-12 w-full mb-4" />
           <Skeleton className="h-8 w-32 mb-4" />
           <div className="space-y-3">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="flex items-start gap-2">
-                <span className="text-muted-foreground/40">•</span>
                 <Skeleton className="h-4 flex-1" />
               </div>
             ))}
@@ -154,7 +143,7 @@ export function RecipeDetailSkeleton({ className }: { className?: string }) {
         </div>
         
         {/* Instructions */}
-        <div className="md:col-span-2">
+        <div>
           <Skeleton className="h-8 w-32 mb-4" />
           <div className="space-y-4">
             {Array.from({ length: 6 }).map((_, i) => (
