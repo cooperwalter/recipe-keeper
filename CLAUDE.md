@@ -48,6 +48,7 @@ pnpm storage:setup   # Create Supabase storage buckets
 - **Auth**: Supabase Auth with middleware session refresh
 - **UI**: Tailwind CSS + shadcn/ui components
 - **AI**: Anthropic Claude (OCR/NLP) + OpenAI (voice transcription)
+- **Monitoring**: Sentry error tracking
 
 ### Key Directories
 - `/app` - Next.js App Router pages
