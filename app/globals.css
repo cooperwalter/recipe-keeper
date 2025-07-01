@@ -65,6 +65,12 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Prevent FOUC (Flash of Unstyled Content) */
+  html {
+    visibility: visible;
+    opacity: 1;
+  }
 }
 
 /* Print-specific display utilities */

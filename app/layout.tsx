@@ -82,8 +82,95 @@ export default function RootLayout({
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <meta name="apple-mobile-web-app-title" content="Recipe And Me" />
         <link rel="manifest" href="/site.webmanifest" />
+        {/* Critical inline CSS for splash screen to prevent white flash */}
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            #splash-screen {
+              position: fixed;
+              top: 0;
+              left: 0;
+              right: 0;
+              bottom: 0;
+              z-index: 9999;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              background: hsl(27 39% 97%);
+              opacity: 1;
+              transition: opacity 0.5s ease-out;
+            }
+            @media (prefers-color-scheme: dark) {
+              #splash-screen {
+                background: hsl(20 20% 12%);
+              }
+            }
+            .dark #splash-screen {
+              background: hsl(20 20% 12%);
+            }
+            #splash-screen.fade-out {
+              opacity: 0;
+            }
+            #splash-screen .logo {
+              width: 64px;
+              height: 64px;
+              color: hsl(19 80% 50%);
+              animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            }
+            #splash-text {
+              color: hsl(15 25% 15%);
+            }
+            @media (prefers-color-scheme: dark) {
+              #splash-text {
+                color: hsl(24 20% 95%);
+              }
+            }
+            .dark #splash-text {
+              color: hsl(24 20% 95%);
+            }
+            @keyframes pulse {
+              0%, 100% {
+                opacity: 1;
+              }
+              50% {
+                opacity: .5;
+              }
+            }
+          `
+        }} />
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            (function() {
+              // Remove splash screen when page is loaded
+              if (typeof window !== 'undefined') {
+                window.addEventListener('load', function() {
+                  setTimeout(function() {
+                    var splash = document.getElementById('splash-screen');
+                    if (splash) {
+                      splash.classList.add('fade-out');
+                      setTimeout(function() {
+                        splash.style.display = 'none';
+                      }, 500);
+                    }
+                  }, 100);
+                });
+              }
+            })();
+          `
+        }} />
       </head>
       <body className={`${geistSans.className} antialiased`}>
+        {/* Initial splash screen (removed by JavaScript) */}
+        <div id="splash-screen">
+          <div style={{ textAlign: 'center' }}>
+            <svg className="logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg">
+              <path d="M17 21a1 1 0 0 0 1-1v-5.35c0-.457.316-.844.727-1.041a4 4 0 0 0-2.134-7.589 5 5 0 0 0-9.186 0 4 4 0 0 0-2.134 7.588c.411.198.727.585.727 1.041V20a1 1 0 0 0 1 1Z" />
+              <path d="M6 17h12" />
+            </svg>
+            <div id="splash-text" style={{ marginTop: '16px', fontSize: '24px', fontWeight: 'bold' }}>
+              Recipe and Me
+            </div>
+          </div>
+        </div>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
