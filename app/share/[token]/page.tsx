@@ -63,8 +63,7 @@ export default function SharePage({ params }: SharePageProps) {
   const [recipe, setRecipe] = useState<SharedRecipe | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [servings, setServings] = useState<number>(4)
-  const scaleFactor = recipe?.recipe.servings ? servings / recipe.recipe.servings : 1
+  const [recipeScale, setRecipeScale] = useState(1)
 
   useEffect(() => {
     const fetchSharedRecipe = async () => {
@@ -76,9 +75,6 @@ export default function SharePage({ params }: SharePageProps) {
         }
         const data = await response.json()
         setRecipe(data)
-        if (data.recipe.servings) {
-          setServings(data.recipe.servings)
-        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load recipe')
       } finally {
@@ -223,19 +219,24 @@ export default function SharePage({ params }: SharePageProps) {
           <div>
             <div className="mb-4 print:hidden">
               <RecipeScaler
-                servings={servings}
-                onServingsChange={setServings}
                 originalServings={recipeData.servings || 4}
+                onScaleChange={setRecipeScale}
               />
             </div>
 
             <h2 className="text-2xl font-semibold mb-4">Ingredients</h2>
             <ul className="space-y-2">
               {recipeData.ingredients.map((ingredient) => {
+                // Convert amount from string to number if it exists
+                const ingredientWithNumericAmount = {
+                  ...ingredient,
+                  amount: ingredient.amount ? parseFloat(ingredient.amount) : undefined
+                }
+                
                 // Scale the ingredient if it has an amount
                 const scaledIngredient = scaleIngredientWithRules(
-                  ingredient,
-                  scaleFactor
+                  ingredientWithNumericAmount,
+                  recipeScale
                 )
                 
                 const displayAmount = scaledIngredient.scaledAmount || scaledIngredient.amount || 0
