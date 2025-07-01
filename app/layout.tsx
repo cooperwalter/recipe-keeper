@@ -111,8 +111,10 @@ export default function RootLayout({
               opacity: 0;
             }
             #splash-screen .logo {
+              display: block;
               width: 64px;
               height: 64px;
+              margin: 0 auto;
               color: hsl(19 80% 50%);
               animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
             }
