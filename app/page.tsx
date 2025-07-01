@@ -131,7 +131,6 @@ export default async function Home() {
               icon={<Users className="h-8 w-8" />}
               title="Share with Family"
               description="Easily share recipes with family members and collaborate on your collection together."
-              comingSoon
             />
           </div>
         </div>
