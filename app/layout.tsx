@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryProvider } from "@/lib/providers/query-provider";
 import { ReactDevToolsInit } from "@/components/dev/react-devtools-init";
 import { Analytics } from "@vercel/analytics/react";
+import NextTopLoader from 'nextjs-toploader';
 import "./globals.css";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -179,6 +180,17 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <NextTopLoader
+            color="hsl(var(--primary))"
+            initialPosition={0.08}
+            crawlSpeed={200}
+            height={3}
+            crawl={true}
+            showSpinner={false}
+            easing="ease"
+            speed={200}
+            shadow="0 0 10px hsl(var(--primary)),0 0 5px hsl(var(--primary))"
+          />
           <TooltipProvider>
             <QueryProvider>
               <ReactDevToolsInit />
