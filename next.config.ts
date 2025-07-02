@@ -1,7 +1,22 @@
 import {withSentryConfig} from '@sentry/nextjs';
 import type { NextConfig } from "next";
+import { execSync } from 'child_process';
+
+// Generate build ID
+const generateBuildId = () => {
+  try {
+    // Try to get git commit SHA first
+    const gitSha = execSync('git rev-parse HEAD').toString().trim();
+    const timestamp = new Date().toISOString().split('T')[0];
+    return `${timestamp}-${gitSha.substring(0, 8)}`;
+  } catch {
+    // Fallback if not in a git repo
+    return `build-${Date.now()}`;
+  }
+};
 
 const nextConfig: NextConfig = {
+  generateBuildId,
   eslint: {
     // Ignore test files during build
     ignoreDuringBuilds: true,

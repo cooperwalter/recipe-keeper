@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
 import { userProfiles } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { SiteLogo } from "@/components/navigation/site-logo";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -27,12 +28,7 @@ export default async function Home() {
       {/* Navigation */}
       <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
         <div className="w-full max-w-7xl flex justify-between items-center p-3 px-5">
-          <div className="flex gap-2 items-center">
-            <ChefHat className="h-6 w-6 text-primary" />
-            <Link href="/" className="font-bold text-xl">
-              Recipe and Me
-            </Link>
-          </div>
+          <SiteLogo />
           <div className="flex items-center gap-2 sm:gap-4">
             {user && (
               <Link href="/protected/recipes">
