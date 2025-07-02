@@ -49,10 +49,12 @@ import { NavLink } from '@/components/ui/nav-link'
 ```
 
 ### Testing
-Visit `/demo-loading` to see:
+Visit `/demo-loading` (development only) to see:
 - Immediate loading feedback on navigation
 - How it works with slow-loading pages
 - Comparison between regular links and enhanced NavLinks
+
+Note: The demo page is only accessible in development mode and returns a 404 in production.
 
 ### Future Enhancements
 1. Add route-specific loading animations
