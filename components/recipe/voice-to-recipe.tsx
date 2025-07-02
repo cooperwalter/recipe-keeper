@@ -94,6 +94,9 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
   const processTranscriptRef = useRef<((text: string) => void) | null>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
+  const retryCountRef = useRef<number>(0)
+  const maxRetriesRef = useRef<number>(3)
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const startRecording = useCallback(async () => {
     try {
@@ -140,6 +143,8 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
           
           recognition.onstart = () => {
             console.log('Speech recognition started successfully')
+            // Reset retry count on successful start
+            retryCountRef.current = 0
           }
           
           recognition.onresult = (event: SpeechRecognitionEvent) => {
@@ -171,10 +176,25 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
               console.log('No speech detected yet, continuing...')
             } else if (event.error === 'not-allowed') {
               setError('Microphone access denied. Please allow microphone access and try again.')
+              // Stop recording on permission errors
+              if (isRecordingRef.current) {
+                isRecordingRef.current = false
+                setIsRecording(false)
+              }
             } else if (event.error === 'network') {
-              setError('Network error. Please check your internet connection.')
+              // Network errors are common, especially in production
+              // Don't show error immediately, try to handle gracefully
+              console.log('Network error occurred, will retry if needed')
+              // The onend handler will take care of restarting if still recording
             } else if (event.error === 'audio-capture') {
               setError('Failed to capture audio. Please check your microphone.')
+              if (isRecordingRef.current) {
+                isRecordingRef.current = false
+                setIsRecording(false)
+              }
+            } else if (event.error === 'aborted') {
+              // Recognition was aborted, likely intentionally
+              console.log('Speech recognition aborted')
             } else {
               setError(`Speech recognition error: ${event.error}`)
             }
@@ -184,14 +204,42 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
             console.log('Speech recognition ended')
             // If recognition ends unexpectedly while recording, restart it
             if (isRecordingRef.current && recognitionRef.current) {
-              console.log('Restarting speech recognition...')
-              setTimeout(() => {
-                try {
-                  recognition.start()
-                } catch (err) {
-                  console.error('Error restarting recognition:', err)
-                }
-              }, 100)
+              // Clear any existing retry timeout
+              if (retryTimeoutRef.current) {
+                clearTimeout(retryTimeoutRef.current)
+              }
+              
+              // Implement exponential backoff for retries
+              if (retryCountRef.current < maxRetriesRef.current) {
+                const backoffDelay = Math.min(1000 * Math.pow(2, retryCountRef.current), 8000)
+                console.log(`Restarting speech recognition in ${backoffDelay}ms (retry ${retryCountRef.current + 1}/${maxRetriesRef.current})`)
+                
+                retryTimeoutRef.current = setTimeout(() => {
+                  try {
+                    if (isRecordingRef.current && recognitionRef.current) {
+                      recognition.start()
+                      retryCountRef.current++
+                    }
+                  } catch (err) {
+                    console.error('Error restarting recognition:', err)
+                    // If we can't restart, fall back to MediaRecorder
+                    if (err instanceof Error && err.message.includes('already started')) {
+                      // Recognition is already running, reset retry count
+                      retryCountRef.current = 0
+                    } else {
+                      console.log('Falling back to MediaRecorder due to repeated failures')
+                      setUseMediaRecorder(true)
+                    }
+                  }
+                }, backoffDelay)
+              } else {
+                console.log('Max retries reached, falling back to MediaRecorder')
+                setError('Speech recognition is having issues. Recording audio for transcription instead.')
+                setUseMediaRecorder(true)
+              }
+            } else {
+              // Recording stopped normally, reset retry count
+              retryCountRef.current = 0
             }
           }
           
@@ -311,6 +359,9 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
       if (intervalRef.current) {
         clearInterval(intervalRef.current)
       }
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current)
+      }
       if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
         audioContextRef.current.close()
       }
@@ -326,6 +377,15 @@ export function VoiceToRecipe({ recipe, onUpdate }: VoiceToRecipeProps) {
       recognitionRef.current.stop()
       recognitionRef.current = null
     }
+    
+    // Clear retry timeout
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current)
+      retryTimeoutRef.current = null
+    }
+    
+    // Reset retry count
+    retryCountRef.current = 0
     
     // Stop MediaRecorder if using fallback
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
