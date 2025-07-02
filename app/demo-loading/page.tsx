@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { NavLink } from '@/components/ui/nav-link'
 import { Button } from '@/components/ui/button'
+import { notFound } from 'next/navigation'
 
 // Simulate a slow loading page
 async function slowDataFetch() {
@@ -9,6 +10,10 @@ async function slowDataFetch() {
 }
 
 export default async function DemoLoadingPage() {
+  // Only allow access in development
+  if (process.env.NODE_ENV !== 'development') {
+    notFound()
+  }
   const data = await slowDataFetch()
 
   return (
