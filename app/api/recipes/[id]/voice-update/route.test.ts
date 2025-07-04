@@ -329,7 +329,7 @@ describe('POST /api/recipes/[id]/voice-update', () => {
     const data = await response.json()
 
     expect(response.status).toBe(500)
-    expect(data.error).toBe('Failed to process voice command')
+    expect(data.error).toBe('Failed to process voice command. Check server logs for details.')
   })
 
   it('handles malformed AI responses', async () => {
@@ -389,6 +389,6 @@ describe('POST /api/recipes/[id]/voice-update', () => {
     const data = await response.json()
     
     expect(response.status).toBe(500)
-    expect(data.error).toBe('Failed to process voice command')
+    expect(data.error).toBe('Failed to process voice command. Check server logs for details.')
   })
 })

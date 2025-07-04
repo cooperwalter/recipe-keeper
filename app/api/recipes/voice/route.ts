@@ -3,18 +3,22 @@ import { createClient } from '@/lib/supabase/server';
 import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY!,
+  apiKey: process.env.ANTHROPIC_API_KEY || '',
 });
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('[Voice Recipe API] Processing voice recipe request')
+    
     // Check authentication
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
-    if (!user) {
+    if (authError || !user) {
+      console.error('[Voice Recipe API] Authentication error:', authError);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    console.log('[Voice Recipe API] Authenticated user:', user.email)
 
     const { transcript } = await request.json();
 
@@ -77,6 +81,16 @@ export async function POST(request: NextRequest) {
     - Be generous in interpreting pauses and speech patterns
     - Keep sourceNotes for additional context like "she always made this for holidays" or "family favorite since 1950"`;
 
+    // Log API key status (without exposing the key)
+    const anthropicKey = process.env.ANTHROPIC_API_KEY
+    console.log('[Voice Recipe API] Anthropic API key status:', {
+      exists: !!anthropicKey,
+      length: anthropicKey?.length || 0,
+      prefix: anthropicKey?.substring(0, 10) || 'N/A',
+      suffix: anthropicKey ? '...' + anthropicKey.slice(-4) : 'N/A'
+    })
+
+    console.log('[Voice Recipe API] Sending transcript to Anthropic for processing...')
     const message = await anthropic.messages.create({
       model: 'claude-3-haiku-20240307',
       max_tokens: 2000,
@@ -87,6 +101,7 @@ export async function POST(request: NextRequest) {
         content: transcript
       }]
     });
+    console.log('[Voice Recipe API] Received response from Anthropic')
 
     const responseText = message.content[0].type === 'text' ? message.content[0].text : '';
     
@@ -117,22 +132,41 @@ export async function POST(request: NextRequest) {
       sourceNotes: extractedData.sourceNotes || undefined,
     };
 
+    console.log('[Voice Recipe API] Successfully processed recipe:', recipe.title)
     return NextResponse.json({ 
       recipe,
       transcript // Return the original transcript for reference
     });
   } catch (error) {
-    console.error('Error processing voice recipe:', error);
+    console.error('[Voice Recipe API] Error details:', {
+      error: error instanceof Error ? {
+        name: error.name,
+        message: error.message,
+        stack: error.stack?.split('\n').slice(0, 5).join('\n')
+      } : error,
+      errorType: typeof error,
+      errorString: String(error)
+    });
     
-    if (error instanceof Error && error.message.includes('API key')) {
-      return NextResponse.json(
-        { error: 'Voice processing service not configured' },
-        { status: 503 }
-      );
+    if (error instanceof Error) {
+      if (error.message.includes('API key') || error.message.includes('401')) {
+        return NextResponse.json(
+          { error: 'Voice processing service authentication failed. Check API key configuration.' },
+          { status: 503 }
+        );
+      }
+      
+      if (error.message.includes('parse')) {
+        console.error('[Voice Recipe API] Failed to parse Claude response')
+        return NextResponse.json(
+          { error: 'Failed to understand the recipe format. Please try speaking more clearly.' },
+          { status: 422 }
+        );
+      }
     }
     
     return NextResponse.json(
-      { error: 'Failed to process voice input' },
+      { error: 'Failed to process voice input. Check server logs for details.' },
       { status: 500 }
     );
   }
