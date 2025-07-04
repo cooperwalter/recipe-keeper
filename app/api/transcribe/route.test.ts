@@ -177,7 +177,7 @@ describe('POST /api/transcribe', () => {
     const data = await response.json()
 
     expect(response.status).toBe(500)
-    expect(data.error).toBe('Failed to transcribe audio')
+    expect(data.error).toBe('Failed to transcribe audio. Check server logs for details.')
   })
 
   it('returns 503 in production without OPENAI_API_KEY for non-demo users', async () => {

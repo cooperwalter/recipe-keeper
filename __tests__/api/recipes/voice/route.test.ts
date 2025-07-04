@@ -148,7 +148,7 @@ describe('Voice Recipe API', () => {
     const data = await response.json()
 
     expect(response.status).toBe(503)
-    expect(data.error).toBe('Voice processing service not configured')
+    expect(data.error).toBe('Voice processing service authentication failed. Check API key configuration.')
   })
 
   it('should handle malformed Claude responses', async () => {
@@ -179,8 +179,8 @@ describe('Voice Recipe API', () => {
     const response = await POST(request)
     const data = await response.json()
 
-    expect(response.status).toBe(500)
-    expect(data.error).toBe('Failed to process voice input')
+    expect(response.status).toBe(422)
+    expect(data.error).toBe('Failed to understand the recipe format. Please try speaking more clearly.')
   })
 
   it('should handle partial recipe data', async () => {

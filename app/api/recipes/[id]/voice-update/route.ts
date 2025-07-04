@@ -20,20 +20,23 @@ interface RecipeChange {
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params
+    console.log('[Voice Update API] Processing voice update for recipe:', id)
+    
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    if (!user) {
+    if (authError || !user) {
+      console.error('[Voice Update API] Authentication error:', authError)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+    console.log('[Voice Update API] Authenticated user:', user.email)
 
     const { transcript } = await request.json()
 
-    console.log('Voice update request received:', { 
+    console.log('[Voice Update API] Request details:', { 
       recipeId: id, 
       transcriptLength: transcript?.length,
-      userId: user.id,
-      hasApiKey: !!process.env.ANTHROPIC_API_KEY
+      userId: user.id
     })
 
     if (!transcript) {
@@ -45,12 +48,21 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const recipe = await recipeService.getRecipe(id)
 
     if (!recipe) {
+      console.error('[Voice Update API] Recipe not found:', id)
       return NextResponse.json({ error: 'Recipe not found' }, { status: 404 })
     }
 
-    // Check if API key is available
-    if (!process.env.ANTHROPIC_API_KEY) {
-      console.error('ANTHROPIC_API_KEY is not set')
+    // Check and log API key status
+    const anthropicKey = process.env.ANTHROPIC_API_KEY
+    console.log('[Voice Update API] Anthropic API key status:', {
+      exists: !!anthropicKey,
+      length: anthropicKey?.length || 0,
+      prefix: anthropicKey?.substring(0, 10) || 'N/A',
+      suffix: anthropicKey ? '...' + anthropicKey.slice(-4) : 'N/A'
+    })
+
+    if (!anthropicKey) {
+      console.error('[Voice Update API] ANTHROPIC_API_KEY is not set')
       return NextResponse.json(
         { error: 'Voice processing is not configured. Please set ANTHROPIC_API_KEY environment variable.' },
         { status: 500 }
@@ -59,7 +71,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     // Initialize Anthropic client
     const anthropic = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
+      apiKey: anthropicKey,
     })
 
     // Create a prompt to interpret the voice command
@@ -139,7 +151,7 @@ Important:
 - Be conservative - only suggest changes clearly indicated by the user
 - If the user's intent is unclear, ask for clarification in the details field`
 
-    console.log('Calling Anthropic API...')
+    console.log('[Voice Update API] Calling Anthropic API...')
     const response = await anthropic.messages.create({
       model: 'claude-3-5-sonnet-20241022',
       max_tokens: 1000,
@@ -152,7 +164,7 @@ Important:
       ]
     })
 
-    console.log('Anthropic API response received:', {
+    console.log('[Voice Update API] Anthropic API response received:', {
       hasContent: !!response.content,
       contentLength: response.content.length
     })
@@ -207,34 +219,42 @@ Important:
       }
     }
     
-    console.log('Sending response:', { 
+    console.log('[Voice Update API] Sending response:', { 
       transcriptLength: responseData.transcript.length,
       changesCount: responseData.changes.length 
     })
     
     return NextResponse.json(responseData)
   } catch (error) {
-    console.error('Error processing voice update:', error)
+    console.error('[Voice Update API] Error details:', {
+      error: error instanceof Error ? {
+        name: error.name,
+        message: error.message,
+        stack: error.stack?.split('\n').slice(0, 5).join('\n')
+      } : error,
+      errorType: typeof error,
+      errorString: String(error)
+    })
     
     // Provide more specific error messages
     if (error instanceof Error) {
-      if (error.message.includes('ANTHROPIC_API_KEY') || error.message.includes('Missing ANTHROPIC_API_KEY')) {
+      if (error.message.includes('API key') || error.message.includes('401')) {
         return NextResponse.json(
-          { error: 'Failed to process voice command' },
-          { status: 500 }
+          { error: 'Voice processing authentication failed. Check API key configuration.' },
+          { status: 503 }
         )
       }
       
-      // Log the full error for debugging
-      console.error('Full error details:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
-      })
+      if (error.message.includes('parse')) {
+        return NextResponse.json(
+          { error: 'Failed to understand the voice command. Please try speaking more clearly.' },
+          { status: 422 }
+        )
+      }
     }
     
     return NextResponse.json(
-      { error: 'Failed to process voice command' },
+      { error: 'Failed to process voice command. Check server logs for details.' },
       { status: 500 }
     )
   }

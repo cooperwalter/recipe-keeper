@@ -18,13 +18,17 @@ export async function POST(
 ) {
   try {
     const { id } = await params
+    console.log('[Recipe Chat] Processing chat request for recipe:', id)
+    
     const supabase = await createClient()
     
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
+      console.error('[Recipe Chat] Authentication error:', authError)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+    console.log('[Recipe Chat] Authenticated user:', user.email)
 
     // Parse request body
     const { question, recipe, conversationHistory = [] }: ChatRequest = await request.json()
@@ -104,7 +108,17 @@ ${recipeContext}`
       }
     ]
 
+    // Log API key status (without exposing the key)
+    const anthropicKey = process.env.ANTHROPIC_API_KEY
+    console.log('[Recipe Chat] Anthropic API key status:', {
+      exists: !!anthropicKey,
+      length: anthropicKey?.length || 0,
+      prefix: anthropicKey?.substring(0, 10) || 'N/A',
+      suffix: anthropicKey ? '...' + anthropicKey.slice(-4) : 'N/A'
+    })
+
     // Get response from Claude
+    console.log('[Recipe Chat] Sending request to Anthropic API...')
     const completion = await anthropic.messages.create({
       model: 'claude-3-haiku-20240307',
       max_tokens: 1000,
@@ -113,6 +127,7 @@ ${recipeContext}`
       temperature: 0.7
     })
 
+    console.log('[Recipe Chat] Received response from Anthropic')
     const response = completion.content[0].type === 'text' 
       ? completion.content[0].text 
       : 'I apologize, but I was unable to generate a response. Please try again.'
@@ -120,7 +135,15 @@ ${recipeContext}`
     return NextResponse.json({ response })
 
   } catch (error) {
-    console.error('Recipe chat error:', error)
+    console.error('[Recipe Chat] Error details:', {
+      error: error instanceof Error ? {
+        name: error.name,
+        message: error.message,
+        stack: error.stack?.split('\n').slice(0, 5).join('\n')
+      } : error,
+      errorType: typeof error,
+      errorString: String(error)
+    })
     
     if (error instanceof Error && error.message.includes('API key')) {
       return NextResponse.json(
