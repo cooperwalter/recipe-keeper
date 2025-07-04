@@ -5,6 +5,7 @@ import { hasEnvVars } from "@/lib/utils";
 import Link from "next/link";
 import { ChefHat } from "lucide-react";
 import { ProfileNameHandler } from "@/components/profile/profile-name-handler";
+import { SiteLogo } from "@/components/navigation/site-logo";
 
 export default function ProtectedLayout({
   children,
@@ -18,7 +19,7 @@ export default function ProtectedLayout({
         <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
           <div className="w-full max-w-5xl flex justify-between items-center p-3 px-4 sm:px-5 text-sm">
             <div className="flex gap-3 sm:gap-5 items-center">
-              <Link href={"/"} className="font-bold text-lg sm:text-base">Recipe and Me</Link>
+              <SiteLogo className="font-bold text-lg sm:text-base" iconClassName="h-5 w-5 text-primary" />
               <div className="h-5 w-px bg-border" />
               <Link 
                 href={"/protected/recipes"} 
